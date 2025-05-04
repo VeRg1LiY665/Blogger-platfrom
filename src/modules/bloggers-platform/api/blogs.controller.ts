@@ -1,14 +1,15 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common';
 import { ApiParam } from '@nestjs/swagger';
+import { BlogsService } from '../application/blogs.service';
 
 @Controller('blogs')
 export class BlogsController {
     constructor(
-        protected blogsServices: BlogsServices,
+        protected blogsServices: BlogsService,
         protected blogsQRepo: BlogsQRepo
     ) {}
 
-    @Get()
+    /*    @Get()
     async getBlogs(req: Request, res: Response) {
         const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = paginationQueries(req);
         const blogs = await this.blogsQRepo.ShowAllBlogs({
@@ -27,23 +28,13 @@ export class BlogsController {
     @Get(':id')
     async getBlogByID(@Param('id') id: string): Promise<BlogViewDto> {
         return await this.blogsQRepo.ShowBlogByID(req.params.id);
-    }
+    }*/
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
-    async deleteBlog(req: Request, res: Response, next: NextFunction) {
-        try {
-            const foundBlog = await this.blogsQRepo.ShowBlogByID(req.params.id);
-            if (foundBlog === null) {
-                throw new NotFoundError('Blog Not Found');
-            }
-            (await this.blogsServices.DeleteBlog(req.params.id))
-                ? res.sendStatus(204)
-                : res.status(404).json('Error: blog not found');
-        } catch (err) {
-            next(err);
-        }
+    async deleteBlog(@Param('id') id: string): Promise<void> {
+        return this.blogsServices.deleteBlog(id);
     }
 
     @Post()
