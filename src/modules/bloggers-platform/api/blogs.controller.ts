@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiParam } from '@nestjs/swagger';
 import { BlogsService } from '../application/blogs.service';
-import { BlogViewDTO } from './view-dto/blogs.view-dto';
+import { BlogViewDto } from './view-dto/blogs.view-dto';
 import { CreateBlogInputDto } from './input-dto/blogs.input-dto';
 import { BlogsQRepository } from '../infrastructure/blogs.query-repository';
 import { UpdateBlogDto } from '../dto/create-blog.dto';
@@ -16,13 +16,13 @@ export class BlogsController {
     ) {}
 
     @Get()
-    async getBlogs(@Query() query: GetBlogsQueryParams): Promise<PaginatedViewDto<BlogViewDTO[]>> {
+    async getBlogs(@Query() query: GetBlogsQueryParams): Promise<PaginatedViewDto<BlogViewDto[]>> {
         return await this.blogsQRepo.findAll(query);
     }
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Get(':id')
-    async getBlogByID(@Param('id') id: string): Promise<BlogViewDTO> {
+    async getBlogByID(@Param('id') id: string): Promise<BlogViewDto> {
         return await this.blogsQRepo.findById(id);
     }
 
@@ -34,7 +34,7 @@ export class BlogsController {
     }
 
     @Post()
-    async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDTO> {
+    async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
         const newBlogId = await this.blogsServices.createBlog(body);
         return this.blogsQRepo.findById(newBlogId);
     }
