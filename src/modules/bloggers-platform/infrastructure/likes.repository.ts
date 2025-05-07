@@ -1,94 +1,65 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostModelType } from '../domain/post.entity';
+import { Like, LikeModelType } from '../domain/like.entity';
 
 export class LikesRepo {
-    onstructor(@InjectModel(Like.name) private likeModel: LikeModelType) {}
-    async ShowReactionForComment(userId:string, parentId:string, commentId:string) {
-        const res = await LikesModel
-            .findOne({
-                $and:[
-                    {parentId: parentId},
-                    {commentId: commentId}]
-            })
-            .lean()
+    constructor(@InjectModel(Like.name) private likeModel: LikeModelType) {}
+    async ShowReactionForComment(userId: string, parentId: string, commentId: string) {
+        const res = await this.likeModel.findOne({
+            $and: [{ parentId: parentId }, { commentId: commentId }]
+        });
+
         return res;
     }
 
-    async CreateLikeEntity (like:LikesDBType) {
-        const res = await LikesModel.insertOne(like)
+    async CreateLikeEntity(like: LikesDBType) {
+        const res = await LikesModel.insertOne(like);
         return res._id.toString();
     }
 
-    async UpdateLikeEntity (like:LikesDBType) {
-        const res = await LikesModel.updateOne(
-            {_id: like._id},
-            {$set:{...like}}
-        )
+    async UpdateLikeEntity(like: LikesDBType) {
+        const res = await LikesModel.updateOne({ _id: like._id }, { $set: { ...like } });
         return res.matchedCount === 1;
     }
 
-    async CountReactionsForComment(userId:string, parentId:string, commentId:string) {
-        const likes = await LikesModel.countDocuments(
-            {$and:[
-                    {userId : userId},  //TODO проверить работу без userId
-                    {commentId : commentId},
-                    {status: 'Like'}
-                ]}
-        )
+    async CountReactionsForComment(userId: string, parentId: string, commentId: string) {
+        const likes = await LikesModel.countDocuments({
+            $and: [
+                { userId: userId }, //TODO проверить работу без userId
+                { commentId: commentId },
+                { status: 'Like' }
+            ]
+        });
 
-        const dislikes = await LikesModel.countDocuments(
-            {$and:[
-                    {userId : userId},
-                    {commentId : commentId},
-                    {status: 'Dislike'}
-                ]}
-        )
+        const dislikes = await LikesModel.countDocuments({
+            $and: [{ userId: userId }, { commentId: commentId }, { status: 'Dislike' }]
+        });
 
-        return {likes, dislikes};
+        return { likes, dislikes };
     }
 
-    async ShowReactionForPost(parentId:string, postId:string) {
-        const res = await LikesModel
-            .findOne({
-                $and:[
-                    {parentId: parentId},
-                    {postId: postId}]
-            })
-            .lean()
+    async ShowReactionForPost(parentId: string, postId: string) {
+        const res = await LikesModel.findOne({
+            $and: [{ parentId: parentId }, { postId: postId }]
+        });
+
         return res;
     }
 
-    async CountReactionsForPost(postId:string) {
-        const likes = await LikesModel.countDocuments(
-            {$and:[
-                    {postId : postId},
-                    {status: 'Like'}
-                ]}
-        )
+    async CountReactionsForPost(postId: string) {
+        const likes = await LikesModel.countDocuments({ $and: [{ postId: postId }, { status: 'Like' }] });
 
-        const dislikes = await LikesModel.countDocuments(
-            {$and:[
-                    {postId : postId},
-                    {status: 'Dislike'}
-                ]}
-        )
+        const dislikes = await LikesModel.countDocuments({ $and: [{ postId: postId }, { status: 'Dislike' }] });
 
-        return {likes, dislikes};
+        return { likes, dislikes };
     }
 
-    async ShowLastReactionsForPost(postId:string) {
+    async ShowLastReactionsForPost(postId: string) {
+        const res = await LikesModel.find({
+            $and: [{ postId: postId }, { status: 'Like' }]
+        })
+            .sort({ ['addedAt']: -1 })
+            .limit(3);
 
-        const res = await LikesModel
-            .find({
-                $and:[
-                    {postId:postId},
-                    {status: 'Like'}
-                ]}
-            )
-            .sort({['addedAt'] : -1})
-            .limit(3)
-            .lean()
-
-        return res
+        return res;
     }
 }
