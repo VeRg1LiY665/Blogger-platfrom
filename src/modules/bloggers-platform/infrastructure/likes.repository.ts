@@ -1,9 +1,10 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { Like, LikeModelType } from '../domain/like.entity';
+import { Like, LikeDocument, LikeModelType } from '../domain/like.entity';
 
 export class LikesRepo {
     constructor(@InjectModel(Like.name) private likeModel: LikeModelType) {}
-    async ShowReactionForComment(userId: string, parentId: string, commentId: string) {
+
+    async ShowReactionForComment(parentId: string, commentId: string) {
         const res = await this.likeModel.findOne({
             $and: [{ parentId: parentId }, { commentId: commentId }]
         });
@@ -11,26 +12,16 @@ export class LikesRepo {
         return res;
     }
 
-    async CreateLikeEntity(like: LikesDBType) {
-        const res = await LikesModel.insertOne(like);
-        return res._id.toString();
+    async save(like: LikeDocument) {
+        await like.save();
     }
 
-    async UpdateLikeEntity(like: LikesDBType) {
-        const res = await LikesModel.updateOne({ _id: like._id }, { $set: { ...like } });
-        return res.matchedCount === 1;
-    }
-
-    async CountReactionsForComment(userId: string, parentId: string, commentId: string) {
-        const likes = await LikesModel.countDocuments({
-            $and: [
-                { userId: userId }, //TODO проверить работу без userId
-                { commentId: commentId },
-                { status: 'Like' }
-            ]
+    async CountReactionsForComment(userId: string, commentId: string) {
+        const likes = await this.likeModel.countDocuments({
+            $and: [{ userId: userId }, { commentId: commentId }, { status: 'Like' }]
         });
 
-        const dislikes = await LikesModel.countDocuments({
+        const dislikes = await this.likeModel.countDocuments({
             $and: [{ userId: userId }, { commentId: commentId }, { status: 'Dislike' }]
         });
 
@@ -38,7 +29,7 @@ export class LikesRepo {
     }
 
     async ShowReactionForPost(parentId: string, postId: string) {
-        const res = await LikesModel.findOne({
+        const res = await this.likeModel.findOne({
             $and: [{ parentId: parentId }, { postId: postId }]
         });
 
@@ -46,17 +37,18 @@ export class LikesRepo {
     }
 
     async CountReactionsForPost(postId: string) {
-        const likes = await LikesModel.countDocuments({ $and: [{ postId: postId }, { status: 'Like' }] });
+        const likes = await this.likeModel.countDocuments({ $and: [{ postId: postId }, { status: 'Like' }] });
 
-        const dislikes = await LikesModel.countDocuments({ $and: [{ postId: postId }, { status: 'Dislike' }] });
+        const dislikes = await this.likeModel.countDocuments({ $and: [{ postId: postId }, { status: 'Dislike' }] });
 
         return { likes, dislikes };
     }
 
     async ShowLastReactionsForPost(postId: string) {
-        const res = await LikesModel.find({
-            $and: [{ postId: postId }, { status: 'Like' }]
-        })
+        const res = await this.likeModel
+            .find({
+                $and: [{ postId: postId }, { status: 'Like' }]
+            })
             .sort({ ['addedAt']: -1 })
             .limit(3);
 

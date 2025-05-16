@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 import { CreatePostDomainDto } from './dto/create-post.domain.dto';
-import { UpdatePostDto } from '../dto/update-post.dto';
+import { UpdatePostDomainDto } from './dto/update-post.domain.dto';
+import { extendedLikesInfo, extendedLikesInfoSchema } from './extendedLikesInfo.schema';
 
 @Schema()
 export class Post {
@@ -23,12 +24,8 @@ export class Post {
     @Prop({ type: String, required: true })
     createdAt: string;
 
-    get id() {
-        //Может тут вообще не нужно у созданного поста id возвращать?
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-return
-        return this._id.toString();
-    }
+    @Prop({ type: extendedLikesInfoSchema })
+    extendedLikesInfo: extendedLikesInfo;
 
     static createInstance(dto: CreatePostDomainDto): PostDocument {
         const post = new this();
@@ -39,16 +36,17 @@ export class Post {
         return post as PostDocument;
     }
 
-    update(dto: UpdatePostDto) {
+    update(dto: UpdatePostDomainDto) {
         this.title = dto.title;
         this.shortDescription = dto.shortDescription;
         this.content = dto.content;
+        this.blogId = dto.blogId;
     }
 }
 
-export const BlogSchema = SchemaFactory.createForClass(Post);
+export const PostSchema = SchemaFactory.createForClass(Post);
 
-BlogSchema.loadClass(Post);
+PostSchema.loadClass(Post);
 
 //Типизация документа
 export type PostDocument = HydratedDocument<Post>;

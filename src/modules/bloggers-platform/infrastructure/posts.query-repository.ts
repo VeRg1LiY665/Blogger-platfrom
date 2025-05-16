@@ -1,6 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
-import { BlogViewDto } from '../api/view-dto/blogs.view-dto';
 import { FilterQuery } from 'mongoose';
 import { NotFoundException } from '@nestjs/common';
 import { Post, PostModelType } from '../domain/post.entity';
@@ -45,6 +44,6 @@ export class PostsQRepository {
             throw new NotFoundException('No post found');
         }
 
-        return BlogViewDto.mapToView(post);
+        return PostViewDto.mapToView(post);
     }
 }

@@ -1,34 +1,53 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Put } from '@nestjs/common';
 import { PostsService } from '../application/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
+import { GetPostsQueryParams } from './input-dto/get-posts-query-params';
+import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
+import { PostViewDto } from './view-dto/posts.view-dto';
+import { LikesService } from '../application/likes.service';
+import { LikeInputDto } from './input-dto/likes.input-dto';
 
 @Controller('posts')
 export class PostsController {
-    constructor(private readonly postsService: PostsService) {}
+    constructor(
+        private postsService: PostsService,
+        private likesService: LikesService
+    ) {}
 
     @Post()
-    create(@Body() createPostDto: CreatePostDto) {
+    async create(@Body() createPostDto: CreatePostDto) {
         return this.postsService.create(createPostDto);
     }
 
     @Get()
-    findAll() {
-        return this.postsService.findAll();
+    async findAll(@Query() query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
+        return await this.postsService.findAll(query);
     }
 
     @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.postsService.findOne(+id);
+    async findOne(@Param('id') id: string) {
+        return await this.postsService.findOne(id);
     }
 
-    @Patch(':id')
-    update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-        return this.postsService.update(+id, updatePostDto);
+    @Put(':id')
+    async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
+        return await this.postsService.update(id, updatePostDto);
     }
 
     @Delete(':id')
-    remove(@Param('id') id: string) {
-        return this.postsService.remove(+id);
+    async remove(@Param('id') id: string) {
+        return await this.postsService.remove(id);
+    }
+
+    @Put(':id/like-status')
+    async like(@Param('id') id: string, @Body() inputLikeDto: LikeInputDto) {
+        const dto = {
+            likeStatus: inputLikeDto.likeStatus,
+            postId: id,
+            parentId: '' //TODO Sessions
+        };
+
+        return await this.likesService.createForPost(dto);
     }
 }

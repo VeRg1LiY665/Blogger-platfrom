@@ -1,10 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreateLikeDomainDto } from './dto/create-like.domain.dto';
 import { HydratedDocument, Model } from 'mongoose';
+import { UpdateLikeDomainDto } from './dto/update-like.domain.dto';
 
 @Schema()
 export class Like {
-    @Prop({ type: String, required: true })
+    @Prop({
+        type: String,
+        required: true,
+        enum: {
+            values: ['Like', 'Dislike', 'None'],
+            message: 'likeStatus {VALUE} is not supported'
+        }
+    })
     status: string;
 
     @Prop({ type: String, required: true, default: '' })
@@ -33,7 +41,9 @@ export class Like {
         return like as LikeDocument;
     }
 
-    static update() {}
+    update(dto: UpdateLikeDomainDto) {
+        this.status = dto.likeStatus;
+    }
 }
 
 export const LikeSchema = SchemaFactory.createForClass(Like);
