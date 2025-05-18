@@ -15,12 +15,13 @@ export class PostsService {
         private postModel: PostModelType,
         private postsRepository: PostsRepository,
         private postsQRepository: PostsQRepository,
-        private blogsExtQRepository: BlogsExtQRepository
+        private blogsExtQRepository: BlogsExtQRepository //TODO Убрать экст репо - они нужны для кросс-моульного импорта
     ) {}
 
     async create(createPostDto: CreatePostDto) {
-        await this.blogsExtQRepository.findById(createPostDto.blogId); //check for blog existence
-        const newPost = this.postModel.createInstance(createPostDto);
+        const foundBlog = await this.blogsExtQRepository.findById(createPostDto.blogId); //check for blog existence
+        const createPostDomainDto = { ...createPostDto, blogName: foundBlog.name };
+        const newPost = this.postModel.createInstance(createPostDomainDto);
         await this.postsRepository.save(newPost);
         return newPost._id.toString();
     }

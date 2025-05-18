@@ -1,3 +1,5 @@
 import { CreatePostDto } from '../../dto/create-post.dto';
 
-export class CreatePostDomainDto extends CreatePostDto {}
+export class CreatePostDomainDto extends CreatePostDto {
+    blogName: string;
+}

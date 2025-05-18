@@ -13,11 +13,11 @@ export class PostsQRepository {
         let filter: FilterQuery<Post> = {};
         if (query.searchNameTerm) {
             filter = {
-                name: { $regex: query.searchNameTerm, $options: 'i' }
+                title: { $regex: query.searchNameTerm, $options: 'i' }
             };
         }
 
-        const blogs = await this.postModel
+        const posts = await this.postModel
             .find(filter)
             .sort({ [query.sortBy]: query.sortDirection })
             .skip(query.calculateSkip())
@@ -25,7 +25,7 @@ export class PostsQRepository {
 
         const totalCount = await this.postModel.countDocuments(filter);
 
-        const items = blogs.map((x) => PostViewDto.mapToView(x));
+        const items = posts.map((x) => PostViewDto.mapToView(x));
 
         return PaginatedViewDto.mapToView({
             items,
