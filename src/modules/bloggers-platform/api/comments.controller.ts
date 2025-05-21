@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { CommentsService } from '../application/comments.service';
-import { CreateCommentDto } from '../../../comments/dto/create-comment.dto';
-import { UpdateCommentDto } from '../../../comments/dto/update-comment.dto';
+import { CreateCommentDto } from '../dto/create-comment.dto';
+import { UpdateCommentDto } from '../dto/update-comment.dto';
+import { GetCommentsQueryParams } from './input-dto/get-comments-query-params';
 
 @Controller('comments')
 export class CommentsController {
@@ -12,9 +13,9 @@ export class CommentsController {
         return this.commentsService.create(createCommentDto);
     }
 
-    @Get()
-    findAll() {
-        return this.commentsService.findAll();
+    @Get(':id')
+    findAll(@Param('id') id: string, @Query() query: GetCommentsQueryParams) {
+        return this.commentsService.findForPost(id, query);
     }
 
     @Get(':id')

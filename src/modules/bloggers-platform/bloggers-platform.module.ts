@@ -7,10 +7,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Blog, BlogSchema } from './domain/blog.entity';
 import { PostsController } from './api/posts.controller';
 import { PostsService } from './application/posts.service';
+import { CommentsController } from './api/comments.controller';
+import { CommentsService } from './application/comments.service';
 
 @Module({
     imports: [MongooseModule.forFeature([{ name: Blog.name, schema: BlogSchema }])],
-    controllers: [BlogsController, PostsController],
-    providers: [BlogsService, BlogsRepository, BlogsQRepository, PostsService]
+    controllers: [BlogsController, PostsController, CommentsController],
+    providers: [BlogsService, BlogsRepository, BlogsQRepository, PostsService, CommentsService]
 })
 export class BloggersPlatformModule {}
