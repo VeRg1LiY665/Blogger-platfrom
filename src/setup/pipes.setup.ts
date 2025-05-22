@@ -5,9 +5,9 @@ export function pipesSetup(app: INestApplication) {
     //На следующем занятии рассмотрим подробнее
     app.useGlobalPipes(
         new ValidationPipe({
-            //class-transformer создает экземпляр dto
+            //class-transformer создает экземпляр input-dto
             //соответственно применятся значения по-умолчанию
-            //и методы классов dto
+            //и методы классов input-dto
             transform: true
         })
     );

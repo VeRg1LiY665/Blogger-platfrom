@@ -1,4 +1,4 @@
-//dto для запроса списка юзеров с пагинацией, сортировкой, фильтрами
+//input-dto для запроса списка юзеров с пагинацией, сортировкой, фильтрами
 import { BlogsSortBy } from './blogs-sort-by';
 import { BaseQueryParams } from '../../../../core/dto/base.query-params.input-dto';
 
