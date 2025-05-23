@@ -7,6 +7,7 @@ import { PostsRepository } from '../infrastructure/posts.repository';
 import { CommentsRepository } from '../infrastructure/comments.repository';
 import { CommentsQRepository } from '../infrastructure/comments.query-repository';
 import { GetCommentsQueryParams } from '../api/input-dto/get-comments-query-params';
+import { UsersExtQRepository } from '../../user-accounts/infrastructure/external-query/users.external-query-repository';
 
 @Injectable()
 export class CommentsService {

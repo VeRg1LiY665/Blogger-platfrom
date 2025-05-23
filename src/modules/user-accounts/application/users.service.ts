@@ -5,6 +5,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { UserViewDto } from '../api/view-dto/users-view.dto';
 import { GetUsersQueryParams } from '../api/input-dto/get-users-query-params';
 import { UsersRepository } from '../infrastructure/users.repository';
+import { UsersQRepository } from '../infrastructure/users.query-repository';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +17,7 @@ export class UsersService {
     ) {}
 
     async createUser(dto: CreateUserDto): Promise<UserViewDto> {
-        const newUser = await this.userModel.createInstance(dto);
+        const newUser = this.userModel.createInstance(dto);
 
         await this.usersRepository.save(newUser);
 
@@ -34,5 +35,13 @@ export class UsersService {
 
     async getAllUsers(query: GetUsersQueryParams) {
         return await this.usersQRepository.findAll(query);
+    }
+
+    async findById(id: string) {
+        const user = await this.usersQRepository.findById(id);
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+        return user;
     }
 }
