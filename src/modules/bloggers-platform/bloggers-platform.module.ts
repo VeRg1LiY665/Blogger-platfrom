@@ -15,13 +15,23 @@ import { PostsRepository } from './infrastructure/posts.repository';
 import { PostsQRepository } from './infrastructure/posts.query-repository';
 import { CommentsRepository } from './infrastructure/comments.repository';
 import { CommentsQRepository } from './infrastructure/comments.query-repository';
+import { BlogsExtQRepository } from './infrastructure/external-query/blogs.external-query-repository';
+import { UsersExtQRepository } from '../user-accounts/infrastructure/external-query/users.external-query-repository';
+import { User, UserSchema } from '../user-accounts/domain/user.entity';
+import { LikesService } from './application/likes.service';
+import { LikesRepo } from './infrastructure/likes.repository';
+import { PostsExtRepository } from './infrastructure/external/posts.external-repository';
+import { Like, LikeSchema } from './domain/like.entity';
+import { UsersAccountsModule } from '../user-accounts/user-accounts.module';
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             { name: Blog.name, schema: BlogSchema },
             { name: Post.name, schema: PostSchema },
-            { name: Comment.name, schema: CommentSchema }
+            { name: Comment.name, schema: CommentSchema },
+            { name: User.name, schema: UserSchema },
+            { name: Like.name, schema: LikeSchema }
         ])
     ],
     controllers: [BlogsController, PostsController, CommentsController],
@@ -29,12 +39,16 @@ import { CommentsQRepository } from './infrastructure/comments.query-repository'
         BlogsService,
         BlogsRepository,
         BlogsQRepository,
+        BlogsExtQRepository,
         PostsService,
         PostsRepository,
         PostsQRepository,
         CommentsService,
         CommentsRepository,
-        CommentsQRepository
+        CommentsQRepository,
+        LikesService,
+        LikesRepo,
+        UsersExtQRepository
     ]
 })
 export class BloggersPlatformModule {}

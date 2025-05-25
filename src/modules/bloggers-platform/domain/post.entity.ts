@@ -33,6 +33,8 @@ export class Post {
         post.shortDescription = dto.shortDescription;
         post.content = dto.content;
         post.createdAt = new Date().toISOString();
+        post.blogId = dto.blogId;
+        post.blogName = dto.blogName;
         return post as PostDocument;
     }
 

@@ -21,6 +21,7 @@ export class PostsService {
     async create(createPostDto: CreatePostDto) {
         const foundBlog = await this.blogsExtQRepository.findById(createPostDto.blogId); //check for blog existence
         const createPostDomainDto = { ...createPostDto, blogName: foundBlog.name };
+
         const newPost = this.postModel.createInstance(createPostDomainDto);
         await this.postsRepository.save(newPost);
         return newPost._id.toString();
@@ -33,6 +34,7 @@ export class PostsService {
 
     async findOne(id: string) {
         const post = await this.postsQRepository.findById(id);
+        console.log(post);
         if (!post) {
             throw new NotFoundException(`Post with id ${id} not found`);
         }

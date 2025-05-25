@@ -1,22 +1,26 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { LikesRepo } from '../infrastructure/likes.repository';
-import { PostsExtRepository } from '../infrastructure/external/posts.external-repository';
 import { CreateLikeForCommentDto, CreateLikeForPostDto } from '../dto/create-like.dto';
-import { LikeDocument, LikeModelType } from '../domain/like.entity';
+import { Like, LikeModelType } from '../domain/like.entity';
 import { NewestLike } from '../domain/extendedLikesInfo.schema';
+import { CommentsRepository } from '../infrastructure/comments.repository';
+import { UsersExtQRepository } from '../../user-accounts/infrastructure/external-query/users.external-query-repository';
+import { PostsRepository } from '../infrastructure/posts.repository';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class LikesService {
     constructor(
+        @InjectModel(Like.name)
         private likeModel: LikeModelType,
-        protected likesRepo: LikesRepo,
-        protected commentsRepo: CommentsRepo,
-        protected postsExtRepo: PostsExtRepository,
-        protected usersRepo: UsersRepo
+        private likesRepo: LikesRepo,
+        //private commentsRepo: CommentsRepository,
+        private postsRepo: PostsRepository,
+        private UsersExtQRepository: UsersExtQRepository
     ) {}
 
     async createForPost(dto: CreateLikeForPostDto): Promise<void> {
-        const post = await this.postsExtRepo.findById(dto.postId);
+        const post = await this.postsRepo.findById(dto.postId);
         if (!post) {
             throw new NotFoundException(`Post with postId ${dto.postId} not found`);
         }
@@ -42,9 +46,9 @@ export class LikesService {
         const lastLikes = await this.likesRepo.ShowLastReactionsForPost(dto.postId);
 
         if (lastLikes) {
-            const newestLikes = [];
+            const newestLikes: NewestLike[] = [];
             for (let i = 0; i < lastLikes.length; i++) {
-                const user = await this.usersRepo.ShowUser(lastLikes[i].parentId);
+                const user = await this.UsersExtQRepository.findById(lastLikes[i].parentId);
 
                 if (user !== null) {
                     newestLikes[i] = new NewestLike(lastLikes[i].addedAt, lastLikes[i].parentId, user.login);
@@ -58,7 +62,7 @@ export class LikesService {
         post.extendedLikesInfo.likesCount = likes;
         post.extendedLikesInfo.dislikesCount = dislikes;
 
-        await this.postsExtRepo.save(post);
+        await this.postsRepo.save(post);
 
         return;
     }

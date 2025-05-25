@@ -1,5 +1,5 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { CommentModeltype } from '../domain/comment.entity';
+import { Comment, CommentModeltype } from '../domain/comment.entity';
 import { NotFoundException } from '@nestjs/common';
 import { CommentViewDto } from '../api/view-dto/comments.view-dto';
 import { GetCommentsQueryParams } from '../api/input-dto/get-comments-query-params';
