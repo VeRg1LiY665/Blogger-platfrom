@@ -24,7 +24,7 @@ export class Post {
     @Prop({ type: String, required: true })
     createdAt: string;
 
-    @Prop({ type: extendedLikesInfoSchema })
+    @Prop({ type: extendedLikesInfoSchema, default: () => ({}) })
     extendedLikesInfo: extendedLikesInfo;
 
     static createInstance(dto: CreatePostDomainDto): PostDocument {

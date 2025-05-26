@@ -46,4 +46,28 @@ export class PostsQRepository {
 
         return PostViewDto.mapToView(post);
     }
+
+    async findForBlog(blogId: string, query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
+        let filter: FilterQuery<Post> = {};
+        filter = {
+            blogId: blogId
+        };
+
+        const posts = await this.postModel
+            .find(filter)
+            .sort({ [query.sortBy]: query.sortDirection })
+            .skip(query.calculateSkip())
+            .limit(query.pageSize);
+
+        const totalCount = await this.postModel.countDocuments(filter);
+
+        const items = posts.map((x) => PostViewDto.mapToView(x));
+
+        return PaginatedViewDto.mapToView({
+            items,
+            totalCount,
+            page: query.pageNumber,
+            size: query.pageSize
+        });
+    }
 }

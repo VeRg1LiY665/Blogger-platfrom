@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Query, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query, Put, HttpCode, HttpStatus } from '@nestjs/common';
 import { PostsService } from '../application/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
@@ -17,7 +17,8 @@ export class PostsController {
 
     @Post()
     async create(@Body() createPostDto: CreatePostDto) {
-        return this.postsService.create(createPostDto);
+        const postId = await this.postsService.create(createPostDto);
+        return await this.postsService.findOne(postId);
     }
 
     @Get()
@@ -31,11 +32,14 @@ export class PostsController {
     }
 
     @Put(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
     async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-        return await this.postsService.update(id, updatePostDto);
+        await this.postsService.update(id, updatePostDto);
+        return;
     }
 
     @Delete(':id')
+    @HttpCode(HttpStatus.NO_CONTENT)
     async remove(@Param('id') id: string) {
         return await this.postsService.remove(id);
     }

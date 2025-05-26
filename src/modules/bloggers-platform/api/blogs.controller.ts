@@ -7,11 +7,16 @@ import { BlogsQRepository } from '../infrastructure/blogs.query-repository';
 import { UpdateBlogDto } from '../dto/create-blog.dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
+import { PostsService } from '../application/posts.service';
+import { GetPostsQueryParams } from './input-dto/get-posts-query-params';
+import { CreateBlogPostDto, CreatePostDto } from '../dto/create-post.dto';
+import { PostViewDto } from './view-dto/posts.view-dto';
 
 @Controller('blogs')
 export class BlogsController {
     constructor(
         protected blogsServices: BlogsService,
+        protected postsService: PostsService,
         protected blogsQRepo: BlogsQRepository
     ) {}
 
@@ -30,13 +35,13 @@ export class BlogsController {
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     async deleteBlog(@Param('id') id: string): Promise<void> {
-        return this.blogsServices.deleteBlog(id);
+        return await this.blogsServices.deleteBlog(id);
     }
 
     @Post()
     async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
         const newBlogId = await this.blogsServices.createBlog(body);
-        return this.blogsQRepo.findById(newBlogId);
+        return await this.blogsQRepo.findById(newBlogId);
     }
 
     @Put(':id')
@@ -44,5 +49,16 @@ export class BlogsController {
     async updateBlog(@Param('id') id: string, @Body() body: UpdateBlogDto): Promise<void> {
         await this.blogsServices.updateBlog(id, body);
         return;
+    }
+
+    @Get(':id/posts')
+    async getBlogPosts(@Param('id') id: string, @Query() query: GetPostsQueryParams) {
+        return await this.postsService.findForBlog(id, query);
+    }
+
+    @Post(':id/posts')
+    async createPostForBlog(@Param('id') id: string, @Body() body: CreateBlogPostDto): Promise<PostViewDto> {
+        const postId = await this.postsService.createForBlog(id, body);
+        return await this.postsService.findOne(postId);
     }
 }
