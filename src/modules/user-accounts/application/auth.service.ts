@@ -11,8 +11,8 @@ export class AuthService {
         private jwtService: JwtService,
         private cryptoService: CryptoService
     ) {}
-    async validateUser(login: string, password: string): Promise<UserContextDto | null> {
-        const user = await this.usersRepository.findByLogin(login);
+    async validateUser(loginOrEmail: string, password: string): Promise<UserContextDto | null> {
+        const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
         if (!user) {
             return null;
         }
@@ -26,11 +26,17 @@ export class AuthService {
             return null;
         }
 
-        return { id: user.id.toString() };
+        return { id: user._id.toString() };
     }
 
     async login(userId: string) {
-        const accessToken = this.jwtService.sign({ id: userId } as UserContextDto);
+        const accessToken = this.jwtService.sign(
+            { id: userId },
+            {
+                secret: 'kjsjhd67t43b9v',
+                expiresIn: 10000 //10 min in ms
+            }
+        );
 
         return {
             accessToken

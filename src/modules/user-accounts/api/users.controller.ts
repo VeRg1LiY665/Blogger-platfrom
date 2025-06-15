@@ -11,8 +11,10 @@ export class UsersController {
 
     @Post()
     async create(@Body() createUserDto: InputUserDto): Promise<UserViewDto> {
-        return await this.usersService.createUser(createUserDto);
+        const createdId = await this.usersService.createUser(createUserDto);
+        return await this.usersService.findById(createdId.toString());
     }
+
     @Get()
     async findAll(@Query() query: GetUsersQueryParams): Promise<PaginatedViewDto<UserViewDto[]>> {
         return await this.usersService.getAllUsers(query);

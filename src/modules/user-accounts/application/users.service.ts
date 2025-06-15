@@ -1,15 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserModelType } from '../domain/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { UserViewDto } from '../api/view-dto/users-view.dto';
 import { GetUsersQueryParams } from '../api/input-dto/get-users-query-params';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { UsersQRepository } from '../infrastructure/users.query-repository';
-import { Types } from 'mongoose';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 import { CryptoService } from './crypto.service';
+import { randomUUID } from 'node:crypto';
+import { EmailService } from '../../notifications/email.service';
+import { InputConfirmEmailDto } from '../api/input-dto/input-registration-confirmation';
 
 @Injectable()
 export class UsersService {
@@ -47,15 +48,34 @@ export class UsersService {
     async registerUser(dto: CreateUserDto) {
         const createdUserId = await this.createUser(dto);
 
-        const confirmCode = 'uuid';
+        const confirmCode = randomUUID();
 
-        const user = await this.usersRepository.findOrNotFoundFail(new Types.ObjectId(createdUserId));
+        const user = await this.usersRepository.findOrNotFoundFail(createdUserId);
 
         user.setConfirmationCode(confirmCode);
         await this.usersRepository.save(user);
 
         this.emailService.sendConfirmationEmail(user.email, confirmCode).catch(console.error);
+
+        return;
     }
+
+    async confirmRegistration(dto: InputConfirmEmailDto) {
+        const user = await this.usersRepository.findByUUID(dto.code);
+        if (!user) {
+            throw new BadRequestException('User with passed confirmation code does not exist');
+        }
+
+        if (user.emailConfirmation.isConfirmed == true) {
+            throw new BadRequestException('User email has been already confirmed');
+        }
+
+        if (Date.now() - user.emailConfirmation.expirationDate.getTime() > 86400000) {
+            throw new BadRequestException('Email confirmation link has expired');
+        }
+        //TODO сделать update user entity
+    }
+
     async removeUser(id: string): Promise<void> {
         const user = await this.usersRepository.findById(id);
         if (!user) {

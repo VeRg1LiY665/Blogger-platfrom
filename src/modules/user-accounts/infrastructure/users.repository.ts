@@ -18,8 +18,34 @@ export class UsersRepository {
         return result;
     }
 
-    findByLogin(login: string): Promise<UserDocument | null> {
-        return this.userModel.findOne({ login });
+    async findByUUID(uuid: string): Promise<UserDocument | null> {
+        const result = await this.userModel.findOne({ uuid });
+
+        return result;
+    }
+
+    async findByLogin(login: string): Promise<UserDocument | null> {
+        return await this.userModel.findOne({ login });
+    }
+
+    async findByLoginOrEmail(searchData: string): Promise<UserDocument | null> {
+        const filter: any = {};
+
+        switch (true) {
+            case searchData.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/) !== null:
+                filter.email = searchData;
+                break;
+            default:
+                filter.login = searchData;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        const user = await this.userModel.findOne(filter);
+
+        if (!user) {
+            return null;
+        }
+        return user;
     }
 
     async findOrNotFoundFail(id: Types.ObjectId): Promise<UserDocument> {

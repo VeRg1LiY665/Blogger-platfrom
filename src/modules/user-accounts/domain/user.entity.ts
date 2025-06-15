@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model } from 'mongoose';
 import { CreateUserDomainDto } from './dto/CreateUserDomainDto';
+import { emailConfirmation, emailConfirmationSchema } from './emailConfirmation.schema';
+import { passwordRecovery, passwordRecoverySchema } from './passwordRecovery.schema';
 
 export const loginConstraints = {
     minLength: 3,
@@ -27,7 +29,7 @@ export class User {
      * @type {string}
      * @required
      */
-    @Prop({ type: String, required: true })
+    @Prop({ type: String, required: true, unique: true, ...loginConstraints })
     login: string;
 
     /**
@@ -54,6 +56,12 @@ export class User {
      */
     createdAt: Date;
 
+    @Prop({ type: emailConfirmationSchema, required: true })
+    emailConfirmation: emailConfirmation;
+
+    @Prop({ type: passwordRecoverySchema, required: true })
+    passwordRecovery: passwordRecovery;
+
     /**
      * Factory method to create a User instance
      * @param {CreateUserDto} dto - The data transfer object for user creation
@@ -65,12 +73,17 @@ export class User {
         user.login = dto.login;
         user.passwordHash = dto.passwordHash;
         user.createdAt = new Date();
+        user.emailConfirmation.confirmationCode = '';
+        user.emailConfirmation.expirationDate = new Date();
+        user.emailConfirmation.isConfirmed = false;
+        user.passwordRecovery.expirationDate = new Date();
+        user.passwordRecovery.recoveryCode = '';
 
         return user as UserDocument;
     }
 
     setConfirmationCode(code: string) {
-        //logic
+        this.emailConfirmation.confirmationCode = code;
     }
 
     /**

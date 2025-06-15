@@ -11,6 +11,7 @@ import { JwtAuthGuard } from '../guards/bearer/jwt-auth.guard';
 import { JwtOptionalAuthGuard } from '../guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../guards/decorators/extract-user-if-exists-from-request.decorator';
 import { AuthQueryRepository } from '../infrastructure/auth.query-repository';
+import { InputConfirmEmailDto } from './input-dto/input-registration-confirmation';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +23,12 @@ export class AuthController {
     @Post('registration')
     registration(@Body() body: InputUserDto): Promise<void> {
         return this.usersService.registerUser(body);
+    }
+
+    @Post('registration-confirmation')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    registrationConfirmation(@Body() body: InputConfirmEmailDto): Promise<void> {
+        return this.usersService.confirmRegistration(body);
     }
 
     @Post('login')
@@ -51,7 +58,7 @@ export class AuthController {
         return this.authQueryRepository.me(user.id);
     }
 
-    @ApiBearerAuth()
+    /* @ApiBearerAuth()
     @Get('me-or-default')
     @UseGuards(JwtOptionalAuthGuard)
     async meOrDefault(@ExtractUserIfExistsFromRequest() user: UserContextDto): Promise<Nullable<MeViewDto>> {
@@ -66,5 +73,5 @@ export class AuthController {
                 lastName: null
             };
         }
-    }
+    }*/
 }
