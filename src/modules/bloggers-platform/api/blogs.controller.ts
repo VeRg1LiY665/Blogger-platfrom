@@ -40,7 +40,6 @@ export class BlogsController {
 
     @Post()
     async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
-        console.log(body);
         const newBlogId = await this.blogsServices.createBlog(body);
         return await this.blogsQRepo.findById(newBlogId);
     }

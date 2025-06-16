@@ -39,7 +39,7 @@ export function pipesSetup(app: INestApplication) {
             //и методы классов dto
             transform: true,
 
-            whitelist: true,
+            //whitelist: true,
             //Выдавать первую ошибку для каждого поля
             stopAtFirstError: true,
             //Для преобразования ошибок класс валидатора в необходимый вид
