@@ -15,6 +15,7 @@ import { InputConfirmEmailDto } from './input-dto/input-registration-confirmatio
 import { InputEmailResendingDto } from './input-dto/input-email-resending';
 import { InputPasswordRecoveryDto } from './input-dto/input-password-recovery';
 import { InputNewPasswordDto } from './input-dto/input-new-password-dto';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -24,18 +25,21 @@ export class AuthController {
         private authQueryRepository: AuthQueryRepository
     ) {}
     @Post('registration')
+    @UseGuards(ThrottlerGuard)
     registration(@Body() body: InputUserDto): Promise<void> {
         return this.usersService.registerUser(body);
     }
 
     @Post('registration-confirmation')
     @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(ThrottlerGuard)
     registrationConfirmation(@Body() body: InputConfirmEmailDto): Promise<void> {
         return this.usersService.confirmRegistration(body);
     }
 
     @Post('registration-email-resending')
     @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(ThrottlerGuard)
     emailResending(@Body() body: InputEmailResendingDto): Promise<void> {
         return this.usersService.emailResending(body);
     }
@@ -62,12 +66,14 @@ export class AuthController {
 
     @Post('password-recovery')
     @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(ThrottlerGuard)
     passwordRecovery(@Body() body: InputPasswordRecoveryDto): Promise<void> {
         return this.usersService.passwordRecovery(body);
     }
 
     @Post('new-password')
     @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(ThrottlerGuard)
     newPassword(@Body() body: InputNewPasswordDto): Promise<void> {
         return this.usersService.newPassword(body);
     }
