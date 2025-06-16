@@ -6,6 +6,7 @@ import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-pla
 import { UsersAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { TestingModule } from './modules/testing/testing.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 //import { DatabaseModule } from './database/database.modules';  //кастомный модуль подключения к монго
 

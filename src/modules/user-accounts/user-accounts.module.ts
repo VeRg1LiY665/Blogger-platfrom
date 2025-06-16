@@ -6,11 +6,32 @@ import { UsersService } from './application/users.service';
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersQRepository } from './infrastructure/users.query-repository';
 import { UsersExtQRepository } from './infrastructure/external-query/users.external-query-repository';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from './guards/local/local.strategy';
+import { JwtStrategy } from './guards/bearer/jwt.strategy';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { CryptoService } from './application/crypto.service';
+import { AuthService } from './application/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: User.name, schema: UserSchema }])],
+    imports: [
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        NotificationsModule,
+        PassportModule
+    ],
     controllers: [UsersController],
-    providers: [UsersService, UsersRepository, UsersQRepository, UsersExtQRepository],
+    providers: [
+        UsersService,
+        UsersRepository,
+        UsersQRepository,
+        UsersExtQRepository,
+        CryptoService,
+        AuthService,
+        JwtService,
+        LocalStrategy,
+        JwtStrategy
+    ],
     exports: [UsersExtQRepository]
 })
 export class UsersAccountsModule {}

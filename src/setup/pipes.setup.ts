@@ -26,14 +26,12 @@ export const errorFormatter = (errors: ValidationError[], errorMessage?: any): E
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return errorsForResponse;
 };
 
 export function pipesSetup(app: INestApplication) {
     //Глобальный пайп для валидации и трансформации входящих данных.
     app.useGlobalPipes(
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-call
         new ObjectIdValidationTransformationPipe(),
         new ValidationPipe({
             //class-transformer создает экземпляр dto
@@ -48,9 +46,7 @@ export function pipesSetup(app: INestApplication) {
             exceptionFactory: (errors) => {
                 const formattedErrors = errorFormatter(errors);
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call
                 throw new DomainException({
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
                     code: DomainExceptionCode.ValidationError,
                     message: 'Validation failed',
                     extensions: formattedErrors
