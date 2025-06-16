@@ -13,6 +13,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { CryptoService } from './application/crypto.service';
 import { AuthService } from './application/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { AuthController } from './api/auth.controller';
+import { AuthQueryRepository } from './infrastructure/auth.query-repository';
 
 @Module({
     imports: [
@@ -20,7 +22,7 @@ import { JwtService } from '@nestjs/jwt';
         NotificationsModule,
         PassportModule
     ],
-    controllers: [UsersController],
+    controllers: [UsersController, AuthController],
     providers: [
         UsersService,
         UsersRepository,
@@ -28,6 +30,7 @@ import { JwtService } from '@nestjs/jwt';
         UsersExtQRepository,
         CryptoService,
         AuthService,
+        AuthQueryRepository,
         JwtService,
         LocalStrategy,
         JwtStrategy

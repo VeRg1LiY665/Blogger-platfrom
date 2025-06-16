@@ -8,12 +8,16 @@ export class EmailService {
     async sendConfirmationEmail(email: string, code: string): Promise<void> {
         //can add html templates, implement advertising and other logic for mailing...
         await this.mailerService.sendMail({
+            to: email,
+            subject: 'Registration confirmation',
             text: `confirm registration via link https://some.com?code=${code}`
         });
     }
 
     async sendRecoveryEmail(email: string, code: string): Promise<void> {
         await this.mailerService.sendMail({
+            to: email,
+            subject: 'Password recovery',
             text: `reset password via link https://some.com?code=${code}`
         });
     }
