@@ -11,6 +11,7 @@ export class UsersController {
     constructor(private usersService: UsersService) {}
 
     @Post()
+    @UseGuards(LocalAuthGuard)
     async create(@Body() createUserDto: InputUserDto): Promise<UserViewDto> {
         const createdId = await this.usersService.createUser(createUserDto);
         return await this.usersService.findById(createdId.toString());
@@ -30,6 +31,7 @@ export class UsersController {
 
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(LocalAuthGuard)
     async delete(@Param('id') id: string): Promise<void> {
         return await this.usersService.removeUser(id);
     }
