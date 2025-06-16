@@ -3,6 +3,7 @@ import { HydratedDocument, Model } from 'mongoose';
 import { CreateUserDomainDto } from './dto/CreateUserDomainDto';
 import { emailConfirmation, emailConfirmationSchema } from './emailConfirmation.schema';
 import { passwordRecovery, passwordRecoverySchema } from './passwordRecovery.schema';
+import { UpdateUserDomainDto } from './dto/UpdateUserDomainDto';
 
 export const loginConstraints = {
     minLength: 3,
@@ -86,17 +87,71 @@ export class User {
         this.emailConfirmation.confirmationCode = code;
     }
 
+    setRecoveryCode(recoveryCode: string, expirationDate: Date) {
+        this.passwordRecovery.recoveryCode = recoveryCode;
+        this.passwordRecovery.expirationDate = expirationDate;
+    }
+
     /**
      * Updates the user instance with new data
      * Resets email confirmation if email is updated
-     * @param {UpdateUserDto} dto - The data transfer object for user updates
+     * @param {UpdateUserDomainDto} dto - The data transfer object for user updates
      * DDD сontinue: инкапсуляция (вызываем методы, которые меняют состояние\св-ва) объектов согласно правилам этого объекта
      */
-    /*update(dto: UpdateUserDomainDto) {
-        if (dto.email !== this.email) {
+    update(dto: Partial<UpdateUserDomainDto>) {
+        //чтобы можно было передавать только те свойства, которые сейчас нужны
+        if (!!dto.email && dto.email !== this.email) {
             this.email = dto.email;
         }
-    }*/
+
+        if (!!dto.login && dto.login !== this.login) {
+            this.login = dto.login;
+        }
+
+        if (!!dto.passwordHash && dto.passwordHash !== this.passwordHash) {
+            this.passwordHash = dto.passwordHash;
+        }
+
+        if (
+            !!dto.passwordRecovery &&
+            !!dto.passwordRecovery.recoveryCode &&
+            dto.passwordRecovery.recoveryCode !== this.passwordRecovery.recoveryCode
+        ) {
+            this.passwordRecovery.recoveryCode = dto.passwordRecovery.recoveryCode;
+        }
+
+        if (
+            !!dto.passwordRecovery &&
+            !!dto.passwordRecovery.expirationDate &&
+            dto.passwordRecovery.expirationDate !== this.passwordRecovery.expirationDate
+        ) {
+            this.passwordRecovery.expirationDate = dto.passwordRecovery.expirationDate;
+        }
+
+        if (
+            !!dto.emailConfirmation &&
+            !!dto.emailConfirmation.expirationDate &&
+            dto.emailConfirmation.expirationDate !== this.emailConfirmation.expirationDate
+        ) {
+            this.emailConfirmation.expirationDate = dto.emailConfirmation.expirationDate;
+        }
+
+        if (
+            !!dto.emailConfirmation &&
+            dto.emailConfirmation.isConfirmed && // нет !! потому что и так буль
+            dto.emailConfirmation.isConfirmed !== this.emailConfirmation.isConfirmed
+        ) {
+            this.emailConfirmation.isConfirmed = dto.emailConfirmation.isConfirmed;
+        }
+
+        if (
+            !!dto.emailConfirmation &&
+            !!dto.emailConfirmation.confirmationCode &&
+            dto.emailConfirmation.confirmationCode !== this.emailConfirmation.confirmationCode
+        ) {
+            this.emailConfirmation.confirmationCode = dto.emailConfirmation.confirmationCode;
+        }
+    }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -11,4 +11,10 @@ export class EmailService {
             text: `confirm registration via link https://some.com?code=${code}`
         });
     }
+
+    async sendRecoveryEmail(email: string, code: string): Promise<void> {
+        await this.mailerService.sendMail({
+            text: `reset password via link https://some.com?code=${code}`
+        });
+    }
 }

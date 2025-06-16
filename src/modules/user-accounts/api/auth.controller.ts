@@ -12,6 +12,9 @@ import { JwtOptionalAuthGuard } from '../guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../guards/decorators/extract-user-if-exists-from-request.decorator';
 import { AuthQueryRepository } from '../infrastructure/auth.query-repository';
 import { InputConfirmEmailDto } from './input-dto/input-registration-confirmation';
+import { InputEmailResendingDto } from './input-dto/input-email-resending';
+import { InputPasswordRecoveryDto } from './input-dto/input-password-recovery';
+import { InputNewPasswordDto } from './input-dto/input-new-password-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -29,6 +32,12 @@ export class AuthController {
     @HttpCode(HttpStatus.NO_CONTENT)
     registrationConfirmation(@Body() body: InputConfirmEmailDto): Promise<void> {
         return this.usersService.confirmRegistration(body);
+    }
+
+    @Post('registration-email-resending')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    emailResending(@Body() body: InputEmailResendingDto): Promise<void> {
+        return this.usersService.emailResending(body);
     }
 
     @Post('login')
@@ -49,6 +58,18 @@ export class AuthController {
         @ExtractUserFromRequest() user: UserContextDto
     ): Promise<{ accessToken: string }> {
         return this.authService.login(user.id);
+    }
+
+    @Post('password-recovery')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    passwordRecovery(@Body() body: InputPasswordRecoveryDto): Promise<void> {
+        return this.usersService.passwordRecovery(body);
+    }
+
+    @Post('new-password')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    newPassword(@Body() body: InputNewPasswordDto): Promise<void> {
+        return this.usersService.newPassword(body);
     }
 
     @ApiBearerAuth()
