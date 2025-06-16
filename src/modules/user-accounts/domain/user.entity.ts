@@ -74,11 +74,15 @@ export class User {
         user.login = dto.login;
         user.passwordHash = dto.passwordHash;
         user.createdAt = new Date();
-        user.emailConfirmation.confirmationCode = '';
-        user.emailConfirmation.expirationDate = new Date();
-        user.emailConfirmation.isConfirmed = false;
-        user.passwordRecovery.expirationDate = new Date();
-        user.passwordRecovery.recoveryCode = '';
+        user.emailConfirmation = {
+            confirmationCode: '',
+            expirationDate: new Date(),
+            isConfirmed: false
+        };
+        user.passwordRecovery = {
+            expirationDate: new Date(),
+            recoveryCode: ''
+        };
 
         return user as UserDocument;
     }

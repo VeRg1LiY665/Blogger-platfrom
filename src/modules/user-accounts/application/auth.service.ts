@@ -13,6 +13,7 @@ export class AuthService {
     ) {}
     async validateUser(loginOrEmail: string, password: string): Promise<UserContextDto | null> {
         const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
+
         if (!user) {
             return null;
         }

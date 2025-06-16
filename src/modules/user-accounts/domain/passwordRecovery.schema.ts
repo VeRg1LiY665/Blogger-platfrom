@@ -4,7 +4,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
     _id: false
 })
 export class passwordRecovery {
-    @Prop({ type: String, required: true })
+    @Prop({ type: String, required: false })
     recoveryCode: string;
 
     @Prop({ type: Date, required: true })

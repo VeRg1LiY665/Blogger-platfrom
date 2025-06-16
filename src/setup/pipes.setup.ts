@@ -7,7 +7,6 @@ import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
 //поставьте логи и разберитесь как она работает
 //TODO: tests
 export const errorFormatter = (errors: ValidationError[], errorMessage?: any): Extension[] => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const errorsForResponse = errorMessage || [];
 
     for (const error of errors) {
@@ -17,7 +16,6 @@ export const errorFormatter = (errors: ValidationError[], errorMessage?: any): E
             const constrainKeys = Object.keys(error.constraints);
 
             for (const key of constrainKeys) {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
                 errorsForResponse.push({
                     message: error.constraints[key] ? `${error.constraints[key]}; Received value: ${error?.value}` : '',
                     key: error.property
@@ -25,7 +23,6 @@ export const errorFormatter = (errors: ValidationError[], errorMessage?: any): E
             }
         }
     }
-
     return errorsForResponse;
 };
 
@@ -39,7 +36,7 @@ export function pipesSetup(app: INestApplication) {
             //и методы классов dto
             transform: true,
 
-            //whitelist: true,
+            //whitelist: true,  //Почему он удалет даже те пропсы, которые есть в DTO?
             //Выдавать первую ошибку для каждого поля
             stopAtFirstError: true,
             //Для преобразования ошибок класс валидатора в необходимый вид

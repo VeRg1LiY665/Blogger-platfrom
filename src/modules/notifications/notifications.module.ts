@@ -5,9 +5,9 @@ import { EmailService } from './email.service';
 @Module({
     imports: [
         MailerModule.forRoot({
-            transport: 'smtps://user@domain.com:pass@smtp.domain.com',
+            transport: 'smtps://verg1liy@yandex.ru:byklmezcnfoibzme@smtp.yandex.ru',
             defaults: {
-                from: '"nest-modules" <modules@nestjs.com>'
+                from: '"Blog Platform registration service" <verg1liy@yandex.ru>'
             }
         })
     ],

@@ -1,6 +1,5 @@
 //если специфических кодов будет много лучше разнести их в соответствующие модули
 export enum DomainExceptionCode {
-    //common
     NotFound = 1,
     BadRequest = 2,
     InternalServerError = 3,
