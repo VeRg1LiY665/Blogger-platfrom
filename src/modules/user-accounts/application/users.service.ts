@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserModelType } from '../domain/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { GetUsersQueryParams } from '../api/input-dto/get-users-query-params';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { UsersQRepository } from '../infrastructure/users.query-repository';
-import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainException, Extension } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 import { CryptoService } from './crypto.service';
 import { randomUUID } from 'node:crypto';
@@ -14,7 +14,6 @@ import { InputConfirmEmailDto } from '../api/input-dto/input-registration-confir
 import { InputEmailResendingDto } from '../api/input-dto/input-email-resending';
 import { InputPasswordRecoveryDto } from '../api/input-dto/input-password-recovery';
 import { InputNewPasswordDto } from '../api/input-dto/input-new-password-dto';
-import { passwordRecovery } from '../domain/passwordRecovery.schema';
 
 @Injectable()
 export class UsersService {
@@ -50,6 +49,22 @@ export class UsersService {
     }
 
     async registerUser(dto: CreateUserDto) {
+        if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User already exists',
+                extensions: [new Extension('User already exists', 'login')]
+            });
+        }
+
+        if ((await this.usersRepository.findByLoginOrEmail(dto.email)) !== null) {
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User already exists',
+                extensions: [new Extension('User already exists', 'email')]
+            });
+        }
+
         const createdUserId = await this.createUser(dto);
 
         const confirmCode = randomUUID();
@@ -69,21 +84,24 @@ export class UsersService {
         if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'User with passed confirmation code does not exist'
+                message: 'User with passed confirmation code does not exist',
+                extensions: [new Extension('User with passed confirmation code does not exists', 'code')]
             });
         }
 
         if (user.emailConfirmation.isConfirmed == true) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'User email has been already confirmed'
+                message: 'User email has been already confirmed',
+                extensions: [new Extension('User email has been already confirmed', 'code')]
             });
         }
 
         if (Date.now() - user.emailConfirmation.expirationDate.getTime() > 86400000) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'Email confirmation link has expired'
+                message: 'Email confirmation link has expired',
+                extensions: [new Extension('Email confirmation link has expired', 'email')]
             });
         }
 
@@ -98,14 +116,16 @@ export class UsersService {
         if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'User with passed confirmation code does not exist'
+                message: 'User email does not exist',
+                extensions: [new Extension('User email does not exist', 'email')]
             });
         }
 
         if (user.emailConfirmation.isConfirmed == true) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'User email has been already confirmed'
+                message: 'User email has been already confirmed',
+                extensions: [new Extension('User email has been already confirmed', 'email')]
             });
         }
         const confirmCode = randomUUID();

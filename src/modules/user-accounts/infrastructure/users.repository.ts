@@ -19,8 +19,10 @@ export class UsersRepository {
     }
 
     async findByUUID(uuid: string): Promise<UserDocument | null> {
-        const result = await this.userModel.findOne({ uuid });
-
+        const filter = { emailConfirmation: { recoveryCode: uuid } };
+        //filter['passwordRecovery.recoveryCode'] = uuid;
+        const result = await this.userModel.findOne(filter);
+        console.log(filter);
         return result;
     }
 
