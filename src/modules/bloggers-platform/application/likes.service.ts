@@ -7,6 +7,8 @@ import { CommentsRepository } from '../infrastructure/comments.repository';
 import { UsersExtQRepository } from '../../user-accounts/infrastructure/external-query/users.external-query-repository';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { InjectModel } from '@nestjs/mongoose';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class LikesService {
@@ -22,7 +24,10 @@ export class LikesService {
     async createForPost(dto: CreateLikeForPostDto): Promise<void> {
         const post = await this.postsRepo.findById(dto.postId);
         if (!post) {
-            throw new NotFoundException(`Post with postId ${dto.postId} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
 
         const reaction = await this.likesRepo.ShowReactionForPost(dto.parentId, dto.postId);

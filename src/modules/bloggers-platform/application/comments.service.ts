@@ -8,6 +8,8 @@ import { CommentsRepository } from '../infrastructure/comments.repository';
 import { CommentsQRepository } from '../infrastructure/comments.query-repository';
 import { GetCommentsQueryParams } from '../api/input-dto/get-comments-query-params';
 import { UsersExtQRepository } from '../../user-accounts/infrastructure/external-query/users.external-query-repository';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class CommentsService {
@@ -24,13 +26,19 @@ export class CommentsService {
         const foundPost = await this.postsRepository.findById(createCommentDto.postId);
 
         if (!foundPost) {
-            throw new NotFoundException(`Post with ${createCommentDto.postId} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
 
         const foundUser = await this.usersExtQRepository.findById(createCommentDto.userId);
 
         if (!foundUser) {
-            throw new NotFoundException(`User with ${createCommentDto.postId} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'User not found'
+            });
         }
 
         const createCommentDomainDto = {
@@ -50,7 +58,10 @@ export class CommentsService {
     async findForPost(id: string, query: GetCommentsQueryParams) {
         const post = await this.postsRepository.findById(id);
         if (!post) {
-            throw new NotFoundException(`Post with ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
         const comments = await this.commentsQRepository.findForPost(id, query);
 
@@ -60,7 +71,10 @@ export class CommentsService {
     async findOne(id: string) {
         const comment = await this.commentsQRepository.findOne(id);
         if (!comment) {
-            throw new NotFoundException(`Comment with ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Comment not found'
+            });
         }
         return comment;
     }
@@ -68,7 +82,10 @@ export class CommentsService {
     async update(id: string, updateCommentDto: UpdateCommentDto) {
         const comment = await this.commentsRepository.findById(id);
         if (!comment) {
-            throw new NotFoundException(`Comment with ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Comment not found'
+            });
         }
         comment.update(updateCommentDto);
         return comment._id.toString();
@@ -77,7 +94,10 @@ export class CommentsService {
     async remove(id: string) {
         const comment = await this.commentsRepository.findById(id);
         if (!comment) {
-            throw new NotFoundException(`Comment with ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Comment not found'
+            });
         }
         return await this.commentsRepository.delete(id);
     }

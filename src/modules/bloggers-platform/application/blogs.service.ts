@@ -3,6 +3,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Blog, BlogModelType } from '../domain/blog.entity';
 import { CreateBlogDto, UpdateBlogDto } from '../dto/create-blog.dto';
 import { BlogsRepository } from '../infrastructure/blogs.repository';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class BlogsService {
@@ -27,7 +29,10 @@ export class BlogsService {
     async updateBlog(id: string, dto: UpdateBlogDto): Promise<string> {
         const blog = await this.blogsRepository.findById(id);
         if (!blog) {
-            throw new NotFoundException('Blog not found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Blog not found'
+            });
         }
 
         blog.update(dto);
@@ -40,7 +45,10 @@ export class BlogsService {
     async deleteBlog(id: string): Promise<void> {
         const blog = await this.blogsRepository.findById(id);
         if (!blog) {
-            throw new NotFoundException('Blog not found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Blog not found'
+            });
         }
 
         await this.blogsRepository.delete(id);

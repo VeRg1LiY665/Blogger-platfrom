@@ -67,15 +67,24 @@ export class UsersService {
     async confirmRegistration(dto: InputConfirmEmailDto) {
         const user = await this.usersRepository.findByUUID(dto.code);
         if (!user) {
-            throw new BadRequestException('User with passed confirmation code does not exist');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User with passed confirmation code does not exist'
+            });
         }
 
         if (user.emailConfirmation.isConfirmed == true) {
-            throw new BadRequestException('User email has been already confirmed');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User email has been already confirmed'
+            });
         }
 
         if (Date.now() - user.emailConfirmation.expirationDate.getTime() > 86400000) {
-            throw new BadRequestException('Email confirmation link has expired');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'Email confirmation link has expired'
+            });
         }
 
         const domainDto = { emailConfirmation: user.emailConfirmation };
@@ -87,11 +96,17 @@ export class UsersService {
     async emailResending(dto: InputEmailResendingDto) {
         const user = await this.usersRepository.findByLoginOrEmail(dto.email);
         if (!user) {
-            throw new BadRequestException('User with passed confirmation code does not exist');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User with passed confirmation code does not exist'
+            });
         }
 
         if (user.emailConfirmation.isConfirmed == true) {
-            throw new BadRequestException('User email has been already confirmed');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User email has been already confirmed'
+            });
         }
         const confirmCode = randomUUID();
         user.setConfirmationCode(confirmCode);
@@ -104,7 +119,10 @@ export class UsersService {
     async passwordRecovery(dto: InputPasswordRecoveryDto) {
         const user = await this.usersRepository.findByLoginOrEmail(dto.email);
         if (!user) {
-            throw new BadRequestException('User with passed confirmation code does not exist');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User with passed confirmation code does not exist'
+            });
         }
 
         const confirmCode = randomUUID() + '-rq';
@@ -120,11 +138,17 @@ export class UsersService {
     async newPassword(dto: InputNewPasswordDto) {
         const user = await this.usersRepository.findByUUID(dto.code);
         if (!user) {
-            throw new BadRequestException('User with passed confirmation code does not exist');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'User with passed confirmation code does not exist'
+            });
         }
 
         if (Date.now() > user.emailConfirmation.expirationDate.getTime()) {
-            throw new BadRequestException('Recovery code has been expired');
+            throw new DomainException({
+                code: DomainExceptionCode.BadRequest,
+                message: 'Recovery code has been expired'
+            });
         }
 
         const passwordHash = await this.cryptoService.createPasswordHash(dto.newPassword);
@@ -139,7 +163,10 @@ export class UsersService {
     async removeUser(id: string): Promise<void> {
         const user = await this.usersRepository.findById(id);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'User not found'
+            });
         }
 
         return await this.usersRepository.delete(id);
@@ -152,7 +179,10 @@ export class UsersService {
     async findById(id: string) {
         const user = await this.usersQRepository.findById(id);
         if (!user) {
-            throw new NotFoundException('User not found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'User not found'
+            });
         }
         return user;
     }

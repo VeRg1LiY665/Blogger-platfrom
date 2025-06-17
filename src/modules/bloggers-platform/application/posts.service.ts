@@ -7,6 +7,8 @@ import { Post, PostModelType } from '../domain/post.entity';
 import { PostsQRepository } from '../infrastructure/posts.query-repository';
 import { GetPostsQueryParams } from '../api/input-dto/get-posts-query-params';
 import { BlogsRepository } from '../infrastructure/blogs.repository';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class PostsService {
@@ -21,7 +23,10 @@ export class PostsService {
     async create(createPostDto: CreatePostDto) {
         const foundBlog = await this.blogsRepository.findById(createPostDto.blogId); //check for blog existence
         if (!foundBlog) {
-            throw new NotFoundException('Blog not found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Blog not found'
+            });
         }
         const createPostDomainDto = { ...createPostDto, blogName: foundBlog.name };
 
@@ -38,7 +43,10 @@ export class PostsService {
     async findOne(id: string) {
         const post = await this.postsQRepository.findById(id);
         if (!post) {
-            throw new NotFoundException(`Post with id ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
 
         return post;
@@ -47,12 +55,18 @@ export class PostsService {
     async update(id: string, updatePostDto: UpdatePostDto) {
         const post = await this.postsRepository.findById(id);
         if (!post) {
-            throw new NotFoundException(`Post with id ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
 
         const blog = await this.blogsRepository.findById(updatePostDto.blogId);
         if (!blog) {
-            throw new NotFoundException(`Post with id ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
         const updatePostDomainDto = { ...updatePostDto, blogName: blog.name };
         post.update(updatePostDomainDto);
@@ -65,7 +79,10 @@ export class PostsService {
     async remove(id: string) {
         const post = await this.postsRepository.findById(id);
         if (!post) {
-            throw new NotFoundException(`Post with id ${id} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
         }
 
         return await this.postsRepository.delete(id);
@@ -74,7 +91,10 @@ export class PostsService {
     async findForBlog(blogId: string, query: GetPostsQueryParams) {
         const blog = await this.blogsRepository.findById(blogId);
         if (!blog) {
-            throw new NotFoundException(`Blog with id ${blogId} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Blog not found'
+            });
         }
 
         return await this.postsQRepository.findForBlog(blogId, query);
@@ -83,7 +103,10 @@ export class PostsService {
     async createForBlog(blogId: string, createPostDto: CreateBlogPostDto) {
         const foundBlog = await this.blogsRepository.findById(blogId);
         if (!foundBlog) {
-            throw new NotFoundException(`Blog with id ${blogId} not found`);
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Blog not found'
+            });
         }
         const createPostDomainDto = { ...createPostDto, blogName: foundBlog.name, blogId: foundBlog._id.toString() };
 
