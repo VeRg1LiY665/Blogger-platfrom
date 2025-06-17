@@ -19,7 +19,7 @@ import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter
             throttlers: [
                 {
                     ttl: 10000,
-                    limit: 6
+                    limit: 5
                 }
             ]
         }),
