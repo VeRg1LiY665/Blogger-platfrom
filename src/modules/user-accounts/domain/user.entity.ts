@@ -89,7 +89,6 @@ export class User {
 
     setConfirmationCode(code: string) {
         this.emailConfirmation.confirmationCode = code;
-        console.log(this);
     }
 
     setRecoveryCode(recoveryCode: string, expirationDate: Date) {

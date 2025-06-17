@@ -27,7 +27,7 @@ export class UsersService {
     ) {}
 
     async createUser(dto: CreateUserDto) {
-        const userWithTheSameLogin = await this.usersRepository.findByLogin(dto.login);
+        const userWithTheSameLogin = await this.usersRepository.findByLoginOrEmail(dto.login);
         if (!!userWithTheSameLogin) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
@@ -106,7 +106,9 @@ export class UsersService {
         }
 
         const domainDto = { emailConfirmation: user.emailConfirmation };
+        domainDto.emailConfirmation.isConfirmed = true;
         user.update(domainDto);
+        await this.usersRepository.save(user);
 
         return;
     }

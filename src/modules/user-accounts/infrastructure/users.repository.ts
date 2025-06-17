@@ -19,15 +19,20 @@ export class UsersRepository {
     }
 
     async findByUUID(uuid: string): Promise<UserDocument | null> {
-        const filter = { emailConfirmation: { recoveryCode: uuid } };
-        //filter['passwordRecovery.recoveryCode'] = uuid;
-        const result = await this.userModel.findOne(filter);
-        console.log(filter);
-        return result;
-    }
+        const filter = {};
 
-    async findByLogin(login: string): Promise<UserDocument | null> {
-        return await this.userModel.findOne({ login });
+        switch (true) {
+            case uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i) !== null:
+                filter['emailConfirmation.confirmationCode'] = uuid;
+                break;
+            case uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-rq$/) !== null:
+                filter['passwordRecovery.recoveryCode'] = uuid;
+                break;
+        }
+
+        const result = await this.userModel.findOne(filter);
+
+        return result;
     }
 
     async findByLoginOrEmail(searchData: string): Promise<UserDocument | null> {
