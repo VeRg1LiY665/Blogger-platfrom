@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { appSetup } from './setup/app.setup';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap(): Promise<void> {
     const app = await NestFactory.create(AppModule);
+
+    app.use(cookieParser());
 
     appSetup(app);
 

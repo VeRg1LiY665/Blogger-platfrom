@@ -39,8 +39,17 @@ export class AuthService {
             }
         );
 
+        const refreshToken = this.jwtService.sign(
+            { id: userId },
+            {
+                secret: 'pokjcleYm&hd93g1!',
+                expiresIn: 86400000 //24 hours in ms
+            }
+        );
+
         return {
-            accessToken
+            accessToken,
+            refreshToken
         };
     }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, HttpCode, HttpStatus, Res } from '@nestjs/common';
 import { UsersService } from '../application/users.service';
 import { InputUserDto } from './input-dto/users.input-dto';
 import { LocalAuthGuard } from '../guards/local/local-auth.guard';
@@ -16,6 +16,7 @@ import { InputEmailResendingDto } from './input-dto/input-email-resending';
 import { InputPasswordRecoveryDto } from './input-dto/input-password-recovery';
 import { InputNewPasswordDto } from './input-dto/input-new-password-dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -58,11 +59,21 @@ export class AuthController {
             }
         }
     })
-    login(
+    async login(
         /*@Request() req: any*/
-        @ExtractUserFromRequest() user: UserContextDto
+        @ExtractUserFromRequest() user: UserContextDto,
+        @Res({ passthrough: true }) res: Response
     ): Promise<{ accessToken: string }> {
-        return this.authService.login(user.id);
+        const { accessToken, refreshToken } = await this.authService.login(user.id);
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true, // Important for security
+            secure: process.env.NODE_ENV === 'production', // Use secure in production
+            maxAge: 7 * 24 * 60 * 60 * 1000, // e.g., 7 days in milliseconds
+            sameSite: 'lax' // Or 'Strict' depending on your needs
+        });
+
+        return { accessToken: accessToken };
     }
 
     @Post('password-recovery')
