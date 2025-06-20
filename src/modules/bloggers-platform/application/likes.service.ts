@@ -16,7 +16,7 @@ export class LikesService {
         @InjectModel(Like.name)
         private likeModel: LikeModelType,
         private likesRepo: LikesRepo,
-        //private commentsRepo: CommentsRepository,
+        private commentsRepo: CommentsRepository,
         private postsRepo: PostsRepository,
         private UsersExtQRepository: UsersExtQRepository
     ) {}
@@ -72,5 +72,40 @@ export class LikesService {
         return;
     }
 
-    async createForComment(dto: CreateLikeForCommentDto): Promise<void> {}
+    async createForComment(dto: CreateLikeForCommentDto): Promise<void> {
+        const comment = await this.commentsRepo.findById(dto.commentId);
+        if (!comment) {
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Comment not found'
+            });
+        }
+
+        const reaction = await this.likesRepo.ShowReactionForComment(dto.parentId, dto.commentId);
+        if (!reaction) {
+            const CreateLikeDto = {
+                status: dto.likeStatus,
+                userId: '',
+                parentId: dto.parentId,
+                commentId: dto.commentId,
+                postId: '',
+                addedAt: new Date().toISOString()
+            };
+
+            const newReaction = this.likeModel.createInstance(CreateLikeDto);
+            await this.likesRepo.save(newReaction);
+        } else {
+            reaction.status = dto.likeStatus;
+            await this.likesRepo.save(reaction);
+        }
+
+        const { likes, dislikes } = await this.likesRepo.CountReactionsForComment(comment._id.toString());
+
+        comment.likesInfo.likesCount = likes;
+        comment.likesInfo.dislikesCount = dislikes;
+
+        await this.commentsRepo.save(comment);
+
+        return;
+    }
 }

@@ -16,13 +16,13 @@ export class LikesRepo {
         await like.save();
     }
 
-    async CountReactionsForComment(userId: string, commentId: string) {
+    async CountReactionsForComment(commentId: string) {
         const likes = await this.likeModel.countDocuments({
-            $and: [{ userId: userId }, { commentId: commentId }, { status: 'Like' }]
+            $and: [{ commentId: commentId }, { status: 'Like' }]
         });
 
         const dislikes = await this.likeModel.countDocuments({
-            $and: [{ userId: userId }, { commentId: commentId }, { status: 'Dislike' }]
+            $and: [{ commentId: commentId }, { status: 'Dislike' }]
         });
 
         return { likes, dislikes };
