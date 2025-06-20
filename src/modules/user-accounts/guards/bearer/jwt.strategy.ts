@@ -10,7 +10,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
             ignoreExpiration: false,
-            secretOrKey: 'access-token-secret' //TODO: move to env. will be in the following lessons
+            secretOrKey: 'kjsjhd67t43b9v' //TODO: move to env. will be in the following lessons
         });
     }
 

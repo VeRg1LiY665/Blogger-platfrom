@@ -4,7 +4,8 @@ import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { BlogViewDto } from '../api/view-dto/blogs.view-dto';
 import { GetBlogsQueryParams } from '../api/input-dto/get-blogs-query-params.input-dto';
 import { FilterQuery } from 'mongoose';
-import { NotFoundException } from '@nestjs/common';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 export class BlogsQRepository {
     constructor(@InjectModel(Blog.name) private blogModel: BlogModelType) {}
@@ -41,7 +42,10 @@ export class BlogsQRepository {
         });
 
         if (!blog) {
-            throw new NotFoundException('No blog found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Blog not found'
+            });
         }
 
         return BlogViewDto.mapToView(blog);

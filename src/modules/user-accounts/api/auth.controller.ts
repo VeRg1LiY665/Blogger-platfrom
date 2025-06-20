@@ -70,7 +70,7 @@ export class AuthController {
             httpOnly: true, // Important for security
             secure: process.env.NODE_ENV === 'production', // Use secure in production
             maxAge: 7 * 24 * 60 * 60 * 1000, // e.g., 7 days in milliseconds
-            sameSite: 'lax' // Or 'Strict' depending on your needs
+            sameSite: 'none' // Or 'Strict' depending on your needs
         });
 
         return { accessToken: accessToken };

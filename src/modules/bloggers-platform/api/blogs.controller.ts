@@ -24,6 +24,7 @@ import { GetPostsQueryParams } from './input-dto/get-posts-query-params';
 import { CreateBlogPostDto, CreatePostDto } from '../dto/create-post.dto';
 import { PostViewDto } from './view-dto/posts.view-dto';
 import { BasicAuthGuard } from '../../user-accounts/guards/basic/basic-auth.guard';
+import { BlogsInputUpdateDto } from './input-dto/blogs.input-update-dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -62,7 +63,7 @@ export class BlogsController {
     @Put(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async updateBlog(@Param('id') id: string, @Body() body: UpdateBlogDto): Promise<void> {
+    async updateBlog(@Param('id') id: string, @Body() body: BlogsInputUpdateDto): Promise<void> {
         await this.blogsServices.updateBlog(id, body);
         return;
     }

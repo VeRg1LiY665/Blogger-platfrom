@@ -25,6 +25,8 @@ import { CommentsService } from '../application/comments.service';
 import { CreateCommentInputDto } from './input-dto/comment.input-dto';
 import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
+import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
+import { PostInputDto } from './input-dto/post.input-dto';
 
 @Controller('posts')
 export class PostsController {
@@ -36,8 +38,8 @@ export class PostsController {
 
     @Post()
     @UseGuards(BasicAuthGuard)
-    async create(@Body() createPostDto: CreatePostDto) {
-        const postId = await this.postsService.create(createPostDto);
+    async create(@Body() postInputDto: PostInputDto) {
+        const postId = await this.postsService.create(postInputDto);
         return await this.postsService.findOne(postId);
     }
 
@@ -46,7 +48,7 @@ export class PostsController {
         return await this.postsService.findAll(query);
     }
 
-    @Get(':id')
+    @Get(':id') //TODO add jwt check to show reaction of a user or None
     async findOne(@Param('id') id: string) {
         return await this.postsService.findOne(id);
     }
@@ -78,11 +80,11 @@ export class PostsController {
         return await this.likesService.createForPost(dto);
     }
 
-    @Put(':id/comments')
+    @Post(':id/comments')
     @UseGuards(JwtAuthGuard)
     async createCommentForPost(
         @Param('id') id: string,
-        @ExtractUserFromRequest() user: UserContextDto,
+        @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Body() createCommentInputDto: CreateCommentInputDto
     ) {
         const dto = {

@@ -1,7 +1,7 @@
 import { IsString, IsUrl, Length } from 'class-validator';
 import { Trim } from '../../../../core/decorators/transform/trim';
 
-export class CreateBlogInputDto {
+export class BlogsInputUpdateDto {
     @IsString()
     @Trim()
     @Length(1, 15)
