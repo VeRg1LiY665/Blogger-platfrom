@@ -21,12 +21,17 @@ import { LikesService } from '../application/likes.service';
 import { LikeInputDto } from './input-dto/likes.input-dto';
 import { BasicAuthGuard } from '../../user-accounts/guards/basic/basic-auth.guard';
 import { JwtAuthGuard } from '../../user-accounts/guards/bearer/jwt-auth.guard';
+import { CommentsService } from '../application/comments.service';
+import { CreateCommentInputDto } from './input-dto/comment.input-dto';
+import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
+import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
 
 @Controller('posts')
 export class PostsController {
     constructor(
         private postsService: PostsService,
-        private likesService: LikesService
+        private likesService: LikesService,
+        private commentsService: CommentsService
     ) {}
 
     @Post()
@@ -71,5 +76,23 @@ export class PostsController {
         };
 
         return await this.likesService.createForPost(dto);
+    }
+
+    @Put(':id/comments')
+    @UseGuards(JwtAuthGuard)
+    async createCommentForPost(
+        @Param('id') id: string,
+        @ExtractUserFromRequest() user: UserContextDto,
+        @Body() createCommentInputDto: CreateCommentInputDto
+    ) {
+        const dto = {
+            postId: id,
+            userId: user.id,
+            content: createCommentInputDto.content
+        };
+
+        const commentId = await this.commentsService.create(dto);
+
+        return await this.commentsService.findOne(commentId);
     }
 }

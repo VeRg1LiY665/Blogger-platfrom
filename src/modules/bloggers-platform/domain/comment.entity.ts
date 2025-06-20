@@ -28,7 +28,7 @@ export class Comment {
         comment.commentatorInfo = dto.commentatorInfo;
         comment.postId = dto.postId;
         comment.createdAt = new Date().toISOString();
-        //comment.likesInfo = input-dto.likesInfo;
+        comment.likesInfo = dto.likesInfo;
         return comment as CommentDocument;
     }
 

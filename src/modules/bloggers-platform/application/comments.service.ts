@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCommentDto } from '../dto/create-comment.dto';
 import { UpdateCommentDto } from '../dto/update-comment.dto';
 import { Comment, CommentModeltype } from '../domain/comment.entity';
@@ -10,6 +10,7 @@ import { GetCommentsQueryParams } from '../api/input-dto/get-comments-query-para
 import { UsersExtQRepository } from '../../user-accounts/infrastructure/external-query/users.external-query-repository';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
+import { likesInfo } from '../domain/likesInfo.schema';
 
 @Injectable()
 export class CommentsService {
@@ -47,7 +48,8 @@ export class CommentsService {
                 userLogin: foundUser.login
             },
             content: createCommentDto.content,
-            postId: createCommentDto.postId
+            postId: createCommentDto.postId,
+            likesInfo: new likesInfo()
         };
 
         const newComment = this.commentModel.createInstance(createCommentDomainDto);
