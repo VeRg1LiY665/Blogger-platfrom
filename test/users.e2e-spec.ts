@@ -6,17 +6,18 @@ import { CreateUserDto } from '../src/modules/user-accounts/dto/create-user.dto'
 import { deleteAllData } from './helpers/delete-all-data';
 import { PaginatedViewDto } from '../src/core/dto/base.paginated.view-dto';
 import { MeViewDto, UserViewDto } from '../src/modules/user-accounts/api/view-dto/users-view.dto';
-import { JwtService } from '@nestjs/jwt';
 import { delay } from './helpers/delay';
 import { EmailService } from '../src/modules/notifications/email.service';
+import { JwtService } from '@nestjs/jwt';
 
 describe('users', () => {
     let app: INestApplication;
-    let userTestManger: UsersTestManager;
+    let userTestManager: UsersTestManager;
 
     beforeAll(async () => {
         const result = await initSettings((moduleBuilder) =>
             moduleBuilder.overrideProvider(JwtService).useValue(
+                //Оно не работает если переопределять пропсы в момент вызова методов провайдера
                 new JwtService({
                     secret: 'kjsjhd67t43b9v', //TODO: move to env. will be in the following lessons
                     signOptions: { expiresIn: '2s' }
@@ -24,7 +25,7 @@ describe('users', () => {
             )
         );
         app = result.app;
-        userTestManger = result.userTestManger;
+        userTestManager = result.userTestManger;
     });
 
     afterAll(async () => {
@@ -42,7 +43,7 @@ describe('users', () => {
             email: 'email@email.com'
         };
 
-        const response = await userTestManger.createUser(body);
+        const response = await userTestManager.createUser(body);
 
         expect(response).toEqual({
             login: body.login,
@@ -53,7 +54,7 @@ describe('users', () => {
     });
 
     it('should get users with paging', async () => {
-        const users = await userTestManger.createSeveralUsers(12);
+        const users = await userTestManager.createSeveralUsers(12);
         const { body: responseBody } = (await request(app.getHttpServer())
             .get(`/users?pageNumber=2&sortDirection=asc`)
             .auth('admin', 'qwerty')
@@ -68,9 +69,9 @@ describe('users', () => {
     });
 
     it('should return users info while "me" request with correct accessTokens', async () => {
-        const tokens = await userTestManger.createAndLoginSeveralUsers(1);
+        const tokens = await userTestManager.createAndLoginSeveralUsers(1);
 
-        const responseBody = await userTestManger.me(tokens[0].accessToken);
+        const responseBody = await userTestManager.me(tokens[0].accessToken);
 
         expect(responseBody).toEqual({
             login: expect.anything(),
@@ -80,9 +81,11 @@ describe('users', () => {
     });
 
     it(`shouldn't return users info while "me" request if accessTokens expired`, async () => {
-        const tokens = await userTestManger.createAndLoginSeveralUsers(1);
+        const tokens = await userTestManager.createAndLoginSeveralUsers(1);
+
         await delay(2000);
-        await userTestManger.me(tokens[0].accessToken, HttpStatus.UNAUTHORIZED);
+
+        await userTestManager.me(tokens[0].accessToken, HttpStatus.UNAUTHORIZED);
     });
 
     it(`should register user without really send email`, async () => {
