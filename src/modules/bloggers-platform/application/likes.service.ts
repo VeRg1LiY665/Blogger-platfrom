@@ -44,7 +44,7 @@ export class LikesService {
             const newReaction = this.likeModel.createInstance(CreateLikeDto);
             await this.likesRepo.save(newReaction);
         } else {
-            reaction.status = dto.likeStatus;
+            reaction.likeStatus = dto.likeStatus;
             await this.likesRepo.save(reaction);
         }
 
@@ -95,7 +95,7 @@ export class LikesService {
             const newReaction = this.likeModel.createInstance(CreateLikeDto);
             await this.likesRepo.save(newReaction);
         } else {
-            reaction.status = dto.likeStatus;
+            reaction.likeStatus = dto.likeStatus;
             await this.likesRepo.save(reaction);
         }
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateBlogPostDto, CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,6 +9,7 @@ import { GetPostsQueryParams } from '../api/input-dto/get-posts-query-params';
 import { BlogsRepository } from '../infrastructure/blogs.repository';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
+import { LikesRepo } from '../infrastructure/likes.repository';
 
 @Injectable()
 export class PostsService {
@@ -17,7 +18,8 @@ export class PostsService {
         private postModel: PostModelType,
         private postsRepository: PostsRepository,
         private postsQRepository: PostsQRepository,
-        private blogsRepository: BlogsRepository
+        private blogsRepository: BlogsRepository,
+        private likesRepository: LikesRepo
     ) {}
 
     async create(createPostDto: CreatePostDto) {
@@ -40,13 +42,20 @@ export class PostsService {
         return posts;
     }
 
-    async findOne(id: string) {
-        const post = await this.postsQRepository.findById(id);
+    async findOne(dto: { userId?: string | undefined; id: string }) {
+        const post = await this.postsQRepository.findById(dto.id);
         if (!post) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: 'Post not found'
             });
+        }
+
+        if (dto.userId) {
+            const reaction = await this.likesRepository.ShowReactionForPost(dto.userId, dto.id);
+            if (reaction) {
+                post.extendedLikesInfo.myStatus = reaction.likeStatus;
+            }
         }
 
         return post;
@@ -88,8 +97,8 @@ export class PostsService {
         return await this.postsRepository.delete(id);
     }
 
-    async findForBlog(blogId: string, query: GetPostsQueryParams) {
-        const blog = await this.blogsRepository.findById(blogId);
+    async findForBlog(dto: { blogId: string; query: GetPostsQueryParams; userId?: string }) {
+        const blog = await this.blogsRepository.findById(dto.blogId);
         if (!blog) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
@@ -97,7 +106,24 @@ export class PostsService {
             });
         }
 
-        return await this.postsQRepository.findForBlog(blogId, query);
+        const items = await this.postsQRepository.findForBlog(dto.blogId, dto.query);
+
+        if (!items) {
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
+        }
+
+        if (dto.userId) {
+            for (let i = 0; i < items.totalCount; i++) {
+                const reaction = await this.likesRepository.ShowReactionForPost(dto.userId, items[i].id);
+                if (reaction) {
+                    items[i].extendedLikesInfo.myStatus = reaction.likeStatus;
+                }
+            }
+        }
+        return items;
     }
 
     async createForBlog(blogId: string, createPostDto: CreateBlogPostDto) {

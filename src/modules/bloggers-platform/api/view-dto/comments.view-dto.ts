@@ -5,7 +5,7 @@ import { CommentDocument } from '../../domain/comment.entity';
 export class CommentViewDto {
     id: string;
     commentatorInfo: commentatorInfo;
-    postId: string;
+    content: string;
     createdAt: string;
     likesInfo: likesInfo;
 
@@ -14,7 +14,7 @@ export class CommentViewDto {
 
         dto.id = comment._id.toString();
         dto.commentatorInfo = comment.commentatorInfo;
-        dto.postId = comment.postId;
+        dto.content = comment.content;
         dto.createdAt = comment.createdAt;
         dto.likesInfo = comment.likesInfo;
 

@@ -36,14 +36,15 @@ export class UsersTestManager {
         loginOrEmail: string,
         password: string,
         statusCode: number = HttpStatus.OK
-    ): Promise<{ accessToken: string }> {
+    ): Promise<{ accessToken: string; refreshToken: string }> {
         const response = await request(this.app.getHttpServer())
             .post(`/auth/login`)
             .send({ loginOrEmail, password })
             .expect(statusCode);
 
         return {
-            accessToken: response.body.accessToken
+            accessToken: response.body.accessToken,
+            refreshToken: response.headers['set-cookie'][0]
         };
     }
 
@@ -72,7 +73,7 @@ export class UsersTestManager {
         return Promise.all(usersPromises);
     }
 
-    async createAndLoginSeveralUsers(count: number): Promise<{ accessToken: string }[]> {
+    async createAndLoginSeveralUsers(count: number): Promise<{ accessToken: string; refreshToken: string }[]> {
         const users = await this.createSeveralUsers(count);
 
         const loginPromises = users.map((user: UserViewDto) => this.login(user.login, '123456789'));

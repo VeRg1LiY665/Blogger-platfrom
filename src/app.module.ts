@@ -10,6 +10,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { APP_FILTER } from '@nestjs/core';
 import { DomainHttpExceptionsFilter } from './core/exceptions/domain-exception.filter';
 import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
+import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-exception.filter';
 
 //import { DatabaseModule } from './database/database.modules';  //кастомный модуль подключения к монго
 
@@ -34,6 +35,10 @@ import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter
         {
             provide: APP_FILTER,
             useClass: AllHttpExceptionsFilter
+        },
+        {
+            provide: APP_FILTER,
+            useClass: MongooseErrorExceptionFilter
         },
         {
             provide: APP_FILTER,

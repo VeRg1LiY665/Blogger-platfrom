@@ -25,6 +25,9 @@ import { CreateBlogPostDto, CreatePostDto } from '../dto/create-post.dto';
 import { PostViewDto } from './view-dto/posts.view-dto';
 import { BasicAuthGuard } from '../../user-accounts/guards/basic/basic-auth.guard';
 import { BlogsInputUpdateDto } from './input-dto/blogs.input-update-dto';
+import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
+import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
+import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -69,14 +72,31 @@ export class BlogsController {
     }
 
     @Get(':id/posts')
-    async getBlogPosts(@Param('id') id: string, @Query() query: GetPostsQueryParams) {
-        return await this.postsService.findForBlog(id, query);
+    @UseGuards(JwtOptionalAuthGuard)
+    async getBlogPosts(
+        @Param('id') id: string,
+        @ExtractUserIfExistsFromRequest() user: UserContextDto,
+        @Query() query: GetPostsQueryParams
+    ) {
+        let userId;
+        if (user) {
+            userId = user.id;
+        } else {
+            userId = null;
+        }
+
+        const dto = {
+            blogId: id,
+            query: query,
+            userId: userId
+        };
+        return await this.postsService.findForBlog(dto);
     }
 
     @Post(':id/posts')
     @UseGuards(BasicAuthGuard)
     async createPostForBlog(@Param('id') id: string, @Body() body: CreateBlogPostDto): Promise<PostViewDto> {
         const postId = await this.postsService.createForBlog(id, body);
-        return await this.postsService.findOne(postId);
+        return await this.postsService.findOne({ id: postId });
     }
 }

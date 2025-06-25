@@ -13,18 +13,33 @@ export class Like {
             message: 'likeStatus {VALUE} is not supported'
         }
     })
-    status: string;
+    likeStatus: string;
 
-    @Prop({ type: String, required: true, default: '' })
+    @Prop({
+        type: String,
+        required: function isFieldRequired() {
+            return typeof this.userId === 'string' ? false : true; //for passing empty string validation
+        }
+    })
     userId: string;
 
     @Prop({ type: String, required: true })
     parentId: string;
 
-    @Prop({ type: String, required: true, default: '' })
+    @Prop({
+        type: String,
+        required: function isFieldRequired() {
+            return typeof this.commentId === 'string' ? false : true;
+        }
+    })
     commentId: string;
 
-    @Prop({ type: String, required: true, default: '' })
+    @Prop({
+        type: String,
+        required: function isFieldRequired() {
+            return typeof this.postId === 'string' ? false : true;
+        }
+    })
     postId: string;
 
     @Prop({ type: String, required: true })
@@ -32,7 +47,7 @@ export class Like {
 
     static createInstance(dto: CreateLikeDomainDto): LikeDocument {
         const like = new this();
-        like.status = dto.status;
+        like.likeStatus = dto.status;
         like.userId = dto.userId;
         like.parentId = dto.parentId;
         like.commentId = dto.commentId;
@@ -42,7 +57,7 @@ export class Like {
     }
 
     update(dto: UpdateLikeDomainDto) {
-        this.status = dto.likeStatus;
+        this.likeStatus = dto.likeStatus;
     }
 }
 

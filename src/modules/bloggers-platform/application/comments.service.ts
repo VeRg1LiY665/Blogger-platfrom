@@ -81,26 +81,42 @@ export class CommentsService {
         return comment;
     }
 
-    async update(id: string, updateCommentDto: UpdateCommentDto) {
-        const comment = await this.commentsRepository.findById(id);
+    async update(dto: { id: string; updateCommentDto: UpdateCommentDto; userId: string }) {
+        const comment = await this.commentsRepository.findById(dto.id);
         if (!comment) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: 'Comment not found'
             });
         }
-        comment.update(updateCommentDto);
+        const user = await this.usersExtQRepository.findById(dto.userId);
+        if (user.userId !== comment.commentatorInfo.userId) {
+            throw new DomainException({
+                code: DomainExceptionCode.Forbidden,
+                message: 'Access denied'
+            });
+        }
+        comment.update(dto.updateCommentDto);
         return comment._id.toString();
     }
 
-    async remove(id: string) {
-        const comment = await this.commentsRepository.findById(id);
+    async remove(dto: { id: string; userId: string }) {
+        const comment = await this.commentsRepository.findById(dto.id);
         if (!comment) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: 'Comment not found'
             });
         }
-        return await this.commentsRepository.delete(id);
+
+        const user = await this.usersExtQRepository.findById(dto.userId);
+        if (user.userId !== comment.commentatorInfo.userId) {
+            throw new DomainException({
+                code: DomainExceptionCode.Forbidden,
+                message: 'Access denied'
+            });
+        }
+
+        return await this.commentsRepository.delete(dto.id);
     }
 }

@@ -27,6 +27,8 @@ import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/pa
 import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
 import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
 import { PostInputDto } from './input-dto/post.input-dto';
+import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
+import { GetCommentsQueryParams } from './input-dto/get-comments-query-params';
 
 @Controller('posts')
 export class PostsController {
@@ -40,7 +42,7 @@ export class PostsController {
     @UseGuards(BasicAuthGuard)
     async create(@Body() postInputDto: PostInputDto) {
         const postId = await this.postsService.create(postInputDto);
-        return await this.postsService.findOne(postId);
+        return await this.postsService.findOne({ id: postId });
     }
 
     @Get()
@@ -48,9 +50,22 @@ export class PostsController {
         return await this.postsService.findAll(query);
     }
 
-    @Get(':id') //TODO add jwt check to show reaction of a user or None
-    async findOne(@Param('id') id: string) {
-        return await this.postsService.findOne(id);
+    @Get(':id')
+    @UseGuards(JwtOptionalAuthGuard)
+    async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
+        let userId;
+        if (user) {
+            userId = user.id;
+        } else {
+            userId = null;
+        }
+
+        const dto = {
+            id: id,
+            userId: userId
+        };
+
+        return await this.postsService.findOne(dto);
     }
 
     @Put(':id')
@@ -69,15 +84,25 @@ export class PostsController {
     }
 
     @Put(':id/like-status')
+    @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
-    async like(@Param('id') id: string, @Body() inputLikeDto: LikeInputDto) {
+    async like(
+        @Param('id') id: string,
+        @ExtractUserFromRequest() user: UserContextDto,
+        @Body() inputLikeDto: LikeInputDto
+    ) {
         const dto = {
             likeStatus: inputLikeDto.likeStatus,
             postId: id,
-            parentId: '' //TODO Sessions
+            parentId: user.id //TODO Sessions
         };
 
         return await this.likesService.createForPost(dto);
+    }
+
+    @Get(':id/comments')
+    async getCommentsForPost(@Param('id') id: string, @Query() query: GetCommentsQueryParams) {
+        return await this.commentsService.findForPost(id, query);
     }
 
     @Post(':id/comments')

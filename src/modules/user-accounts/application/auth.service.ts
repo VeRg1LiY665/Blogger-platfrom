@@ -35,7 +35,7 @@ export class AuthService {
             { id: userId },
             {
                 secret: 'kjsjhd67t43b9v',
-                expiresIn: '2s' //10 min in ms //TODO разобраться как оверрайдить пров, если пропсы закидываю при вызове метода
+                expiresIn: '10m' //10 min in ms //TODO разобраться как оверрайдить пров, если пропсы закидываю при вызове метода
             }
         );
 

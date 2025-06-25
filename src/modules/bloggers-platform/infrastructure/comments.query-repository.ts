@@ -4,6 +4,8 @@ import { NotFoundException } from '@nestjs/common';
 import { CommentViewDto } from '../api/view-dto/comments.view-dto';
 import { GetCommentsQueryParams } from '../api/input-dto/get-comments-query-params';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 export class CommentsQRepository {
     constructor(@InjectModel(Comment.name) private commentModel: CommentModeltype) {}
@@ -33,7 +35,10 @@ export class CommentsQRepository {
         });
 
         if (!comment) {
-            throw new NotFoundException('No post found');
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'No post found'
+            });
         }
 
         return CommentViewDto.mapToView(comment);

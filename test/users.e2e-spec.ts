@@ -68,12 +68,19 @@ describe('users', () => {
         //etc...
     });
 
+    it('should login user and get refresh and access token', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(1);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+    });
+
     it('should return users info while "me" request with correct accessTokens', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(1);
 
-        const responseBody = await userTestManager.me(tokens[0].accessToken);
+        const response = await userTestManager.me(tokens[0].accessToken);
 
-        expect(responseBody).toEqual({
+        expect(response).toEqual({
             login: expect.anything(),
             userId: expect.anything(),
             email: expect.anything()
