@@ -97,7 +97,7 @@ export class PostsService {
         return await this.postsRepository.delete(id);
     }
 
-    async findForBlog(dto: { blogId: string; query: GetPostsQueryParams; userId?: string }) {
+    async findForBlog(dto: { blogId: string; query: GetPostsQueryParams; userId?: string | undefined }) {
         const blog = await this.blogsRepository.findById(dto.blogId);
         if (!blog) {
             throw new DomainException({
@@ -106,24 +106,24 @@ export class PostsService {
             });
         }
 
-        const items = await this.postsQRepository.findForBlog(dto.blogId, dto.query);
+        const posts = await this.postsQRepository.findForBlog(dto.blogId, dto.query);
 
-        if (!items) {
+        if (!posts) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
-                message: 'Post not found'
+                message: 'Posts not found'
             });
         }
 
         if (dto.userId) {
-            for (let i = 0; i < items.totalCount; i++) {
-                const reaction = await this.likesRepository.ShowReactionForPost(dto.userId, items[i].id);
+            for (let i = 0; i < posts.totalCount; i++) {
+                const reaction = await this.likesRepository.ShowReactionForPost(dto.userId, posts.items[i].id);
                 if (reaction) {
-                    items[i].extendedLikesInfo.myStatus = reaction.likeStatus;
+                    posts.items[i].extendedLikesInfo.myStatus = reaction.likeStatus;
                 }
             }
         }
-        return items;
+        return posts;
     }
 
     async createForBlog(blogId: string, createPostDto: CreateBlogPostDto) {

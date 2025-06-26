@@ -8,7 +8,6 @@ import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
 //TODO: tests
 export const errorFormatter = (errors: ValidationError[], errorMessage?: any): Extension[] => {
     const errorsForResponse = errorMessage || [];
-    console.log(errors);
     for (const error of errors) {
         if (!error.constraints && error.children?.length) {
             errorFormatter(error.children, errorsForResponse);

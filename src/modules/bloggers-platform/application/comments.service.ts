@@ -11,6 +11,7 @@ import { UsersExtQRepository } from '../../user-accounts/infrastructure/external
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 import { likesInfo } from '../domain/likesInfo.schema';
+import { LikesRepo } from '../infrastructure/likes.repository';
 
 @Injectable()
 export class CommentsService {
@@ -20,7 +21,8 @@ export class CommentsService {
         private commentsRepository: CommentsRepository,
         private commentsQRepository: CommentsQRepository,
         private postsRepository: PostsRepository,
-        private usersExtQRepository: UsersExtQRepository
+        private usersExtQRepository: UsersExtQRepository,
+        private likesRepository: LikesRepo
     ) {}
 
     async create(createCommentDto: CreateCommentDto) {
@@ -57,26 +59,41 @@ export class CommentsService {
         return newComment._id.toString();
     }
 
-    async findForPost(id: string, query: GetCommentsQueryParams) {
-        const post = await this.postsRepository.findById(id);
+    async findForPost(dto: { id: string; query: GetCommentsQueryParams; userId?: string }) {
+        const post = await this.postsRepository.findById(dto.id);
         if (!post) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: 'Post not found'
             });
         }
-        const comments = await this.commentsQRepository.findForPost(id, query);
+        const comments = await this.commentsQRepository.findForPost(dto.id, dto.query);
+
+        if (dto.userId) {
+            for (let i = 0; i < comments.totalCount; i++) {
+                const reaction = await this.likesRepository.ShowReactionForComment(dto.userId, comments.items[i].id);
+                if (reaction) {
+                    comments.items[i].likesInfo.myStatus = reaction.likeStatus;
+                }
+            }
+        }
 
         return comments;
     }
 
-    async findOne(id: string) {
-        const comment = await this.commentsQRepository.findOne(id);
+    async findOne(dto: { id: string; userId?: string }) {
+        const comment = await this.commentsQRepository.findOne(dto.id);
         if (!comment) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: 'Comment not found'
             });
+        }
+        if (dto.userId) {
+            const reaction = await this.likesRepository.ShowReactionForComment(dto.userId, comment.id);
+            if (reaction) {
+                comment.likesInfo.myStatus = reaction.likeStatus;
+            }
         }
         return comment;
     }

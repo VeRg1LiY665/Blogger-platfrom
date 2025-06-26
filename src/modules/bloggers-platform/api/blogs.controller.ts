@@ -78,17 +78,10 @@ export class BlogsController {
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetPostsQueryParams
     ) {
-        let userId;
-        if (user) {
-            userId = user.id;
-        } else {
-            userId = null;
-        }
-
         const dto = {
             blogId: id,
             query: query,
-            userId: userId
+            userId: user ? user.id : undefined
         };
         return await this.postsService.findForBlog(dto);
     }

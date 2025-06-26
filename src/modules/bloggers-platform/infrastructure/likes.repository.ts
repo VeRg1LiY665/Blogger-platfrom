@@ -18,11 +18,11 @@ export class LikesRepo {
 
     async CountReactionsForComment(commentId: string) {
         const likes = await this.likeModel.countDocuments({
-            $and: [{ commentId: commentId }, { status: 'Like' }]
+            $and: [{ commentId: commentId }, { likeStatus: 'Like' }]
         });
 
         const dislikes = await this.likeModel.countDocuments({
-            $and: [{ commentId: commentId }, { status: 'Dislike' }]
+            $and: [{ commentId: commentId }, { likeStatus: 'Dislike' }]
         });
 
         return { likes, dislikes };
@@ -37,9 +37,9 @@ export class LikesRepo {
     }
 
     async CountReactionsForPost(postId: string) {
-        const likes = await this.likeModel.countDocuments({ $and: [{ postId: postId }, { status: 'Like' }] });
+        const likes = await this.likeModel.countDocuments({ $and: [{ postId: postId }, { likeStatus: 'Like' }] });
 
-        const dislikes = await this.likeModel.countDocuments({ $and: [{ postId: postId }, { status: 'Dislike' }] });
+        const dislikes = await this.likeModel.countDocuments({ $and: [{ postId: postId }, { likeStatus: 'Dislike' }] });
 
         return { likes, dislikes };
     }
@@ -47,7 +47,7 @@ export class LikesRepo {
     async ShowLastReactionsForPost(postId: string) {
         const res = await this.likeModel
             .find({
-                $and: [{ postId: postId }, { status: 'Like' }]
+                postId: postId
             })
             .sort({ ['addedAt']: -1 })
             .limit(3);

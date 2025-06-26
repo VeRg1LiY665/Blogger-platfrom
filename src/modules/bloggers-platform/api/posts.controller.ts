@@ -101,15 +101,25 @@ export class PostsController {
     }
 
     @Get(':id/comments')
-    async getCommentsForPost(@Param('id') id: string, @Query() query: GetCommentsQueryParams) {
-        return await this.commentsService.findForPost(id, query);
+    @UseGuards(JwtOptionalAuthGuard)
+    async getCommentsForPost(
+        @Param('id') id: string,
+        @ExtractUserIfExistsFromRequest() user: UserContextDto,
+        @Query() query: GetCommentsQueryParams
+    ) {
+        const dto = {
+            id: id,
+            query: query,
+            userId: user ? user.id : undefined
+        };
+        return await this.commentsService.findForPost(dto);
     }
 
     @Post(':id/comments')
     @UseGuards(JwtAuthGuard)
     async createCommentForPost(
         @Param('id') id: string,
-        @ExtractUserIfExistsFromRequest() user: UserContextDto,
+        @ExtractUserFromRequest() user: UserContextDto,
         @Body() createCommentInputDto: CreateCommentInputDto
     ) {
         const dto = {
@@ -119,7 +129,10 @@ export class PostsController {
         };
 
         const commentId = await this.commentsService.create(dto);
-
-        return await this.commentsService.findOne(commentId);
+        const findDto = {
+            id: commentId,
+            userId: user.id
+        };
+        return await this.commentsService.findOne(findDto);
     }
 }

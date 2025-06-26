@@ -20,6 +20,8 @@ import { LikeInputDto } from './input-dto/likes.input-dto';
 import { LikesService } from '../application/likes.service';
 import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
+import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
+import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
 
 @Controller('comments')
 export class CommentsController {
@@ -34,8 +36,13 @@ export class CommentsController {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return await this.commentsService.findOne(id);
+    @UseGuards(JwtOptionalAuthGuard)
+    async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
+        const dto = {
+            id: id,
+            userId: user ? user.id : undefined
+        };
+        return await this.commentsService.findOne(dto);
     }
 
     @Put(':id')

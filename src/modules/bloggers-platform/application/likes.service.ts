@@ -59,6 +59,7 @@ export class LikesService {
                     newestLikes[i] = new NewestLike(lastLikes[i].addedAt, lastLikes[i].parentId, user.login);
                 }
             }
+
             post.extendedLikesInfo.newestLikes = newestLikes;
         }
 
