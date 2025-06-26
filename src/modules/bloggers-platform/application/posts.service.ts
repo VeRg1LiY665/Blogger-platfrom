@@ -38,6 +38,7 @@ export class PostsService {
     }
 
     async findAll(query: GetPostsQueryParams) {
+        //TODO add user check for mystatus
         const posts = await this.postsQRepository.findAll(query);
         return posts;
     }
