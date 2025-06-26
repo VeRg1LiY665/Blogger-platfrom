@@ -97,6 +97,7 @@ export class CommentsService {
             });
         }
         comment.update(dto.updateCommentDto);
+        await this.commentsRepository.save(comment);
         return comment._id.toString();
     }
 

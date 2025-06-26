@@ -6,7 +6,7 @@ import { extendedLikesInfo, extendedLikesInfoSchema } from './extendedLikesInfo.
 
 @Schema()
 export class Post {
-    @Prop({ type: String, required: true, maxLength: 30 })
+    @Prop({ type: String, required: true }) //Можно здесь валидировать, либо декораторами в iput dto
     title: string;
 
     @Prop({ type: String, required: true })

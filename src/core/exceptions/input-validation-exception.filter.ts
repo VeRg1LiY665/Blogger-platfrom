@@ -5,7 +5,7 @@ import ValidationError = Error.ValidationError;
 import { MongooseErrorResponseBodyType } from './mongoose-error-response-body.type';
 
 //https://docs.nestjs.com/exception-filters#exception-filters-1
-//Ошибки валидации mongoose
+//Ошибки входной валидации
 @Catch(ValidationError)
 export class MongooseErrorExceptionFilter implements ExceptionFilter {
     catch(exception: ValidationError, host: ArgumentsHost): void {

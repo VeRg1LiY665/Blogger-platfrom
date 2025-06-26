@@ -23,7 +23,18 @@ export class CreatePostDto {
 }
 
 export class CreateBlogPostDto {
+    @IsString()
+    @Trim()
+    @Length(1, 30)
     title: string;
+
+    @IsString()
+    @Trim()
+    @Length(1, 100)
     shortDescription: string;
+
+    @IsString()
+    @Trim()
+    @Length(1, 1000)
     content: string;
 }

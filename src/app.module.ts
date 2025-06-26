@@ -6,7 +6,6 @@ import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-pla
 import { UsersAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { TestingModule } from './modules/testing/testing.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { NotificationsModule } from './modules/notifications/notifications.module';
 import { APP_FILTER } from '@nestjs/core';
 import { DomainHttpExceptionsFilter } from './core/exceptions/domain-exception.filter';
 import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
