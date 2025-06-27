@@ -46,8 +46,16 @@ export class PostsController {
     }
 
     @Get()
-    async findAll(@Query() query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
-        return await this.postsService.findAll(query);
+    @UseGuards(JwtOptionalAuthGuard)
+    async findAll(
+        @Query() query: GetPostsQueryParams,
+        @ExtractUserIfExistsFromRequest() user: UserContextDto
+    ): Promise<PaginatedViewDto<PostViewDto[]>> {
+        const dto = {
+            query: query,
+            userId: user ? user.id : undefined
+        };
+        return await this.postsService.findAll(dto);
     }
 
     @Get(':id')

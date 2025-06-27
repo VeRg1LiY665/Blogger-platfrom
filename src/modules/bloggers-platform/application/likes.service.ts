@@ -48,7 +48,7 @@ export class LikesService {
             await this.likesRepo.save(reaction);
         }
 
-        const lastLikes = await this.likesRepo.ShowLastReactionsForPost(dto.postId);
+        const lastLikes = await this.likesRepo.ShowLastLikesForPost(dto.postId);
 
         if (lastLikes) {
             const newestLikes: NewestLike[] = [];

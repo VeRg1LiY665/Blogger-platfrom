@@ -44,10 +44,10 @@ export class LikesRepo {
         return { likes, dislikes };
     }
 
-    async ShowLastReactionsForPost(postId: string) {
+    async ShowLastLikesForPost(postId: string) {
         const res = await this.likeModel
             .find({
-                postId: postId
+                $and: [{ postId: postId }, { likeStatus: 'Like' }] //This shall return ONLY last likes e.g. likestatus="Like"
             })
             .sort({ ['addedAt']: -1 })
             .limit(3);

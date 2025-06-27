@@ -37,9 +37,18 @@ export class PostsService {
         return newPost._id.toString();
     }
 
-    async findAll(query: GetPostsQueryParams) {
-        //TODO add user check for mystatus
-        const posts = await this.postsQRepository.findAll(query);
+    async findAll(dto: { query: GetPostsQueryParams; userId?: string }) {
+        const posts = await this.postsQRepository.findAll(dto.query);
+
+        if (dto.userId) {
+            for (let i = 0; i < posts.totalCount; i++) {
+                const reaction = await this.likesRepository.ShowReactionForPost(dto.userId, posts.items[i].id);
+                if (reaction) {
+                    posts.items[i].extendedLikesInfo.myStatus = reaction.likeStatus;
+                }
+            }
+        }
+
         return posts;
     }
 
