@@ -3,7 +3,9 @@ import { User, UserDocument, UserModelType } from '../domain/user.entity';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 import { Types } from 'mongoose';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class UsersRepository {
     constructor(
         @InjectModel(User.name)

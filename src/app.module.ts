@@ -10,6 +10,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { DomainHttpExceptionsFilter } from './core/exceptions/domain-exception.filter';
 import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
 import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-exception.filter';
+import { CoreModule } from './core/core.module';
 
 //import { DatabaseModule } from './database/database.modules';  //кастомный модуль подключения к монго
 
@@ -24,6 +25,7 @@ import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-e
             ]
         }),
         MongooseModule.forRoot('mongodb://localhost:27017/blogs-platform'),
+        CoreModule,
         BloggersPlatformModule,
         UsersAccountsModule,
         TestingModule

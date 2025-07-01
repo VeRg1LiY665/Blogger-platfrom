@@ -15,6 +15,14 @@ import { AuthService } from './application/auth.service';
 import { /*JwtModule,*/ JwtService } from '@nestjs/jwt';
 import { AuthController } from './api/auth.controller';
 import { AuthQueryRepository } from './infrastructure/auth.query-repository';
+import { CreateUserUseCase } from './application/usecases/admins/create-user.usecase';
+import { UsersFactory } from './application/factories/users.factory';
+
+const commandHandlers = [
+    /*DeleteUserUseCase,
+    RegisterUserUseCase,*/
+    CreateUserUseCase
+];
 
 @Module({
     imports: [
@@ -37,7 +45,9 @@ import { AuthQueryRepository } from './infrastructure/auth.query-repository';
         AuthQueryRepository,
         JwtService,
         LocalStrategy,
-        JwtStrategy
+        JwtStrategy,
+        ...commandHandlers, //не забывать регстрировать команды
+        UsersFactory //не забывать регистрировать фабрики
     ],
     exports: [/*JwtModule*/ UsersExtQRepository]
 })

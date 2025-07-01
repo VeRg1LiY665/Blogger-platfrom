@@ -14,6 +14,7 @@ import { InputConfirmEmailDto } from '../api/input-dto/input-registration-confir
 import { InputEmailResendingDto } from '../api/input-dto/input-email-resending';
 import { InputPasswordRecoveryDto } from '../api/input-dto/input-password-recovery';
 import { InputNewPasswordDto } from '../api/input-dto/input-new-password-dto';
+import { UsersFactory } from './factories/users.factory';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +24,8 @@ export class UsersService {
         private emailService: EmailService,
         private cryptoService: CryptoService,
         private usersRepository: UsersRepository,
-        private usersQRepository: UsersQRepository
+        private usersQRepository: UsersQRepository,
+        private usersFactory: UsersFactory
     ) {}
 
     async createUser(dto: CreateUserDto) {
@@ -49,6 +51,7 @@ export class UsersService {
     }
 
     async registerUser(dto: CreateUserDto) {
+        console.log(this.usersRepository);
         if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
@@ -65,14 +68,13 @@ export class UsersService {
             });
         }
 
-        const createdUserId = await this.createUser(dto);
-
+        const userId = await this.createUser(dto);
+        const user = await this.usersRepository.findOrNotFoundFail(userId);
         const confirmCode = randomUUID();
-
-        const user = await this.usersRepository.findOrNotFoundFail(createdUserId);
-
         user.setConfirmationCode(confirmCode);
         await this.usersRepository.save(user);
+
+        await this.usersRepository.findOrNotFoundFail(user._id);
 
         this.emailService.sendConfirmationEmail(user.email, confirmCode).catch(console.error);
 
