@@ -19,7 +19,9 @@ export class ObjectIdValidationTransformationPipe implements PipeTransform {
                 message: `Invalid ObjectId: ${value}`
             });
         }
-        return new Types.ObjectId(value); // Преобразуем строку в ObjectId
+
+        return value; //возвращаем без преобразования
+        //return new Types.ObjectId(value); // Преобразуем строку в ObjectId
 
         // Если тип не ObjectId, возвращаем значение без изменений
     }

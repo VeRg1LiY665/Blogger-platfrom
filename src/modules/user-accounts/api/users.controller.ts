@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UsersService } from '../application/users.service';
 import { InputUserDto } from './input-dto/users.input-dto';
 import { GetUsersQueryParams } from './input-dto/get-users-query-params';
@@ -9,12 +9,15 @@ import { BasicAuthGuard } from '../guards/basic/basic-auth.guard';
 import { CreateUserCommand } from '../application/usecases/admins/create-user.usecase';
 import { Types } from 'mongoose';
 import { UsersQRepository } from '../infrastructure/users.query-repository';
+import { DeleteUserCommand } from '../application/usecases/admins/delete-user.usecase';
+import { GetUserByIdQuery } from '../application/queries/get-user-by-id.query';
 
 @Controller('users')
 export class UsersController {
     constructor(
         private usersService: UsersService,
-        private readonly commandBus: CommandBus
+        private readonly commandBus: CommandBus,
+        private readonly queryBus: QueryBus
     ) {}
 
     @Post()
@@ -23,7 +26,7 @@ export class UsersController {
         const createdId = await this.commandBus.execute<CreateUserCommand, Types.ObjectId>(
             new CreateUserCommand(createUserDto)
         );
-        return await this.usersService.findById(createdId.toString());
+        return await this.queryBus.execute<GetUserByIdQuery>(new GetUserByIdQuery(createdId.toString()));
     }
 
     @Get()
@@ -35,13 +38,14 @@ export class UsersController {
 
     @Get(':id')
     async findOne(@Param('id') id: string): Promise<UserViewDto> {
-        return await this.usersService.findById(id);
+        //TODO implement objectId Validation?
+        return await this.queryBus.execute<GetUserByIdQuery>(new GetUserByIdQuery(id));
     }
 
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async delete(@Param('id') id: string): Promise<void> {
-        return await this.usersService.removeUser(id);
+        return await this.commandBus.execute<DeleteUserCommand, void>(new DeleteUserCommand(id));
     }
 }

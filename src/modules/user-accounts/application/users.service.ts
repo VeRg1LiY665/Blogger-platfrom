@@ -28,7 +28,7 @@ export class UsersService {
         private usersFactory: UsersFactory
     ) {}
 
-    async createUser(dto: CreateUserDto) {
+    /*async createUser(dto: CreateUserDto) {
         const userWithTheSameLogin = await this.usersRepository.findByLoginOrEmail(dto.login);
         if (!!userWithTheSameLogin) {
             throw new DomainException({
@@ -48,10 +48,9 @@ export class UsersService {
         await this.usersRepository.save(user);
 
         return user._id;
-    }
+    }*/
 
-    async registerUser(dto: CreateUserDto) {
-        console.log(this.usersRepository);
+    /*async registerUser(dto: CreateUserDto) {
         if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
@@ -68,8 +67,8 @@ export class UsersService {
             });
         }
 
-        const userId = await this.createUser(dto);
-        const user = await this.usersRepository.findOrNotFoundFail(userId);
+        const user = await this.usersFactory.create(dto);
+        //const user = await this.usersRepository.findOrNotFoundFail(userId);
         const confirmCode = randomUUID();
         user.setConfirmationCode(confirmCode);
         await this.usersRepository.save(user);
@@ -79,7 +78,7 @@ export class UsersService {
         this.emailService.sendConfirmationEmail(user.email, confirmCode).catch(console.error);
 
         return;
-    }
+    }*/
 
     async confirmRegistration(dto: InputConfirmEmailDto) {
         const user = await this.usersRepository.findByUUID(dto.code);
@@ -184,7 +183,7 @@ export class UsersService {
         return;
     }
 
-    async removeUser(id: string): Promise<void> {
+    /*   async removeUser(id: string): Promise<void> {
         const user = await this.usersRepository.findById(id);
         if (!user) {
             throw new DomainException({
@@ -194,13 +193,13 @@ export class UsersService {
         }
 
         return await this.usersRepository.delete(id);
-    }
+    }*/
 
     async getAllUsers(query: GetUsersQueryParams) {
         return await this.usersQRepository.findAll(query);
     }
 
-    async findById(id: string) {
+    /* async findById(id: string) {
         const user = await this.usersQRepository.findById(id);
         if (!user) {
             throw new DomainException({
@@ -209,5 +208,5 @@ export class UsersService {
             });
         }
         return user;
-    }
+    }*/
 }

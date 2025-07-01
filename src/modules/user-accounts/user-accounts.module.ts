@@ -17,13 +17,12 @@ import { AuthController } from './api/auth.controller';
 import { AuthQueryRepository } from './infrastructure/auth.query-repository';
 import { CreateUserUseCase } from './application/usecases/admins/create-user.usecase';
 import { UsersFactory } from './application/factories/users.factory';
+import { DeleteUserUseCase } from './application/usecases/admins/delete-user.usecase';
+import { RegisterUserUseCase } from './application/usecases/users/register-user.usecase';
+import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.query';
 
-const commandHandlers = [
-    /*DeleteUserUseCase,
-    RegisterUserUseCase,*/
-    CreateUserUseCase
-];
-
+const commandHandlers = [DeleteUserUseCase, CreateUserUseCase, RegisterUserUseCase];
+const queryHandlers = [GetUserByIdQueryHandler];
 @Module({
     imports: [
         /*JwtModule.register({
@@ -47,6 +46,7 @@ const commandHandlers = [
         LocalStrategy,
         JwtStrategy,
         ...commandHandlers, //не забывать регстрировать команды
+        ...queryHandlers,
         UsersFactory //не забывать регистрировать фабрики
     ],
     exports: [/*JwtModule*/ UsersExtQRepository]

@@ -17,19 +17,22 @@ import { InputPasswordRecoveryDto } from './input-dto/input-password-recovery';
 import { InputNewPasswordDto } from './input-dto/input-new-password-dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
+import { CommandBus } from '@nestjs/cqrs';
+import { RegisterUserCommand } from '../application/usecases/users/register-user.usecase';
 
 @Controller('auth')
 export class AuthController {
     constructor(
         private usersService: UsersService,
         private authService: AuthService,
-        private authQueryRepository: AuthQueryRepository
+        private authQueryRepository: AuthQueryRepository,
+        private readonly commandBus: CommandBus
     ) {}
     @Post('registration')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(ThrottlerGuard)
     registration(@Body() body: InputUserDto): Promise<void> {
-        return this.usersService.registerUser(body);
+        return this.commandBus.execute<RegisterUserCommand, void>(new RegisterUserCommand(body));
     }
 
     @Post('registration-confirmation')
