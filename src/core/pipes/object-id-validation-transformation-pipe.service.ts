@@ -1,6 +1,6 @@
 import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { isValidObjectId, Types } from 'mongoose';
-import { DomainException } from '../exceptions/domain-exceptions';
+import { DomainException, Extension } from '../exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../exceptions/domain-exception-codes';
 
 // Custom pipe example
@@ -38,7 +38,8 @@ export class ObjectIdValidationPipe implements PipeTransform {
         if (!isValidObjectId(value)) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: `Invalid ObjectId: ${value}`
+                message: 'Invalid ObjectId',
+                extensions: [new Extension(`Invalid ObjectId: ${value}`, metadata.type)]
             });
         }
 

@@ -1,4 +1,4 @@
-import { IsString, Length } from 'class-validator';
+import { IsMongoId, IsString, Length } from 'class-validator';
 import { Trim } from '../../../../core/decorators/transform/trim';
 
 export class PostInputDto {
@@ -19,5 +19,6 @@ export class PostInputDto {
 
     @IsString()
     @Trim()
+    @IsMongoId()
     blogId: string;
 }

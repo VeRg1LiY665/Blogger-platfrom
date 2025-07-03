@@ -9,7 +9,8 @@ import {
     Post,
     Put,
     Query,
-    UseGuards
+    UseGuards,
+    UsePipes
 } from '@nestjs/common';
 import { ApiParam } from '@nestjs/swagger';
 import { BlogsService } from '../application/blogs.service';
@@ -28,6 +29,7 @@ import { BlogsInputUpdateDto } from './input-dto/blogs.input-update-dto';
 import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
 import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
+import { ObjectIdValidationPipe } from '../../../core/pipes/object-id-validation-transformation-pipe.service';
 
 @Controller('blogs')
 export class BlogsController {
@@ -44,12 +46,14 @@ export class BlogsController {
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Get(':id')
+    @UsePipes(new ObjectIdValidationPipe())
     async getBlogByID(@Param('id') id: string): Promise<BlogViewDto> {
         return await this.blogsQRepo.findById(id);
     }
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Delete(':id')
+    @UsePipes(new ObjectIdValidationPipe())
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async deleteBlog(@Param('id') id: string): Promise<void> {
@@ -64,6 +68,7 @@ export class BlogsController {
     }
 
     @Put(':id')
+    @UsePipes(new ObjectIdValidationPipe())
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async updateBlog(@Param('id') id: string, @Body() body: BlogsInputUpdateDto): Promise<void> {
@@ -72,6 +77,7 @@ export class BlogsController {
     }
 
     @Get(':id/posts')
+    //@UsePipes(new ObjectIdValidationPipe()) //TODO check if it works
     @UseGuards(JwtOptionalAuthGuard)
     async getBlogPosts(
         @Param('id') id: string,

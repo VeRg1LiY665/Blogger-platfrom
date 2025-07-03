@@ -1,6 +1,9 @@
 import { INestApplication, ValidationError, ValidationPipe } from '@nestjs/common';
 import { DomainException, Extension } from '../core/exceptions/domain-exceptions';
-import { ObjectIdValidationTransformationPipe } from '../core/pipes/object-id-validation-transformation-pipe.service';
+import {
+    ObjectIdValidationPipe,
+    ObjectIdValidationTransformationPipe
+} from '../core/pipes/object-id-validation-transformation-pipe.service';
 import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
 
 //функция использует рекурсию для обхода объекта children при вложенных полях при валидации
