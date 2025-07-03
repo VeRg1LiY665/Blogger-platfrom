@@ -20,9 +20,24 @@ import { UsersFactory } from './application/factories/users.factory';
 import { DeleteUserUseCase } from './application/usecases/admins/delete-user.usecase';
 import { RegisterUserUseCase } from './application/usecases/users/register-user.usecase';
 import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.query';
+import { LoginUserUseCase } from './application/usecases/login-user.usecase';
+import { ConfirmRegistrationUserUseCase } from './application/usecases/users/confirm-registration-user.usecase';
+import { EmailResendingUserUseCase } from './application/usecases/users/email-resending-user.usecase';
+import { PasswordRecoveryUserUseCase } from './application/usecases/users/password-recovery-user.usecase';
+import { NewPasswordUserUseCase } from './application/usecases/users/new-password-user.usecase';
+import { GetAllUsersQueryHandler } from './application/queries/get-all-users.query';
 
-const commandHandlers = [DeleteUserUseCase, CreateUserUseCase, RegisterUserUseCase];
-const queryHandlers = [GetUserByIdQueryHandler];
+const commandHandlers = [
+    DeleteUserUseCase,
+    CreateUserUseCase,
+    RegisterUserUseCase,
+    LoginUserUseCase,
+    ConfirmRegistrationUserUseCase,
+    EmailResendingUserUseCase,
+    PasswordRecoveryUserUseCase,
+    NewPasswordUserUseCase
+];
+const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
 @Module({
     imports: [
         /*JwtModule.register({

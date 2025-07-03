@@ -19,6 +19,11 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { Response } from 'express';
 import { CommandBus } from '@nestjs/cqrs';
 import { RegisterUserCommand } from '../application/usecases/users/register-user.usecase';
+import { LoginUserCommand } from '../application/usecases/login-user.usecase';
+import { ConfirmRegistrationUserCommand } from '../application/usecases/users/confirm-registration-user.usecase';
+import { EmailResendingUserCommand } from '../application/usecases/users/email-resending-user.usecase';
+import { PasswordRecoveryUserCommand } from '../application/usecases/users/password-recovery-user.usecase';
+import { NewPasswordUserCommand } from '../application/usecases/users/new-password-user.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -39,14 +44,14 @@ export class AuthController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(ThrottlerGuard)
     registrationConfirmation(@Body() body: InputConfirmEmailDto): Promise<void> {
-        return this.usersService.confirmRegistration(body);
+        return this.commandBus.execute<ConfirmRegistrationUserCommand, void>(new ConfirmRegistrationUserCommand(body));
     }
 
     @Post('registration-email-resending')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(ThrottlerGuard)
     emailResending(@Body() body: InputEmailResendingDto): Promise<void> {
-        return this.usersService.emailResending(body);
+        return this.commandBus.execute<EmailResendingUserCommand, void>(new EmailResendingUserCommand(body));
     }
 
     @Post('login')
@@ -67,7 +72,10 @@ export class AuthController {
         @ExtractUserFromRequest() user: UserContextDto,
         @Res({ passthrough: true }) res: Response
     ): Promise<{ accessToken: string }> {
-        const { accessToken, refreshToken } = await this.authService.login(user.id);
+        const { accessToken, refreshToken } = await this.commandBus.execute<
+            LoginUserCommand,
+            { accessToken: string; refreshToken: string }
+        >(new LoginUserCommand(user.id));
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true, // Important for security
@@ -83,14 +91,14 @@ export class AuthController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(ThrottlerGuard)
     passwordRecovery(@Body() body: InputPasswordRecoveryDto): Promise<void> {
-        return this.usersService.passwordRecovery(body);
+        return this.commandBus.execute<PasswordRecoveryUserCommand>(new PasswordRecoveryUserCommand(body));
     }
 
     @Post('new-password')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(ThrottlerGuard)
     newPassword(@Body() body: InputNewPasswordDto): Promise<void> {
-        return this.usersService.newPassword(body);
+        return this.commandBus.execute<NewPasswordUserCommand, void>(new NewPasswordUserCommand(body));
     }
 
     @ApiBearerAuth()
@@ -99,21 +107,4 @@ export class AuthController {
     me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
         return this.authQueryRepository.me(user.id);
     }
-
-    /* @ApiBearerAuth()
-    @Get('me-or-default')
-    @UseGuards(JwtOptionalAuthGuard)
-    async meOrDefault(@ExtractUserIfExistsFromRequest() user: UserContextDto): Promise<Nullable<MeViewDto>> {
-        if (user) {
-            return this.authQueryRepository.me(user.id!);
-        } else {
-            return {
-                login: 'anonymous',
-                userId: null,
-                email: null,
-                firstName: null,
-                lastName: null
-            };
-        }
-    }*/
 }

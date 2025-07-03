@@ -80,7 +80,7 @@ export class UsersService {
         return;
     }*/
 
-    async confirmRegistration(dto: InputConfirmEmailDto) {
+    /* async confirmRegistration(dto: InputConfirmEmailDto) {
         const user = await this.usersRepository.findByUUID(dto.code);
         if (!user) {
             throw new DomainException({
@@ -112,9 +112,9 @@ export class UsersService {
         await this.usersRepository.save(user);
 
         return;
-    }
+    }*/
 
-    async emailResending(dto: InputEmailResendingDto) {
+    /*async emailResending(dto: InputEmailResendingDto) {
         const user = await this.usersRepository.findByLoginOrEmail(dto.email);
         if (!user) {
             throw new DomainException({
@@ -137,9 +137,9 @@ export class UsersService {
 
         this.emailService.sendConfirmationEmail(user.email, confirmCode).catch(console.error);
         return;
-    }
+    }*/
 
-    async passwordRecovery(dto: InputPasswordRecoveryDto) {
+    /* async passwordRecovery(dto: InputPasswordRecoveryDto) {
         const user = await this.usersRepository.findByLoginOrEmail(dto.email);
         if (!user) {
             throw new DomainException({
@@ -156,9 +156,9 @@ export class UsersService {
 
         this.emailService.sendRecoveryEmail(user.email, confirmCode).catch(console.error);
         return;
-    }
+    }*/
 
-    async newPassword(dto: InputNewPasswordDto) {
+    /*async newPassword(dto: InputNewPasswordDto) {
         const user = await this.usersRepository.findByUUID(dto.code);
         if (!user) {
             throw new DomainException({
@@ -181,7 +181,7 @@ export class UsersService {
         await this.usersRepository.save(user);
 
         return;
-    }
+    }*/
 
     /*   async removeUser(id: string): Promise<void> {
         const user = await this.usersRepository.findById(id);
@@ -195,9 +195,9 @@ export class UsersService {
         return await this.usersRepository.delete(id);
     }*/
 
-    async getAllUsers(query: GetUsersQueryParams) {
+    /* async getAllUsers(query: GetUsersQueryParams) {
         return await this.usersQRepository.findAll(query);
-    }
+    }*/
 
     /* async findById(id: string) {
         const user = await this.usersQRepository.findById(id);

@@ -8,9 +8,9 @@ import { PaginatedViewDto } from 'src/core/dto/base.paginated.view-dto';
 import { BasicAuthGuard } from '../guards/basic/basic-auth.guard';
 import { CreateUserCommand } from '../application/usecases/admins/create-user.usecase';
 import { Types } from 'mongoose';
-import { UsersQRepository } from '../infrastructure/users.query-repository';
 import { DeleteUserCommand } from '../application/usecases/admins/delete-user.usecase';
 import { GetUserByIdQuery } from '../application/queries/get-user-by-id.query';
+import { GetAllUsersQuery } from '../application/queries/get-all-users.query';
 
 @Controller('users')
 export class UsersController {
@@ -33,7 +33,7 @@ export class UsersController {
     @HttpCode(HttpStatus.OK)
     @UseGuards(BasicAuthGuard)
     async findAll(@Query() query: GetUsersQueryParams): Promise<PaginatedViewDto<UserViewDto[]>> {
-        return await this.usersService.getAllUsers(query);
+        return await this.queryBus.execute<GetAllUsersQuery>(new GetAllUsersQuery(query));
     }
 
     @Get(':id')

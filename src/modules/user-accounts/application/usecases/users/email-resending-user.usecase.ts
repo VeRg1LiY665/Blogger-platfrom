@@ -1,58 +1,51 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../../domain/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { User, UserModelType } from '../../../domain/user.entity';
+import { UsersRepository } from '../../../infrastructure/users.repository';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { UsersRepository } from '../../../infrastructure/users.repository';
+import { InputEmailResendingDto } from '../../../api/input-dto/input-email-resending';
 import { randomUUID } from 'node:crypto';
-import { UsersFactory } from '../../factories/users.factory';
-import { CreateUserDto } from '../../../dto/create-user.dto';
 import { EmailService } from '../../../../notifications/email.service';
 
-export class RegisterUserCommand {
-    constructor(public dto: CreateUserDto) {}
+export class EmailResendingUserCommand {
+    constructor(public dto: InputEmailResendingDto) {}
 }
 
 /**
  * Регистрация пользователя через email на странице регистрации сайта
  */
-@CommandHandler(RegisterUserCommand)
-export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand, void> {
+@CommandHandler(EmailResendingUserCommand)
+export class EmailResendingUserUseCase implements ICommandHandler<EmailResendingUserCommand, void> {
     constructor(
         @InjectModel(User.name)
         private userModel: UserModelType, //Зачем?
         private usersRepository: UsersRepository,
-        private usersFactory: UsersFactory,
         private emailService: EmailService
     ) {}
 
-    async execute({ dto }: RegisterUserCommand): Promise<void> {
-        if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
+    async execute({ dto }: EmailResendingUserCommand): Promise<void> {
+        const user = await this.usersRepository.findByLoginOrEmail(dto.email);
+        if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'User already exists',
-                extensions: [new Extension('User already exists', 'login')]
+                message: 'User email does not exist',
+                extensions: [new Extension('User email does not exist', 'email')]
             });
         }
 
-        if ((await this.usersRepository.findByLoginOrEmail(dto.email)) !== null) {
+        if (user.emailConfirmation.isConfirmed == true) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
-                message: 'User already exists',
-                extensions: [new Extension('User already exists', 'email')]
+                message: 'User email has been already confirmed',
+                extensions: [new Extension('User email has been already confirmed', 'email')]
             });
         }
-
-        const user = await this.usersFactory.create(dto);
-        //const user = await this.usersRepository.findOrNotFoundFail(userId);
         const confirmCode = randomUUID();
         user.setConfirmationCode(confirmCode);
         await this.usersRepository.save(user);
 
-        await this.usersRepository.findOrNotFoundFail(user._id);
-
         this.emailService.sendConfirmationEmail(user.email, confirmCode).catch(console.error);
-
         return;
     }
 }

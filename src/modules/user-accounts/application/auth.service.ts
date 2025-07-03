@@ -8,7 +8,7 @@ import { CryptoService } from './crypto.service';
 export class AuthService {
     constructor(
         private usersRepository: UsersRepository,
-        private jwtService: JwtService,
+        //private jwtService: JwtService,
         private cryptoService: CryptoService
     ) {}
     async validateUser(loginOrEmail: string, password: string): Promise<UserContextDto | null> {
@@ -30,7 +30,7 @@ export class AuthService {
         return { id: user._id.toString() };
     }
 
-    async login(userId: string) {
+    /*async login(userId: string) {
         const accessToken = this.jwtService.sign(
             { id: userId },
             {
@@ -51,5 +51,5 @@ export class AuthService {
             accessToken,
             refreshToken
         };
-    }
+    }*/
 }
