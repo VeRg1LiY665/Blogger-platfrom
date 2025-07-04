@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../infrastructure/users.repository';
-import { JwtService } from '@nestjs/jwt';
 import { UserContextDto } from '../guards/dto/user-context.dto';
 import { CryptoService } from './crypto.service';
 
@@ -8,7 +7,6 @@ import { CryptoService } from './crypto.service';
 export class AuthService {
     constructor(
         private usersRepository: UsersRepository,
-        //private jwtService: JwtService,
         private cryptoService: CryptoService
     ) {}
     async validateUser(loginOrEmail: string, password: string): Promise<UserContextDto | null> {
@@ -29,27 +27,4 @@ export class AuthService {
 
         return { id: user._id.toString() };
     }
-
-    /*async login(userId: string) {
-        const accessToken = this.jwtService.sign(
-            { id: userId },
-            {
-                secret: 'kjsjhd67t43b9v',
-                expiresIn: '10m' //10 min in ms //TODO разобраться как оверрайдить пров, если пропсы закидываю при вызове метода
-            }
-        );
-
-        const refreshToken = this.jwtService.sign(
-            { id: userId },
-            {
-                secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '24h' //24 hours in ms
-            }
-        );
-
-        return {
-            accessToken,
-            refreshToken
-        };
-    }*/
 }

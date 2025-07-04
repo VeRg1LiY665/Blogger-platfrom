@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { UsersService } from '../application/users.service';
 import { InputUserDto } from './input-dto/users.input-dto';
 import { GetUsersQueryParams } from './input-dto/get-users-query-params';
 import { UserViewDto } from './view-dto/users-view.dto';
@@ -15,7 +14,6 @@ import { GetAllUsersQuery } from '../application/queries/get-all-users.query';
 @Controller('users')
 export class UsersController {
     constructor(
-        private usersService: UsersService,
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus
     ) {}

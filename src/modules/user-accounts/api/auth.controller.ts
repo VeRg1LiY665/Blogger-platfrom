@@ -1,15 +1,11 @@
-import { Body, Controller, Post, UseGuards, Get, HttpCode, HttpStatus, Res } from '@nestjs/common';
-import { UsersService } from '../application/users.service';
+import { Body, Controller, Post, UseGuards, Get, HttpCode, HttpStatus, Res, UseInterceptors } from '@nestjs/common';
 import { InputUserDto } from './input-dto/users.input-dto';
 import { LocalAuthGuard } from '../guards/local/local-auth.guard';
-import { AuthService } from '../application/auth.service';
 import { ExtractUserFromRequest } from '../guards/decorators/param/extract-user-from-request.decorator';
 import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { Nullable, UserContextDto } from '../guards/dto/user-context.dto';
+import { UserContextDto } from '../guards/dto/user-context.dto';
 import { MeViewDto } from './view-dto/users-view.dto';
 import { JwtAuthGuard } from '../guards/bearer/jwt-auth.guard';
-import { JwtOptionalAuthGuard } from '../guards/bearer/jwt-optional-auth.guard';
-import { ExtractUserIfExistsFromRequest } from '../guards/decorators/extract-user-if-exists-from-request.decorator';
 import { AuthQueryRepository } from '../infrastructure/auth.query-repository';
 import { InputConfirmEmailDto } from './input-dto/input-registration-confirmation';
 import { InputEmailResendingDto } from './input-dto/input-email-resending';
@@ -24,12 +20,17 @@ import { ConfirmRegistrationUserCommand } from '../application/usecases/users/co
 import { EmailResendingUserCommand } from '../application/usecases/users/email-resending-user.usecase';
 import { PasswordRecoveryUserCommand } from '../application/usecases/users/password-recovery-user.usecase';
 import { NewPasswordUserCommand } from '../application/usecases/users/new-password-user.usecase';
+import { GetDeviceInfoInterceptor } from '../interceptors/get-device-info.interceptor';
+import { ExtractDeviceInfoFromRequest } from '../interceptors/decorators/extract-device-info-from-request.decorator';
+import { DeviceContextDto } from '../interceptors/dto/device-context.dto';
+import { RefreshGuard } from '../guards/bearer/refresh.guard';
+import { ExtractUserForRefreshFromRequest } from '../guards/decorators/param/extract-user-for-refresh-from-request.decorator';
+import { RefreshContextDto } from '../guards/dto/refresh-context.dto';
+import { RefreshTokenUserCommand } from '../application/usecases/refresh-token-user.usecase';
 
 @Controller('auth')
 export class AuthController {
     constructor(
-        private usersService: UsersService,
-        private authService: AuthService,
         private authQueryRepository: AuthQueryRepository,
         private readonly commandBus: CommandBus
     ) {}
@@ -56,7 +57,8 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    @UseGuards(LocalAuthGuard)
+    @UseGuards(ThrottlerGuard, LocalAuthGuard)
+    @UseInterceptors(GetDeviceInfoInterceptor)
     //swagger doc
     @ApiBody({
         schema: {
@@ -68,20 +70,25 @@ export class AuthController {
         }
     })
     async login(
-        /*@Request() req: any*/
         @ExtractUserFromRequest() user: UserContextDto,
+        @ExtractDeviceInfoFromRequest() deviceInfo: DeviceContextDto,
         @Res({ passthrough: true }) res: Response
     ): Promise<{ accessToken: string }> {
+        const dto = {
+            userId: user.id,
+            ip: deviceInfo.ip,
+            title: deviceInfo.userAgent
+        };
         const { accessToken, refreshToken } = await this.commandBus.execute<
             LoginUserCommand,
             { accessToken: string; refreshToken: string }
-        >(new LoginUserCommand(user.id));
+        >(new LoginUserCommand(dto));
 
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true, // Important for security
             secure: true, // Use secure in production
             maxAge: 7 * 24 * 60 * 60 * 1000, // e.g., 7 days in milliseconds
-            sameSite: 'strict' // Or 'strict' depending on your needs
+            sameSite: 'strict' // CSRF protection
         });
 
         return { accessToken: accessToken };
@@ -105,6 +112,36 @@ export class AuthController {
     @Get('me')
     @UseGuards(JwtAuthGuard)
     me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
+        console.log(user);
         return this.authQueryRepository.me(user.id);
+    }
+
+    @ApiBearerAuth()
+    @Post('refresh-token')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(RefreshGuard)
+    async refreshToken(
+        @ExtractUserForRefreshFromRequest() user: RefreshContextDto,
+        @Res({ passthrough: true }) res: Response
+    ): Promise<{ accessToken: string }> {
+        const dto = {
+            userId: user.id,
+            deviceId: user.deviceId,
+            iat: user.iat
+        };
+
+        const { accessToken, refreshToken } = await this.commandBus.execute<
+            RefreshTokenUserCommand,
+            { accessToken: string; refreshToken: string }
+        >(new RefreshTokenUserCommand(dto));
+
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true, // Important for security
+            secure: true, // Use secure in production
+            maxAge: 7 * 24 * 60 * 60 * 1000, // e.g., 7 days in milliseconds
+            sameSite: 'strict' // CSRF protection
+        });
+
+        return { accessToken: accessToken };
     }
 }

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { User, UserSchema } from './domain/user.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './api/users.controller';
-import { UsersService } from './application/users.service';
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersQRepository } from './infrastructure/users.query-repository';
 import { UsersExtQRepository } from './infrastructure/external-query/users.external-query-repository';
@@ -26,6 +25,12 @@ import { EmailResendingUserUseCase } from './application/usecases/users/email-re
 import { PasswordRecoveryUserUseCase } from './application/usecases/users/password-recovery-user.usecase';
 import { NewPasswordUserUseCase } from './application/usecases/users/new-password-user.usecase';
 import { GetAllUsersQueryHandler } from './application/queries/get-all-users.query';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { GetDeviceInfoInterceptor } from './interceptors/get-device-info.interceptor';
+import { SecurityDevicesRepository } from './infrastructure/security-devices.repository';
+import { SecurityDevice, SecurityDeviceSchema } from './domain/device.entity';
+import { RefreshTokenUserUseCase } from './application/usecases/refresh-token-user.usecase';
+import { RefreshStrategy } from './guards/bearer/refresh.strategy';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -35,7 +40,8 @@ const commandHandlers = [
     ConfirmRegistrationUserUseCase,
     EmailResendingUserUseCase,
     PasswordRecoveryUserUseCase,
-    NewPasswordUserUseCase
+    NewPasswordUserUseCase,
+    RefreshTokenUserUseCase
 ];
 const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
 @Module({
@@ -45,12 +51,16 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
             signOptions: { expiresIn: '10m' } // Время жизни токена
         }),*/
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        MongooseModule.forFeature([{ name: SecurityDevice.name, schema: SecurityDeviceSchema }]),
         NotificationsModule,
         PassportModule
     ],
     controllers: [UsersController, AuthController],
     providers: [
-        UsersService,
+        {
+            provide: APP_INTERCEPTOR,
+            useClass: GetDeviceInfoInterceptor
+        },
         UsersRepository,
         UsersQRepository,
         UsersExtQRepository,
@@ -60,9 +70,11 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
         JwtService,
         LocalStrategy,
         JwtStrategy,
+        RefreshStrategy,
         ...commandHandlers, //не забывать регстрировать команды
         ...queryHandlers,
-        UsersFactory //не забывать регистрировать фабрики
+        UsersFactory, //не забывать регистрировать фабрики
+        SecurityDevicesRepository
     ],
     exports: [/*JwtModule*/ UsersExtQRepository]
 })

@@ -7,6 +7,7 @@ import { DomainException, Extension } from '../../../../../core/exceptions/domai
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { Types } from 'mongoose';
 import { UsersRepository } from '../../../infrastructure/users.repository';
+import { Inject } from '@nestjs/common';
 
 export class CreateUserCommand {
     constructor(public dto: CreateUserDto) {}
@@ -18,8 +19,6 @@ export class CreateUserCommand {
 @CommandHandler(CreateUserCommand)
 export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, Types.ObjectId> {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //Зачем?
         private usersRepository: UsersRepository,
         private usersFactory: UsersFactory
     ) {}

@@ -15,7 +15,7 @@ export class AllHttpExceptionsFilter implements ExceptionFilter {
 
         //Если сработал этот фильтр, то пользователю улетит 500я ошибка
         const message = exception.message || 'Unknown exception occurred.';
-        const status = HttpStatus.INTERNAL_SERVER_ERROR;
+        const status = exception.status || HttpStatus.INTERNAL_SERVER_ERROR;
         const responseBody = this.buildResponseBody(request.url, message);
         console.log(exception);
         response.status(status).json(responseBody);
