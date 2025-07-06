@@ -27,7 +27,7 @@ export class LoginUserUseCase
     ) {}
 
     async execute({ dto }: LoginUserCommand): Promise<{ accessToken: string; refreshToken: string }> {
-        const RefIat: number = Math.floor(Date.now());
+        const RefIat: number = Math.floor(Date.now()); //string because by default string value defined in ms
 
         const deviceDto = {
             userId: dto.userId,
@@ -47,10 +47,10 @@ export class LoginUserUseCase
         );
 
         const refreshToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString(), iat: RefIat },
+            { id: dto.userId, deviceId: device._id.toString() /*, iat: RefIat*/ },
             {
                 secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '20s'
+                expiresIn: '20000'
             }
         );
         console.log(refreshToken);

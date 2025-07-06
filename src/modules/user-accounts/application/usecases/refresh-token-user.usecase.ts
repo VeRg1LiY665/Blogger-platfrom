@@ -56,10 +56,10 @@ export class RefreshTokenUserUseCase
         );
 
         const refreshToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString(), iat: RefIat },
+            { id: dto.userId, deviceId: device._id.toString() /*, iat: RefIat*/ },
             {
                 secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '20s'
+                expiresIn: '20000'
             }
         );
 
