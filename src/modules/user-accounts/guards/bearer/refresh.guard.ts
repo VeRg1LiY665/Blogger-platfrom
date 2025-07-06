@@ -7,7 +7,6 @@ import { DomainExceptionCode } from '../../../../core/exceptions/domain-exceptio
 export class RefreshGuard extends AuthGuard('refresh') {
     handleRequest(err, user) {
         if (err || !user) {
-            // здесь можно выбросить любую свою ошибку
             throw new DomainException({
                 code: DomainExceptionCode.Unauthorized,
                 message: 'Unauthorized',

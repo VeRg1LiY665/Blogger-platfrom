@@ -24,6 +24,7 @@ export class SecurityDevice {
     }
 
     updateInstance(iat: number) {
+        //updates iat for device in case of token refresh
         this.iat = iat;
     }
 }

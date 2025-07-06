@@ -31,6 +31,9 @@ import { SecurityDevicesRepository } from './infrastructure/security-devices.rep
 import { SecurityDevice, SecurityDeviceSchema } from './domain/device.entity';
 import { RefreshTokenUserUseCase } from './application/usecases/refresh-token-user.usecase';
 import { RefreshStrategy } from './guards/bearer/refresh.strategy';
+import { GetAllDevicesQueryHandler } from './application/queries/get-devices-for-user.usecase';
+import { SecurityDevicesQueryRepository } from './infrastructure/security-devices.query-repository';
+import { SecurityDevicesController } from './api/security-devices.controller';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -43,7 +46,7 @@ const commandHandlers = [
     NewPasswordUserUseCase,
     RefreshTokenUserUseCase
 ];
-const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
+const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllDevicesQueryHandler];
 @Module({
     imports: [
         /*JwtModule.register({
@@ -55,7 +58,7 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
         NotificationsModule,
         PassportModule
     ],
-    controllers: [UsersController, AuthController],
+    controllers: [UsersController, AuthController, SecurityDevicesController],
     providers: [
         {
             provide: APP_INTERCEPTOR,
@@ -74,7 +77,8 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler];
         ...commandHandlers, //не забывать регстрировать команды
         ...queryHandlers,
         UsersFactory, //не забывать регистрировать фабрики
-        SecurityDevicesRepository
+        SecurityDevicesRepository,
+        SecurityDevicesQueryRepository
     ],
     exports: [/*JwtModule*/ UsersExtQRepository]
 })

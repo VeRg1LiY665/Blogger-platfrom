@@ -14,7 +14,7 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
     }
 
     /**
-     * функция принимает payload из jwt токена и возвращает то, что впоследствии будет записано в req.user
+     * функция принимает payload из refresh jwt токена и возвращает то, что впоследствии будет записано в req.user
      * @param payload
      */
     async validate(payload: RefreshContextDto): Promise<RefreshContextDto> {
