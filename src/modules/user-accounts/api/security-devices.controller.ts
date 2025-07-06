@@ -1,16 +1,16 @@
-import { Controller, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { RefreshGuard } from '../guards/bearer/refresh.guard';
 import { ExtractUserForRefreshFromRequest } from '../guards/decorators/param/extract-user-for-refresh-from-request.decorator';
 import { RefreshContextDto } from '../guards/dto/refresh-context.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-//import { SecurityDevicesQueryRepository } from '../infrastructure/security-devices.query-repository';
 import { DevicesViewDto } from './view-dto/devices-view.dto';
 import { GetAllDevicesQuery } from '../application/queries/get-devices-for-user.usecase';
+import { DeleteDeviceCommand } from '../application/usecases/security-devices/delete-device.usecase';
+import { DeleteAllDevicesCommand } from '../application/usecases/security-devices/delete-all-except-current-device.usecase';
 
 @Controller('security/devices')
 export class SecurityDevicesController {
     constructor(
-        //private securityDevicesQueryRepository: SecurityDevicesQueryRepository,
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus
     ) {}
@@ -19,5 +19,23 @@ export class SecurityDevicesController {
     @UseGuards(RefreshGuard)
     getDevices(@ExtractUserForRefreshFromRequest() user: RefreshContextDto): Promise<DevicesViewDto[]> {
         return this.queryBus.execute<GetAllDevicesQuery>(new GetAllDevicesQuery(user.id));
+    }
+
+    @Delete()
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(RefreshGuard)
+    deleteDevice(@ExtractUserForRefreshFromRequest() user: RefreshContextDto): Promise<void> {
+        return this.commandBus.execute<DeleteDeviceCommand>(new DeleteDeviceCommand(user.deviceId));
+    }
+
+    @Delete()
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(RefreshGuard)
+    deleteAllDevices(@ExtractUserForRefreshFromRequest() user: RefreshContextDto): Promise<void> {
+        const dto = {
+            deviceId: user.deviceId,
+            userId: user.id
+        };
+        return this.commandBus.execute<DeleteAllDevicesCommand>(new DeleteAllDevicesCommand(dto));
     }
 }

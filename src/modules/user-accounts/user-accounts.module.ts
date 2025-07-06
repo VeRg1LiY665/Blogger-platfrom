@@ -34,6 +34,8 @@ import { RefreshStrategy } from './guards/bearer/refresh.strategy';
 import { GetAllDevicesQueryHandler } from './application/queries/get-devices-for-user.usecase';
 import { SecurityDevicesQueryRepository } from './infrastructure/security-devices.query-repository';
 import { SecurityDevicesController } from './api/security-devices.controller';
+import { DeleteAllDevicesUseCase } from './application/usecases/security-devices/delete-all-except-current-device.usecase';
+import { DeleteDeviceUseCase } from './application/usecases/security-devices/delete-device.usecase';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -44,7 +46,9 @@ const commandHandlers = [
     EmailResendingUserUseCase,
     PasswordRecoveryUserUseCase,
     NewPasswordUserUseCase,
-    RefreshTokenUserUseCase
+    RefreshTokenUserUseCase,
+    DeleteDeviceUseCase,
+    DeleteAllDevicesUseCase
 ];
 const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllDevicesQueryHandler];
 @Module({
