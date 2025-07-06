@@ -46,17 +46,15 @@ export class BlogsController {
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Get(':id')
-    @UsePipes(new ObjectIdValidationPipe())
-    async getBlogByID(@Param('id') id: string): Promise<BlogViewDto> {
+    async getBlogByID(@Param('id', ObjectIdValidationPipe) id: string): Promise<BlogViewDto> {
         return await this.blogsQRepo.findById(id);
     }
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Delete(':id')
-    @UsePipes(new ObjectIdValidationPipe())
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async deleteBlog(@Param('id') id: string): Promise<void> {
+    async deleteBlog(@Param('id', ObjectIdValidationPipe) id: string): Promise<void> {
         return await this.blogsServices.deleteBlog(id);
     }
 
@@ -68,19 +66,20 @@ export class BlogsController {
     }
 
     @Put(':id')
-    @UsePipes(new ObjectIdValidationPipe())
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async updateBlog(@Param('id') id: string, @Body() body: BlogsInputUpdateDto): Promise<void> {
+    async updateBlog(
+        @Param('id', ObjectIdValidationPipe) id: string,
+        @Body() body: BlogsInputUpdateDto
+    ): Promise<void> {
         await this.blogsServices.updateBlog(id, body);
         return;
     }
 
     @Get(':id/posts')
-    //@UsePipes(new ObjectIdValidationPipe()) //TODO check if it works
     @UseGuards(JwtOptionalAuthGuard)
     async getBlogPosts(
-        @Param('id') id: string,
+        @Param('id', ObjectIdValidationPipe) id: string,
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetPostsQueryParams
     ) {
@@ -94,7 +93,10 @@ export class BlogsController {
 
     @Post(':id/posts')
     @UseGuards(BasicAuthGuard)
-    async createPostForBlog(@Param('id') id: string, @Body() body: CreateBlogPostDto): Promise<PostViewDto> {
+    async createPostForBlog(
+        @Param('id', ObjectIdValidationPipe) id: string,
+        @Body() body: CreateBlogPostDto
+    ): Promise<PostViewDto> {
         const postId = await this.postsService.createForBlog(id, body);
         return await this.postsService.findOne({ id: postId });
     }

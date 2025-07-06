@@ -31,7 +31,7 @@ export const errorFormatter = (errors: ValidationError[], errorMessage?: any): E
 export function pipesSetup(app: INestApplication) {
     //Глобальный пайп для валидации и трансформации входящих данных.
     app.useGlobalPipes(
-        new ObjectIdValidationTransformationPipe(),
+        // new ObjectIdValidationPipe(),
         new ValidationPipe({
             //class-transformer создает экземпляр dto
             //соответственно применятся значения по-умолчанию

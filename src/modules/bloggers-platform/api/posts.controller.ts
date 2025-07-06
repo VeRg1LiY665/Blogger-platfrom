@@ -29,6 +29,7 @@ import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decor
 import { PostInputDto } from './input-dto/post.input-dto';
 import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { GetCommentsQueryParams } from './input-dto/get-comments-query-params';
+import { ObjectIdValidationPipe } from '../../../core/pipes/object-id-validation-transformation-pipe.service';
 
 @Controller('posts')
 export class PostsController {
@@ -60,7 +61,10 @@ export class PostsController {
 
     @Get(':id')
     @UseGuards(JwtOptionalAuthGuard)
-    async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
+    async findOne(
+        @Param('id', ObjectIdValidationPipe) id: string,
+        @ExtractUserIfExistsFromRequest() user: UserContextDto
+    ) {
         let userId;
         if (user) {
             userId = user.id;
@@ -79,7 +83,7 @@ export class PostsController {
     @Put(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
+    async update(@Param('id', ObjectIdValidationPipe) id: string, @Body() updatePostDto: UpdatePostDto) {
         await this.postsService.update(id, updatePostDto);
         return;
     }
@@ -87,7 +91,7 @@ export class PostsController {
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async remove(@Param('id') id: string) {
+    async remove(@Param('id', ObjectIdValidationPipe) id: string) {
         return await this.postsService.remove(id);
     }
 
@@ -95,7 +99,7 @@ export class PostsController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
     async like(
-        @Param('id') id: string,
+        @Param('id', ObjectIdValidationPipe) id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() inputLikeDto: LikeInputDto
     ) {
@@ -111,7 +115,7 @@ export class PostsController {
     @Get(':id/comments')
     @UseGuards(JwtOptionalAuthGuard)
     async getCommentsForPost(
-        @Param('id') id: string,
+        @Param('id', ObjectIdValidationPipe) id: string,
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetCommentsQueryParams
     ) {
@@ -126,7 +130,7 @@ export class PostsController {
     @Post(':id/comments')
     @UseGuards(JwtAuthGuard)
     async createCommentForPost(
-        @Param('id') id: string,
+        @Param('id', ObjectIdValidationPipe) id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() createCommentInputDto: CreateCommentInputDto
     ) {

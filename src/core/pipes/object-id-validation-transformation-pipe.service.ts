@@ -33,8 +33,6 @@ export class ObjectIdValidationTransformationPipe implements PipeTransform {
 @Injectable()
 export class ObjectIdValidationPipe implements PipeTransform {
     transform(value: any, metadata: ArgumentMetadata): any {
-        // Проверяем, что тип данных в декораторе — ObjectId
-
         if (!isValidObjectId(value)) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,

@@ -22,6 +22,7 @@ import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/pa
 import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
 import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
+import { ObjectIdValidationPipe } from '../../../core/pipes/object-id-validation-transformation-pipe.service';
 
 @Controller('comments')
 export class CommentsController {
@@ -37,7 +38,10 @@ export class CommentsController {
 
     @Get(':id')
     @UseGuards(JwtOptionalAuthGuard)
-    async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
+    async findOne(
+        @Param('id', ObjectIdValidationPipe) id: string,
+        @ExtractUserIfExistsFromRequest() user: UserContextDto
+    ) {
         const dto = {
             id: id,
             userId: user ? user.id : undefined
@@ -49,7 +53,7 @@ export class CommentsController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
     async update(
-        @Param('id') id: string,
+        @Param('id', ObjectIdValidationPipe) id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() updateCommentDto: UpdateCommentDto
     ) {
@@ -64,7 +68,7 @@ export class CommentsController {
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
-    async remove(@Param('id') id: string, @ExtractUserFromRequest() user: UserContextDto) {
+    async remove(@Param('id', ObjectIdValidationPipe) id: string, @ExtractUserFromRequest() user: UserContextDto) {
         const dto = { id: id, userId: user.id };
         return await this.commentsService.remove(dto);
     }
@@ -73,7 +77,7 @@ export class CommentsController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
     async like(
-        @Param('id') id: string,
+        @Param('id', ObjectIdValidationPipe) id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() inputLikeDto: LikeInputDto
     ) {
