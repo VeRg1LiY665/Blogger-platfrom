@@ -127,7 +127,8 @@ export class AuthController {
         const dto = {
             userId: user.id,
             deviceId: user.deviceId,
-            iat: user.iat
+            iat: user.iat,
+            rem: user.rem
         };
 
         const { accessToken, refreshToken } = await this.commandBus.execute<

@@ -6,6 +6,7 @@ import { SecurityDevicesRepository } from '../../infrastructure/security-devices
 import { RefreshTokenDto } from '../../dto/refresh-token.dto';
 import { DomainException, Extension } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { IatFactory } from '../factories/Iat.factory';
 
 export class RefreshTokenUserCommand {
     constructor(public dto: RefreshTokenDto) {}
@@ -22,11 +23,12 @@ export class RefreshTokenUserUseCase
         @InjectModel(SecurityDevice.name)
         private securityDevice: SecurityDeviceModelType,
         private jwtService: JwtService,
-        private devicesRepo: SecurityDevicesRepository
+        private devicesRepo: SecurityDevicesRepository,
+        private iatFactory: IatFactory
     ) {}
 
     async execute({ dto }: RefreshTokenUserCommand): Promise<{ accessToken: string; refreshToken: string }> {
-        const RefIat: number = Math.floor(Date.now()); //New iat for RToken in ms
+        const { iat, refIat, rem } = this.iatFactory.create();
 
         const device = await this.devicesRepo.ShowDevice(dto.deviceId);
         if (!device) {
@@ -38,7 +40,7 @@ export class RefreshTokenUserUseCase
             });
         }
 
-        if (dto.iat !== device.iat) {
+        if (this.iatFactory.rebuild({ iat: dto.iat, rem: dto.rem }) !== device.iat) {
             throw new DomainException({
                 // Error if depreciated token is in use (had been stolen after revoke)
                 code: DomainExceptionCode.Unauthorized,
@@ -56,14 +58,14 @@ export class RefreshTokenUserUseCase
         );
 
         const refreshToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString() /*, iat: RefIat*/ },
+            { id: dto.userId, deviceId: device._id.toString(), iat: refIat, rem: rem },
             {
                 secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '20000'
+                expiresIn: '20s'
             }
         );
 
-        device.updateInstance(RefIat);
+        device.updateInstance(iat);
         await this.devicesRepo.save(device);
 
         return {

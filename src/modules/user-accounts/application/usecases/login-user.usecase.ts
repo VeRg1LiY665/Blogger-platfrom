@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '../../dto/login-user.dto';
 import { SecurityDevice, SecurityDeviceModelType } from '../../domain/device.entity';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { IatFactory } from '../factories/Iat.factory';
 
 export class LoginUserCommand {
     constructor(public dto: LoginUserDto) {}
@@ -23,17 +24,18 @@ export class LoginUserUseCase
         @InjectModel(SecurityDevice.name)
         private securityDevice: SecurityDeviceModelType,
         private jwtService: JwtService,
-        private devicesRepo: SecurityDevicesRepository
+        private devicesRepo: SecurityDevicesRepository,
+        private iatFactory: IatFactory
     ) {}
 
     async execute({ dto }: LoginUserCommand): Promise<{ accessToken: string; refreshToken: string }> {
-        const RefIat: number = Math.floor(Date.now()); //string because by default string value defined in ms
+        const { iat, refIat, rem } = this.iatFactory.create();
 
         const deviceDto = {
             userId: dto.userId,
             ip: dto.ip,
             title: dto.title,
-            iat: RefIat
+            iat: iat
         };
         const device = this.securityDevice.createInstance(deviceDto);
         await this.devicesRepo.save(device);
@@ -47,10 +49,10 @@ export class LoginUserUseCase
         );
 
         const refreshToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString() /*, iat: RefIat*/ },
+            { id: dto.userId, deviceId: device._id.toString(), iat: refIat, rem: rem },
             {
                 secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '20000'
+                expiresIn: '20s'
             }
         );
         console.log(refreshToken);

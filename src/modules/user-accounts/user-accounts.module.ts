@@ -36,6 +36,7 @@ import { SecurityDevicesQueryRepository } from './infrastructure/security-device
 import { SecurityDevicesController } from './api/security-devices.controller';
 import { DeleteAllDevicesUseCase } from './application/usecases/security-devices/delete-all-except-current-device.usecase';
 import { DeleteDeviceUseCase } from './application/usecases/security-devices/delete-device.usecase';
+import { IatFactory } from './application/factories/Iat.factory';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -81,6 +82,7 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         ...commandHandlers, //не забывать регстрировать команды
         ...queryHandlers,
         UsersFactory, //не забывать регистрировать фабрики
+        IatFactory,
         SecurityDevicesRepository,
         SecurityDevicesQueryRepository
     ],
