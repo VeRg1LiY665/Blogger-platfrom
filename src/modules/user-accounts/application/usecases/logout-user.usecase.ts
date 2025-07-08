@@ -1,10 +1,13 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../domain/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { JwtService } from '@nestjs/jwt';
+import { DomainException, Extension } from '../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
+import { RefreshTokenDto } from '../../dto/refresh-token.dto';
+import { IatFactory } from '../factories/Iat.factory';
+import { RefreshContextDto } from '../../guards/dto/refresh-context.dto';
 
 export class LogoutUserCommand {
-    constructor(public userId: string) {}
+    constructor(public dto: RefreshContextDto) {} //TODO Separate DTO?
 }
 
 /**
@@ -13,10 +16,30 @@ export class LogoutUserCommand {
 @CommandHandler(LogoutUserCommand)
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand, void> {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //Зачем?
-        private jwtService: JwtService
+        private devicesRepo: SecurityDevicesRepository,
+        private iatFactory: IatFactory
     ) {}
 
-    async execute({ userId }: LogoutUserCommand): Promise<void> {}
+    async execute({ dto }: LogoutUserCommand): Promise<void> {
+        const device = await this.devicesRepo.ShowDevice(dto.deviceId);
+        if (!device) {
+            //Error if secret is correct, but device has been logged out
+            throw new DomainException({
+                code: DomainExceptionCode.Unauthorized,
+                message: 'Device logged out',
+                extensions: [new Extension('Device has been already logged out', 'token')]
+            });
+        }
+
+        if (this.iatFactory.rebuild({ iat: dto.iat, rem: dto.rem }) !== device.iat) {
+            throw new DomainException({
+                // Error if depreciated token is in use (had been stolen after revoke)
+                code: DomainExceptionCode.Unauthorized,
+                message: 'Invalid token',
+                extensions: [new Extension('REFRESH_ERROR: Refresh token is depreciated', 'token')]
+            });
+        }
+
+        await this.devicesRepo.DeleteDevice(device._id.toString());
+    }
 }

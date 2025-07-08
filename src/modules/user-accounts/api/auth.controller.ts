@@ -27,6 +27,7 @@ import { RefreshGuard } from '../guards/bearer/refresh.guard';
 import { ExtractUserForRefreshFromRequest } from '../guards/decorators/param/extract-user-for-refresh-from-request.decorator';
 import { RefreshContextDto } from '../guards/dto/refresh-context.dto';
 import { RefreshTokenUserCommand } from '../application/usecases/refresh-token-user.usecase';
+import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -92,6 +93,13 @@ export class AuthController {
         });
 
         return { accessToken: accessToken };
+    }
+
+    @Post('logout')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @UseGuards(RefreshGuard)
+    async logout(@ExtractUserForRefreshFromRequest() user: RefreshContextDto): Promise<void> {
+        return await this.commandBus.execute<LogoutUserCommand>(new LogoutUserCommand(user));
     }
 
     @Post('password-recovery')

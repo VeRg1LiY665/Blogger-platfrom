@@ -1,4 +1,4 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Param, UseGuards } from '@nestjs/common';
 import { RefreshGuard } from '../guards/bearer/refresh.guard';
 import { ExtractUserForRefreshFromRequest } from '../guards/decorators/param/extract-user-for-refresh-from-request.decorator';
 import { RefreshContextDto } from '../guards/dto/refresh-context.dto';
@@ -21,11 +21,18 @@ export class SecurityDevicesController {
         return this.queryBus.execute<GetAllDevicesQuery>(new GetAllDevicesQuery(user.id));
     }
 
-    @Delete()
+    @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(RefreshGuard)
-    deleteDevice(@ExtractUserForRefreshFromRequest() user: RefreshContextDto): Promise<void> {
-        return this.commandBus.execute<DeleteDeviceCommand>(new DeleteDeviceCommand(user.deviceId));
+    deleteDevice(
+        @ExtractUserForRefreshFromRequest() user: RefreshContextDto,
+        @Param('id') deviceId: string
+    ): Promise<void> {
+        const dto = {
+            deviceId: deviceId,
+            RdeviceId: user.deviceId
+        };
+        return this.commandBus.execute<DeleteDeviceCommand>(new DeleteDeviceCommand(dto));
     }
 
     @Delete()

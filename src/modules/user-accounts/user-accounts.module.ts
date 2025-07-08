@@ -37,12 +37,14 @@ import { SecurityDevicesController } from './api/security-devices.controller';
 import { DeleteAllDevicesUseCase } from './application/usecases/security-devices/delete-all-except-current-device.usecase';
 import { DeleteDeviceUseCase } from './application/usecases/security-devices/delete-device.usecase';
 import { IatFactory } from './application/factories/Iat.factory';
+import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
 
 const commandHandlers = [
     DeleteUserUseCase,
     CreateUserUseCase,
     RegisterUserUseCase,
     LoginUserUseCase,
+    LogoutUserUseCase,
     ConfirmRegistrationUserUseCase,
     EmailResendingUserUseCase,
     PasswordRecoveryUserUseCase,
