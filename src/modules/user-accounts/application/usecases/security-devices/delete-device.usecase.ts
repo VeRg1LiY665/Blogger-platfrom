@@ -23,13 +23,13 @@ export class DeleteDeviceUseCase implements ICommandHandler<DeleteDeviceCommand,
                 message: 'Device not found'
             });
         }
-        console.log(dto.RdeviceId, device._id.toString());
-        if (dto.RdeviceId !== device._id.toString()) {
-            //error if deviceId from token doesn't correspond to found deviceId, i.e. wrong token was used for auth
+
+        if (dto.userId !== device.userId) {
+            //error if user tries to delete device of another user
             throw new DomainException({
                 code: DomainExceptionCode.Forbidden,
-                message: 'Wrong deviceId',
-                extensions: [new Extension('DeviceId from token does not correspond to found deviceId', 'token')]
+                message: 'Forbidden',
+                extensions: [new Extension('Device to be deleted is not yours', 'token')]
             });
         }
         return await this.securityDevicesRepository.DeleteDevice(device._id.toString());

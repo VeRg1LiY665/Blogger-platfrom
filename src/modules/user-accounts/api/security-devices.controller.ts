@@ -30,7 +30,7 @@ export class SecurityDevicesController {
     ): Promise<void> {
         const dto = {
             deviceId: deviceId,
-            RdeviceId: user.deviceId
+            userId: user.id
         };
         return this.commandBus.execute<DeleteDeviceCommand>(new DeleteDeviceCommand(dto));
     }

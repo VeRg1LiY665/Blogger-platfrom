@@ -1,4 +1,4 @@
 export class DeleteDeviceDto {
     deviceId: string;
-    RdeviceId: string;
+    userId: string;
 }

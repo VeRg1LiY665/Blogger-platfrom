@@ -52,7 +52,7 @@ export class LoginUserUseCase
             { id: dto.userId, deviceId: device._id.toString(), iat: refIat, rem: rem },
             {
                 secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '20m'
+                expiresIn: '20s'
             }
         );
         console.log(refreshToken);
