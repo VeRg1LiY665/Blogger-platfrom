@@ -1,11 +1,15 @@
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../domain/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from '../../dto/login-user.dto';
 import { SecurityDevice, SecurityDeviceModelType } from '../../domain/device.entity';
 import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
 import { IatFactory } from '../factories/Iat.factory';
+import { Inject } from '@nestjs/common';
+import {
+    ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+    REFRESH_TOKEN_STRATEGY_INJECT_TOKEN
+} from '../../constants/auth-tokens.inject-constants';
 
 export class LoginUserCommand {
     constructor(public dto: LoginUserDto) {}
@@ -19,13 +23,15 @@ export class LoginUserUseCase
     implements ICommandHandler<LoginUserCommand, { accessToken: string; refreshToken: string }>
 {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //TODO убрать это вообще отсюда
         @InjectModel(SecurityDevice.name)
         private securityDevice: SecurityDeviceModelType,
-        private jwtService: JwtService,
         private devicesRepo: SecurityDevicesRepository,
-        private iatFactory: IatFactory
+        private iatFactory: IatFactory,
+        @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
+        private accessTokenContext: JwtService,
+
+        @Inject(REFRESH_TOKEN_STRATEGY_INJECT_TOKEN)
+        private refreshTokenContext: JwtService
     ) {}
 
     async execute({ dto }: LoginUserCommand): Promise<{ accessToken: string; refreshToken: string }> {
@@ -40,22 +46,18 @@ export class LoginUserUseCase
         const device = this.securityDevice.createInstance(deviceDto);
         await this.devicesRepo.save(device);
 
-        const accessToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString() },
-            {
-                secret: 'kjsjhd67t43b9v',
-                expiresIn: '10s'
-            }
-        );
+        const accessToken = this.accessTokenContext.sign({
+            id: dto.userId,
+            deviceId: device._id.toString()
+        });
 
-        const refreshToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString(), iat: refIat, rem: rem },
-            {
-                secret: 'pokjcleYm&hd93g1!',
-                expiresIn: '20s'
-            }
-        );
-        console.log(refreshToken);
+        const refreshToken = this.refreshTokenContext.sign({
+            id: dto.userId,
+            deviceId: device._id.toString(),
+            iat: refIat,
+            rem: rem
+        });
+        //console.log(refreshToken);
         return {
             accessToken,
             refreshToken

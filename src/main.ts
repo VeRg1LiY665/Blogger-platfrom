@@ -1,19 +1,26 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { appSetup } from './setup/app.setup';
 import cookieParser from 'cookie-parser';
+import { initAppModule } from '../init-app-module';
+import { CoreConfig } from './core/core.config';
 
 async function bootstrap(): Promise<void> {
-    const app = await NestFactory.create(AppModule);
+    const DynamicAppModule = await initAppModule();
+    // создаём на основе донастроенного модуля наше приложение
+    const app = await NestFactory.create(DynamicAppModule);
+
+    const coreConfig = app.get<CoreConfig>(CoreConfig);
+
+    appSetup(app, coreConfig.isSwaggerEnabled); //глобальные настройки приложения
+
+    const port = coreConfig.port;
 
     app.use(cookieParser());
 
-    appSetup(app);
+    //appSetup(app);
 
-    const PORT = process.env.PORT || 3006;
-
-    await app.listen(PORT, () => {
-        console.log('Server is running on port ' + PORT);
+    await app.listen(port, () => {
+        console.log('Server is running on port ' + port);
     });
 }
 bootstrap();

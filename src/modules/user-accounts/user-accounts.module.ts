@@ -11,7 +11,7 @@ import { JwtStrategy } from './guards/bearer/jwt.strategy';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CryptoService } from './application/crypto.service';
 import { AuthService } from './application/auth.service';
-import { /*JwtModule,*/ JwtService } from '@nestjs/jwt';
+import { JwtModule, /*JwtModule,*/ JwtService } from '@nestjs/jwt';
 import { AuthController } from './api/auth.controller';
 import { AuthQueryRepository } from './infrastructure/auth.query-repository';
 import { CreateUserUseCase } from './application/usecases/admins/create-user.usecase';
@@ -38,6 +38,11 @@ import { DeleteAllDevicesUseCase } from './application/usecases/security-devices
 import { DeleteDeviceUseCase } from './application/usecases/security-devices/delete-device.usecase';
 import { IatFactory } from './application/factories/Iat.factory';
 import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
+import {
+    ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+    REFRESH_TOKEN_STRATEGY_INJECT_TOKEN
+} from './constants/auth-tokens.inject-constants';
+import { UserAccountsConfig } from './config/user-accounts.config';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -56,10 +61,7 @@ const commandHandlers = [
 const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllDevicesQueryHandler];
 @Module({
     imports: [
-        /*JwtModule.register({
-            secret: 'access-token-secret', //TODO: move to env. will be in the following lessons
-            signOptions: { expiresIn: '10m' } // Время жизни токена
-        }),*/
+        JwtModule,
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forFeature([{ name: SecurityDevice.name, schema: SecurityDeviceSchema }]),
         NotificationsModule,
@@ -77,7 +79,26 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         CryptoService,
         AuthService,
         AuthQueryRepository,
-        JwtService,
+        {
+            provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+            useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
+                return new JwtService({
+                    secret: userAccountConfig.accessTokenSecret,
+                    signOptions: { expiresIn: userAccountConfig.accessTokenExpireIn }
+                });
+            },
+            inject: [UserAccountsConfig]
+        },
+        {
+            provide: REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
+            useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
+                return new JwtService({
+                    secret: userAccountConfig.refreshTokenSecret,
+                    signOptions: { expiresIn: userAccountConfig.refreshTokenExpireIn }
+                });
+            },
+            inject: [UserAccountsConfig]
+        },
         LocalStrategy,
         JwtStrategy,
         RefreshStrategy,
@@ -86,7 +107,8 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         UsersFactory, //не забывать регистрировать фабрики
         IatFactory,
         SecurityDevicesRepository,
-        SecurityDevicesQueryRepository
+        SecurityDevicesQueryRepository,
+        UserAccountsConfig
     ],
     exports: [/*JwtModule*/ UsersExtQRepository]
 })

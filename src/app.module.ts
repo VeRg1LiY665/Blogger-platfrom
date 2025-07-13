@@ -1,4 +1,5 @@
-import { Module } from '@nestjs/common';
+import { configModule } from './config-dynamic-module';
+import { DynamicModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -11,6 +12,7 @@ import { DomainHttpExceptionsFilter } from './core/exceptions/domain-exception.f
 import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
 import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-exception.filter';
 import { CoreModule } from './core/core.module';
+import { CoreConfig } from './core/core.config';
 
 //import { DatabaseModule } from './database/database.modules';  //кастомный модуль подключения к монго
 
@@ -24,11 +26,22 @@ import { CoreModule } from './core/core.module';
                 }
             ]
         }),
-        MongooseModule.forRoot('mongodb://localhost:27017/blogs-platform'),
+        MongooseModule.forRootAsync({
+            useFactory: (coreConfig: CoreConfig) => {
+                const uri = coreConfig.mongoURI;
+                console.log('DB_URI', uri);
+
+                return {
+                    uri: uri
+                };
+            },
+            inject: [CoreConfig]
+        }),
         CoreModule,
         BloggersPlatformModule,
         UsersAccountsModule,
-        TestingModule
+        TestingModule,
+        configModule
     ],
     controllers: [AppController],
     providers: [
@@ -47,4 +60,15 @@ import { CoreModule } from './core/core.module';
         }
     ]
 })
-export class AppModule {}
+export class AppModule {
+    static async forRoot(coreConfig: CoreConfig): Promise<DynamicModule> {
+        // такой мудрёный способ мы используем, чтобы добавить к основным модулям необязательный модуль.
+        // чтобы не обращаться в декораторе к переменной окружения через process.env в декораторе, потому что
+        // запуск декораторов происходит на этапе склейки всех модулей до старта жизненного цикла самого NestJS
+
+        return {
+            module: AppModule,
+            imports: [...(coreConfig.includeTestingModule ? [TestingModule] : [])] // Add dynamic modules here
+        };
+    }
+}
