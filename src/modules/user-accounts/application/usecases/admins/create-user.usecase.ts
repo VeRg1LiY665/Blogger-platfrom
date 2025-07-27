@@ -1,5 +1,4 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument, UserModelType } from '../../../domain/user.entity';
+import { UserDocument } from '../../../domain/user.entity';
 import { CreateUserDto } from '../../../dto/create-user.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersFactory } from '../../factories/users.factory';
@@ -7,7 +6,6 @@ import { DomainException, Extension } from '../../../../../core/exceptions/domai
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { Types } from 'mongoose';
 import { UsersRepository } from '../../../infrastructure/users.repository';
-import { Inject } from '@nestjs/common';
 
 export class CreateUserCommand {
     constructor(public dto: CreateUserDto) {}
@@ -41,6 +39,9 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, Typ
         }
 
         const user: UserDocument = await this.usersFactory.create(dto);
+        const domainDto = { emailConfirmation: user.emailConfirmation };
+        domainDto.emailConfirmation.isConfirmed = true;
+        user.update(domainDto);
         //TODO make email confirmed by default for admin creation?
         await this.usersRepository.save(user);
 

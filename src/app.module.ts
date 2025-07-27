@@ -13,8 +13,7 @@ import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter
 import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-exception.filter';
 import { CoreModule } from './core/core.module';
 import { CoreConfig } from './core/core.config';
-
-//import { DatabaseModule } from './database/database.modules';  //кастомный модуль подключения к монго
+import { DatabaseModule } from './database/database.modules'; //кастомный модуль подключения к монго или postgres
 
 @Module({
     imports: [
@@ -26,6 +25,7 @@ import { CoreConfig } from './core/core.config';
                 }
             ]
         }),
+        DatabaseModule,
         MongooseModule.forRootAsync({
             useFactory: (coreConfig: CoreConfig) => {
                 const uri = coreConfig.mongoURI;

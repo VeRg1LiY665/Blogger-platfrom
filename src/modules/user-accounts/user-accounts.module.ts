@@ -43,6 +43,9 @@ import {
     REFRESH_TOKEN_STRATEGY_INJECT_TOKEN
 } from './constants/auth-tokens.inject-constants';
 import { UserAccountsConfig } from './config/user-accounts.config';
+import { UsersSqlQueryRepository } from './infrastructure/users.sql.query-repository';
+import { UsersSqlRepository } from './infrastructure/users-sql.repository';
+import { DatabaseModule } from '../../database/database.modules';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -64,6 +67,7 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         JwtModule,
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
         MongooseModule.forFeature([{ name: SecurityDevice.name, schema: SecurityDeviceSchema }]),
+        DatabaseModule,
         NotificationsModule,
         PassportModule
     ],
@@ -74,7 +78,9 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
             useClass: GetDeviceInfoInterceptor
         },
         UsersRepository,
+        UsersSqlRepository,
         UsersQRepository,
+        UsersSqlQueryRepository,
         UsersExtQRepository,
         CryptoService,
         AuthService,

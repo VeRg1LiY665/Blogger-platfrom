@@ -27,6 +27,34 @@ export class CoreConfig {
     })
     mongoURI: string;
 
+    @IsNotEmpty({
+        message: 'Set Env variable POSTGRES_HOST, example: localhost'
+    })
+    postgresHost: string;
+
+    @IsNumber(
+        {},
+        {
+            message: 'Set Env variable POSTGRES_PORT, example: 5000'
+        }
+    )
+    postgresPort: number;
+
+    @IsNotEmpty({
+        message: 'Set Env variable POSTGRES_USER, example: user'
+    })
+    postgresUser: string;
+
+    @IsNotEmpty({
+        message: 'Set Env variable POSTGRES_PASS, example: password'
+    })
+    postgresPassword: string;
+
+    @IsNotEmpty({
+        message: 'Set Env variable POSTGRES_DBNAME, example: database'
+    })
+    postgresDBName: string;
+
     @IsEnum(Environments, {
         message:
             'Ser correct NODE_ENV value, available values: ' +
@@ -56,6 +84,11 @@ export class CoreConfig {
         // Initialize properties in the constructor
         this.port = Number(this.configService.get('PORT'));
         this.mongoURI = this.configService.get('MONGO_URI');
+        this.postgresHost = this.configService.get('POSTGRES_HOST');
+        this.postgresPort = Number(this.configService.get('POSTGRES_PORT'));
+        this.postgresUser = this.configService.get('POSTGRES_USER');
+        this.postgresPassword = this.configService.get('POSTGRES_PASS');
+        this.postgresDBName = this.configService.get('POSTGRES_DBNAME');
         this.env = this.configService.get('NODE_ENV');
         this.isSwaggerEnabled = configValidationUtility.convertToBoolean(
             this.configService.get('IS_SWAGGER_ENABLED')

@@ -17,6 +17,16 @@ export class UserViewDto {
 
         return dto;
     }
+
+    static mapSqlToView(rows: any): UserViewDto {
+        const dto = new UserViewDto();
+        dto.id = rows.id;
+        dto.login = rows.login;
+        dto.email = rows.email;
+        dto.createdAt = rows.createdAt;
+
+        return dto;
+    }
 }
 export class MeViewDto extends OmitType(UserViewDto, ['createdAt', 'id'] as const) {
     userId: string;
