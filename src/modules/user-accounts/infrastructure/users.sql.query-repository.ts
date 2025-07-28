@@ -1,40 +1,38 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../domain/user.entity';
 import { GetUsersQueryParams } from '../api/input-dto/get-users-query-params';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { UserViewDto } from '../api/view-dto/users-view.dto';
-import { Inject, NotFoundException } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { Pool } from 'pg';
 
 export class UsersSqlQueryRepository {
     constructor(@Inject('PG_POOL') private pool: Pool) {}
 
     async findAll(query: GetUsersQueryParams): Promise<PaginatedViewDto<UserViewDto[]>> {
-        const filter: any = [];
+        const filter = {};
         if (query.searchLoginTerm !== null) {
-            filter.push({ login: '%' + query.searchLoginTerm + '%' });
+            filter['login'] = '%' + query.searchLoginTerm + '%';
         }
         if (query.searchEmailTerm !== null) {
-            filter.push({ email: '%' + query.searchEmailTerm + '%' });
+            filter['email'] = '%' + query.searchEmailTerm + '%';
         }
-        console.log(filter);
+
         let whereClause = '';
-        let i = 0;
-        if (filter.length > 0) {
-            const conditions = filter
-                .map((condition) => {
+
+        if (Object.keys(filter).length > 0) {
+            const conditions = Object.keys(filter)
+                .map((condition, i) => {
                     // Assuming condition is an object with key-value pairs
-                    i++;
-                    return `${condition.keys()} = ${i}`; // Adjust based on your actual condition structure
+                    return `${condition} ILIKE $${i + 1}`; // Adjust based on your actual condition structure
                 })
                 .join(' OR ');
             whereClause = `WHERE ${conditions}`;
         }
-        console.log('WHERE_CLAUSE= ' + whereClause);
-        const users = await this.pool.query('SELECT * FROM users $(whereClause) ORDER BY $1 $2 OFFSET $3 LIMIT $4', [
-            ...filter.map((cond) => cond.value),
+        const queryText = `SELECT * FROM users ${whereClause} ORDER BY $${Object.keys(filter).length + 1} $${Object.keys(filter).length + 2} OFFSET $${Object.keys(filter).length + 3} LIMIT $${Object.keys(filter).length + 4}`;
+
+        const users = await this.pool.query(queryText, [
+            ...Object.values(filter),
             query.sortBy,
-            query.sortDirection,
+            query.sortDirection.toUpperCase(),
             query.calculateSkip(),
             query.pageSize
         ]);
