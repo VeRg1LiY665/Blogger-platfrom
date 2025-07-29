@@ -6,6 +6,7 @@ import { DomainException, Extension } from '../../../../../core/exceptions/domai
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { Types } from 'mongoose';
 import { UsersRepository } from '../../../infrastructure/users.repository';
+import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class CreateUserCommand {
     constructor(public dto: CreateUserDto) {}
@@ -15,14 +16,15 @@ export class CreateUserCommand {
  * Создание администратором пользователя через админскую панель
  */
 @CommandHandler(CreateUserCommand)
-export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, Types.ObjectId> {
+export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, number> {
     constructor(
         private usersRepository: UsersRepository,
+        private usersSqlRepository: UsersSqlRepository,
         private usersFactory: UsersFactory
     ) {}
 
-    async execute({ dto }: CreateUserCommand): Promise<Types.ObjectId> {
-        if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
+    async execute({ dto }: CreateUserCommand): Promise<number> {
+        /* if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
                 message: 'User already exists',
@@ -36,15 +38,15 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, Typ
                 message: 'User already exists',
                 extensions: [new Extension('User already exists', 'email')]
             });
-        }
+        }*/
 
         const user: UserDocument = await this.usersFactory.create(dto);
         const domainDto = { emailConfirmation: user.emailConfirmation };
         domainDto.emailConfirmation.isConfirmed = true;
         user.update(domainDto);
         //TODO make email confirmed by default for admin creation?
-        await this.usersRepository.save(user);
+        const id = await this.usersSqlRepository.save(user);
 
-        return user._id;
+        return id;
     }
 }

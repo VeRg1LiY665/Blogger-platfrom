@@ -1,9 +1,8 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../../domain/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { UsersRepository } from '../../../infrastructure/users.repository';
+import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class DeleteUserCommand {
     constructor(public id: string) {}
@@ -15,13 +14,12 @@ export class DeleteUserCommand {
 @CommandHandler(DeleteUserCommand)
 export class DeleteUserUseCase implements ICommandHandler<DeleteUserCommand, void> {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //Зачем?
-        private usersRepository: UsersRepository
+        private usersRepository: UsersRepository,
+        private usersSqlRepository: UsersSqlRepository
     ) {}
 
     async execute({ id }: DeleteUserCommand): Promise<void> {
-        const user = await this.usersRepository.findById(id);
+        const user = await this.usersSqlRepository.findById(id);
         if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
@@ -29,6 +27,6 @@ export class DeleteUserUseCase implements ICommandHandler<DeleteUserCommand, voi
             });
         }
 
-        return await this.usersRepository.delete(id);
+        return await this.usersSqlRepository.delete(id);
     }
 }

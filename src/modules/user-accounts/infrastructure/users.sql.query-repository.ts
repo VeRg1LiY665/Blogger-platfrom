@@ -27,15 +27,12 @@ export class UsersSqlQueryRepository {
                 .join(' OR ');
             whereClause = `WHERE ${conditions}`;
         }
-        const queryText = `SELECT * FROM users ${whereClause} ORDER BY $${Object.keys(filter).length + 1} $${Object.keys(filter).length + 2} OFFSET $${Object.keys(filter).length + 3} LIMIT $${Object.keys(filter).length + 4}`;
+        const queryText =
+            `SELECT * FROM users ${whereClause} ORDER BY $${Object.keys(filter).length + 1}` +
+            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
+            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
 
-        const users = await this.pool.query(queryText, [
-            ...Object.values(filter),
-            query.sortBy,
-            query.sortDirection.toUpperCase(),
-            query.calculateSkip(),
-            query.pageSize
-        ]);
+        const users = await this.pool.query(queryText, [...Object.values(filter), query.sortBy]);
 
         const totalCount = users.rows.length;
 

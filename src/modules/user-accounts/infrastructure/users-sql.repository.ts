@@ -11,8 +11,23 @@ export class UsersSqlRepository {
 
     async findById(id: string): Promise<User | null> {
         const result = await this.pool.query('SELECT * FROM users WHERE id = $1', [id]);
-        console.log(result);
-        return result as any;
+
+        return result.rows[0];
+    }
+
+    async save(user: UserDocument): Promise<number> {
+        const res = await this.pool.query(
+            'INSERT INTO users (login, "passwordHash", email, "createdAt") VALUES ($1, $2, $3, $4) RETURNING id',
+            [user.login, user.passwordHash, user.email, user.createdAt.toLocaleString('en-US')]
+        );
+        const id = res.rows[0].id;
+
+        return id;
+    }
+
+    async delete(userId: string): Promise<void> {
+        await this.pool.query('DELETE FROM users WHERE id = $1', [userId]);
+        return;
     }
 
     /*async findByUUID(uuid: string): Promise<UserDocument | null> {
@@ -64,13 +79,5 @@ export class UsersSqlRepository {
 
         return user;
     }
-
-    async save(user: UserDocument): Promise<void> {
-        await user.save();
-    }
-
-    async delete(userId: string): Promise<void> {
-        await this.userModel.deleteOne({ _id: userId });
-        return;
     }*/
 }
