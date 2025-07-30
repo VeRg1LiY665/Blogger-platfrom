@@ -79,7 +79,7 @@ export class UsersSqlRepository {
                     // Assuming condition is an object with key-value pairs
                     return `${condition} LIKE $${i + 1}`;
                 })
-                .join(' OR ');
+                .toString();
             whereClause = `WHERE ${conditions}`;
         }
 
