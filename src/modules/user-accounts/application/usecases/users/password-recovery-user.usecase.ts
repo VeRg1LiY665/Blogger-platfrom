@@ -18,8 +18,6 @@ export class PasswordRecoveryUserCommand {
 @CommandHandler(PasswordRecoveryUserCommand)
 export class PasswordRecoveryUserUseCase implements ICommandHandler<PasswordRecoveryUserCommand, void> {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //Зачем?
         private usersRepository: UsersRepository,
         private emailService: EmailService
     ) {}

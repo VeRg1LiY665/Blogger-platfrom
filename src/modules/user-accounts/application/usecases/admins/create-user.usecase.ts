@@ -24,7 +24,7 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, num
     ) {}
 
     async execute({ dto }: CreateUserCommand): Promise<number> {
-        /* if ((await this.usersRepository.findByLoginOrEmail(dto.login)) !== null) {
+        if ((await this.usersSqlRepository.findByLoginOrEmail(dto.login)) !== null) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
                 message: 'User already exists',
@@ -32,13 +32,13 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, num
             });
         }
 
-        if ((await this.usersRepository.findByLoginOrEmail(dto.email)) !== null) {
+        if ((await this.usersSqlRepository.findByLoginOrEmail(dto.email)) !== null) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
                 message: 'User already exists',
                 extensions: [new Extension('User already exists', 'email')]
             });
-        }*/
+        }
 
         const user: UserDocument = await this.usersFactory.create(dto);
         const domainDto = { emailConfirmation: user.emailConfirmation };

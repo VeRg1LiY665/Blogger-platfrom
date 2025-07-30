@@ -20,7 +20,7 @@ export class TestingController {
         );
         await Promise.all(mongoPromises);
 
-        await this.pool.query('TRUNCATE TABLE "users"'); //TODO add auto aggregation for tables
+        await this.pool.query('TRUNCATE TABLE "users" CASCADE'); //TODO add auto aggregation for tables
 
         return {
             status: 'succeeded'

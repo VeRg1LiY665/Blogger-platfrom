@@ -22,7 +22,7 @@ export class UsersSqlQueryRepository {
             const conditions = Object.keys(filter)
                 .map((condition, i) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} ILIKE $${i + 1}`; // Adjust based on your actual condition structure
+                    return `${condition} ILIKE $${i + 1}`;
                 })
                 .join(' OR ');
             whereClause = `WHERE ${conditions}`;
