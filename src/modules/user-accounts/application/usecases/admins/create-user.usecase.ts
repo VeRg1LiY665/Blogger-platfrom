@@ -4,8 +4,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersFactory } from '../../factories/users.factory';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { Types } from 'mongoose';
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class CreateUserCommand {
@@ -18,7 +16,6 @@ export class CreateUserCommand {
 @CommandHandler(CreateUserCommand)
 export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, number> {
     constructor(
-        private usersRepository: UsersRepository,
         private usersSqlRepository: UsersSqlRepository,
         private usersFactory: UsersFactory
     ) {}
@@ -44,7 +41,7 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, num
         const domainDto = { emailConfirmation: user.emailConfirmation };
         domainDto.emailConfirmation.isConfirmed = true;
         user.update(domainDto);
-        //TODO make email confirmed by default for admin creation?
+
         const id = await this.usersSqlRepository.save(user);
 
         return id;

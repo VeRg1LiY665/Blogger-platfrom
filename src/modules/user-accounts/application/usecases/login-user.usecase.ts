@@ -10,6 +10,7 @@ import {
     ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
     REFRESH_TOKEN_STRATEGY_INJECT_TOKEN
 } from '../../constants/auth-tokens.inject-constants';
+import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class LoginUserCommand {
     constructor(public dto: LoginUserDto) {}
@@ -23,9 +24,10 @@ export class LoginUserUseCase
     implements ICommandHandler<LoginUserCommand, { accessToken: string; refreshToken: string }>
 {
     constructor(
-        @InjectModel(SecurityDevice.name)
-        private securityDevice: SecurityDeviceModelType,
+        /*@InjectModel(SecurityDevice.name)
+        private securityDevice: SecurityDeviceModelType,*/
         private devicesRepo: SecurityDevicesRepository,
+        private devicesSqlRepo: SecurityDevicesSqlRepository,
         private iatFactory: IatFactory,
         @Inject(ACCESS_TOKEN_STRATEGY_INJECT_TOKEN)
         private accessTokenContext: JwtService,
@@ -43,17 +45,20 @@ export class LoginUserUseCase
             title: dto.title,
             iat: iat
         };
-        const device = this.securityDevice.createInstance(deviceDto);
-        await this.devicesRepo.save(device);
+
+        const device = SecurityDevice.createInstance(deviceDto);
+        console.log(deviceDto.iat);
+        await this.devicesSqlRepo.FindByTitle(dto.title, +dto.userId);
+        const id = await this.devicesSqlRepo.save(device);
 
         const accessToken = this.accessTokenContext.sign({
             id: dto.userId,
-            deviceId: device._id.toString()
+            deviceId: id.toString()
         });
 
         const refreshToken = this.refreshTokenContext.sign({
             id: dto.userId,
-            deviceId: device._id.toString(),
+            deviceId: id.toString(),
             iat: refIat,
             rem: rem
         });

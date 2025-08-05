@@ -25,12 +25,12 @@ export const emailConstraints = {
  */
 @Schema({ timestamps: true })
 export class User {
+    id: number;
     /**
      * Login of the user (must be uniq)
      * @type {string}
      * @required
      */
-    @Prop({ type: String, required: true, unique: true, ...loginConstraints })
     login: string;
 
     /**
@@ -38,7 +38,6 @@ export class User {
      * @type {string}
      * @required
      */
-    @Prop({ type: String, required: true })
     passwordHash: string;
 
     /**
@@ -46,7 +45,6 @@ export class User {
      * @type {string}
      * @required
      */
-    @Prop({ type: String, min: 5, required: true })
     email: string;
 
     /**
@@ -57,10 +55,8 @@ export class User {
      */
     createdAt: Date;
 
-    @Prop({ type: emailConfirmationSchema, required: true })
     emailConfirmation: emailConfirmation;
 
-    @Prop({ type: passwordRecoverySchema, required: true })
     passwordRecovery: passwordRecovery;
 
     /**

@@ -1,21 +1,61 @@
-import { User, UserDocument, UserModelType } from '../domain/user.entity';
+import { User } from '../domain/user.entity';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
-import { Types } from 'mongoose';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
 import { Pool } from 'pg';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST }) //Create repo/request to share the state between the methods within one request
 export class UsersSqlRepository {
-    constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
-
-    async findById(id: string): Promise<User | null> {
-        const result = await this.pool.query('SELECT * FROM users WHERE id = $1', [id]);
-
-        return result.rows[0];
+    constructor(@Inject('PG_POOL') private readonly pool: Pool) {
+        console.log('SQL Repository created');
     }
 
-    async findByLoginOrEmail(searchData: string): Promise<UserDocument | null> {
+    private entity: User | null = null; //stores the state of the entity got from the db
+
+    private dataMapper(userData: any): User {
+        const user = new User();
+        user.id = userData.id;
+        user.email = userData.email;
+        user.login = userData.login;
+        user.passwordHash = userData.passwordHash;
+        user.createdAt = new Date(userData.createdAt as string);
+        user.emailConfirmation = {
+            confirmationCode: userData.emailConfirmation.confirmationCode,
+            expirationDate: new Date(userData.emailConfirmation.expirationDate as string),
+            isConfirmed: userData.emailConfirmation.isConfirmed
+        };
+        user.passwordRecovery = {
+            expirationDate: new Date(userData.passwordRecovery.expirationDate as string),
+            recoveryCode: userData.passwordRecovery.recoveryCode
+        };
+        this.entity = JSON.parse(JSON.stringify(user)); //save the state of the data through deep copy
+
+        return user;
+    }
+
+    async findById(id: string): Promise<User | null> {
+        const user = await this.pool.query(
+            `SELECT u.id,
+                    u.login,
+                    u."passwordHash",
+                    u.email,
+                    u."createdAt",
+                    (SELECT json_build_object('confirmationCode', e."confirmationCode", 'expirationDate',
+                                              e."expirationDate", 'isConfirmed', e."isConfirmed")
+                     FROM "emailConfirmation" e
+                     WHERE e."userId" = u.id) as "emailConfirmation",
+                    (SELECT json_build_object('recoveryCode', p."recoveryCode", 'expirationDate', p."expirationDate")
+                     FROM "passwordRecovery" p
+                     WHERE p."userId" = u.id) as "passwordRecovery"
+             FROM users u
+             WHERE id = $1`,
+            [id]
+        );
+
+        return user.rows.length > 0 ? this.dataMapper(user.rows[0]) : null;
+    }
+
+    async findByLoginOrEmail(searchData: string): Promise<User | null> {
         const filter = {};
 
         switch (true) {
@@ -38,12 +78,29 @@ export class UsersSqlRepository {
             whereClause = `WHERE ${conditions}`;
         }
 
-        const user = await this.pool.query(`SELECT * FROM users ${whereClause}`, [...Object.values(filter)]);
+        const user = await this.pool.query(
+            `
+                SELECT u.id,
+                       u.login,
+                       u."passwordHash",
+                       u.email,
+                       u."createdAt",
+                       (SELECT json_build_object('confirmationCode', e."confirmationCode", 'expirationDate',
+                                                 e."expirationDate", 'isConfirmed', e."isConfirmed")
+                        FROM "emailConfirmation" e
+                        WHERE e."userId" = u.id) as "emailConfirmation",
+                       (SELECT json_build_object('recoveryCode', p."recoveryCode", 'expirationDate', p."expirationDate")
+                        FROM "passwordRecovery" p
+                        WHERE p."userId" = u.id) as "passwordRecovery"
+                FROM users u
+                ${whereClause}`,
+            [...Object.values(filter)]
+        );
 
         if (user.rows.length < 1) {
             return null;
         }
-        return user.rows[0];
+        return this.dataMapper(user.rows[0]);
     }
 
     async findOrNotFoundFail(id: string): Promise<User> {
@@ -77,28 +134,153 @@ export class UsersSqlRepository {
             const conditions = Object.keys(filter)
                 .map((condition, i) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} LIKE $${i + 1}`;
+                    return `"${condition}" LIKE $${i + 1}`;
                 })
                 .toString();
             whereClause = `WHERE ${conditions}`;
         }
 
-        const user = await this.pool.query(`SELECT "userId" FROM users ${whereClause}`, [...Object.values(filter)]);
+        let result: any; //type?
+        switch (true) {
+            case Object.keys(filter)[0] == 'confirmationCode':
+                result = await this.pool.query(
+                    `SELECT u.id,
+                            u.login,
+                            u."passwordHash",
+                            u.email,
+                            u."createdAt",
+                            (SELECT json_build_object('confirmationCode', e."confirmationCode", 'expirationDate',
+                                                      e."expirationDate", 'isConfirmed', e."isConfirmed")
+                             FROM "emailConfirmation" e
+                             WHERE e."userId" = u.id) as "emailConfirmation",
+                            (SELECT json_build_object('recoveryCode', p."recoveryCode", 'expirationDate',
+                                                      p."expirationDate")
+                             FROM "passwordRecovery" p
+                             WHERE p."userId" = u.id) as "passwordRecovery"
+                     FROM users u
+                     WHERE id IN (SELECT "userId" FROM "emailConfirmation" ${whereClause})`,
+                    [...Object.values(filter)]
+                );
+                break;
+            case Object.keys(filter)[0] == 'recoveryCode':
+                result = await this.pool.query(
+                    `SELECT u.id,
+                            u.login,
+                            u."passwordHash",
+                            u.email,
+                            u."createdAt",
+                            (SELECT json_build_object('confirmationCode', e."confirmationCode", 'expirationDate',
+                                                      e."expirationDate", 'isConfirmed', e."isConfirmed")
+                             FROM "emailConfirmation" e
+                             WHERE e."userId" = u.id) as "emailConfirmation",
+                            (SELECT json_build_object('recoveryCode', p."recoveryCode", 'expirationDate',
+                                                      p."expirationDate")
+                             FROM "passwordRecovery" p
+                             WHERE p."userId" = u.id) as "passwordRecovery"
+                     FROM users u
+                     WHERE id IN (SELECT "userId" FROM "passwordRecovery" ${whereClause})`,
+                    [...Object.values(filter)]
+                );
+                break;
+        }
+        //const user = await this.pool.query(`SELECT "userId" FROM devices ${whereClause}`, [...Object.values(filter)]);
 
-        const result = await this.pool.query(`SELECT * FROM users WHERE id = ${user.rows[0].id}`);
+        /*const result = await this.pool.query(
+            `SELECT * FROM users WHERE id IN (SELECT "userId" FROM devices ${whereClause}, [...Object.values(filter)])`
+        );*/
 
-        return result.rows[0].length > 0 ? result.rows[0] : null;
+        return result.rows.length > 0 ? this.dataMapper(result.rows[0]) : null;
     }
 
     async save(user: User): Promise<number> {
+        //Get there unification with mongoose implementation
+        //Check if any changes happened through the internal state of the repository class
+
+        if (JSON.stringify(this.entity) === JSON.stringify(user) && this.entity !== null) {
+            return this.entity.id;
+        }
+
+        if (JSON.stringify(this.entity) !== JSON.stringify(user) && this.entity !== null) {
+            const res = await this.pool.query(
+                'UPDATE users SET login = $1, "passwordHash" = $2, email = $3, "createdAt" = $4 WHERE id = $5 RETURNING id',
+                [user.login, user.passwordHash, user.email, user.createdAt.toLocaleString('en-US'), user.id]
+            );
+
+            await this.pool.query(
+                'UPDATE "emailConfirmation" SET "confirmationCode" = $1, "expirationDate" = $2, "isConfirmed" = $3 WHERE "userId" = $4',
+                [
+                    user.emailConfirmation.confirmationCode,
+                    user.emailConfirmation.expirationDate.toLocaleString('en-US'),
+                    user.emailConfirmation.isConfirmed,
+                    user.id
+                ]
+            );
+
+            await this.pool.query(
+                'UPDATE "passwordRecovery" SET "recoveryCode" = $1, "expirationDate" = $2 WHERE "userId" = $3',
+                [
+                    user.passwordRecovery.recoveryCode,
+                    user.passwordRecovery.expirationDate.toLocaleString('en-US'),
+                    user.id
+                ]
+            );
+
+            const id = res.rows[0].id;
+            return id;
+        }
+
         const res = await this.pool.query(
             'INSERT INTO users (login, "passwordHash", email, "createdAt") VALUES ($1, $2, $3, $4) RETURNING id',
             [user.login, user.passwordHash, user.email, user.createdAt.toLocaleString('en-US')]
         );
         const id = res.rows[0].id;
 
+        await this.pool.query(
+            'INSERT INTO "emailConfirmation" ("userId", "confirmationCode", "expirationDate", "isConfirmed") VALUES ($1, $2, $3, $4)',
+            [
+                id,
+                user.emailConfirmation.confirmationCode,
+                user.emailConfirmation.expirationDate.toLocaleString('en-US'),
+                user.emailConfirmation.isConfirmed
+            ]
+        );
+
+        await this.pool.query(
+            'INSERT INTO "passwordRecovery" ("userId", "recoveryCode", "expirationDate") VALUES ($1, $2, $3)',
+            [id, user.passwordRecovery.recoveryCode, user.passwordRecovery.expirationDate.toLocaleString('en-US')]
+        );
+
         return id;
     }
+
+    /*async update(user: User): Promise<number> {
+        const res = await this.pool.query(
+            'UPDATE users SET login = $1, "passwordHash" = $2, email = $3, "createdAt" = $4 WHERE id = ${user.id} RETURNING id',
+            [user.login, user.passwordHash, user.email, user.createdAt.toLocaleString('en-US')]
+        );
+
+        if (Object.keys(user.emailConfirmation).length > 0) {
+            //Checkup for object existence
+            await this.pool.query(
+                'UPDATE "emailConfirmation" SET "confiramtionCode" = $1, "expirationDate" = $2, "isConfirmed" = $3 WHERE "userId" = ${user.id}',
+                [
+                    user.emailConfirmation.confirmationCode,
+                    user.emailConfirmation.expirationDate,
+                    user.emailConfirmation.isConfirmed
+                ]
+            );
+        }
+
+        if (Object.keys(user.passwordRecovery).length > 0) {
+            //Checkup for object existence
+            await this.pool.query(
+                'UPDATE "passwordRecovery" SET "recoveryCode" = $1, "expirationDate" = $2 WHERE "userId" = ${user.id}',
+                [user.passwordRecovery.recoveryCode, user.passwordRecovery.expirationDate]
+            );
+        }
+        const id = res.rows[0].id;
+        return id;
+    }*/
 
     async delete(userId: string): Promise<void> {
         await this.pool.query('DELETE FROM users WHERE id = $1', [userId]);

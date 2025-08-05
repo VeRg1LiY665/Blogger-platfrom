@@ -50,19 +50,19 @@ export class RefreshTokenUserUseCase
         }
 
         const accessToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString() },
-            {
+            { id: dto.userId, deviceId: device._id.toString() }
+            /*{
                 secret: 'kjsjhd67t43b9v',
                 expiresIn: '10s'
-            }
+            }*/
         );
 
         const refreshToken = this.jwtService.sign(
-            { id: dto.userId, deviceId: device._id.toString(), iat: refIat, rem: rem },
-            {
+            { id: dto.userId, deviceId: device._id.toString(), iat: refIat, rem: rem }
+            /* {
                 secret: 'pokjcleYm&hd93g1!',
                 expiresIn: '20s'
-            }
+            }*/
         );
 
         device.updateInstance(iat);

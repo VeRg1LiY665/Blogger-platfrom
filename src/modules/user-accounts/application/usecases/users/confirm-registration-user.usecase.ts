@@ -1,10 +1,9 @@
-import { InjectModel } from '@nestjs/mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { User, UserModelType } from '../../../domain/user.entity';
 import { UsersRepository } from '../../../infrastructure/users.repository';
 import { InputConfirmEmailDto } from '../../../api/input-dto/input-registration-confirmation';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
+import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class ConfirmRegistrationUserCommand {
     constructor(public dto: InputConfirmEmailDto) {}
@@ -16,13 +15,12 @@ export class ConfirmRegistrationUserCommand {
 @CommandHandler(ConfirmRegistrationUserCommand)
 export class ConfirmRegistrationUserUseCase implements ICommandHandler<ConfirmRegistrationUserCommand, void> {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //Зачем?
-        private usersRepository: UsersRepository
+        private usersRepository: UsersRepository,
+        private usersSqlRepository: UsersSqlRepository
     ) {}
 
     async execute({ dto }: ConfirmRegistrationUserCommand): Promise<void> {
-        const user = await this.usersRepository.findByUUID(dto.code);
+        const user = await this.usersSqlRepository.findByUUID(dto.code);
         if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
@@ -50,7 +48,7 @@ export class ConfirmRegistrationUserUseCase implements ICommandHandler<ConfirmRe
         const domainDto = { emailConfirmation: user.emailConfirmation };
         domainDto.emailConfirmation.isConfirmed = true;
         user.update(domainDto);
-        await this.usersRepository.save(user);
+        await this.usersSqlRepository.save(user);
 
         return;
     }

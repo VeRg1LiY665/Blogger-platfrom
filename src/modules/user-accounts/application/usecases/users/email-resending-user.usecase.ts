@@ -1,12 +1,10 @@
-import { InjectModel } from '@nestjs/mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { User, UserModelType } from '../../../domain/user.entity';
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { InputEmailResendingDto } from '../../../api/input-dto/input-email-resending';
 import { randomUUID } from 'node:crypto';
 import { EmailService } from '../../../../notifications/email.service';
+import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class EmailResendingUserCommand {
     constructor(public dto: InputEmailResendingDto) {}
@@ -18,14 +16,12 @@ export class EmailResendingUserCommand {
 @CommandHandler(EmailResendingUserCommand)
 export class EmailResendingUserUseCase implements ICommandHandler<EmailResendingUserCommand, void> {
     constructor(
-        @InjectModel(User.name)
-        private userModel: UserModelType, //Зачем?
-        private usersRepository: UsersRepository,
+        private usersSqlRepository: UsersSqlRepository,
         private emailService: EmailService
     ) {}
 
     async execute({ dto }: EmailResendingUserCommand): Promise<void> {
-        const user = await this.usersRepository.findByLoginOrEmail(dto.email);
+        const user = await this.usersSqlRepository.findByLoginOrEmail(dto.email);
         if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
@@ -43,7 +39,7 @@ export class EmailResendingUserUseCase implements ICommandHandler<EmailResending
         }
         const confirmCode = randomUUID();
         user.setConfirmationCode(confirmCode);
-        await this.usersRepository.save(user);
+        await this.usersSqlRepository.save(user);
 
         this.emailService.sendConfirmationEmail(user.email, confirmCode).catch(console.error);
         return;

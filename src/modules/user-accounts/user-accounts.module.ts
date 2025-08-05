@@ -46,6 +46,8 @@ import { UserAccountsConfig } from './config/user-accounts.config';
 import { UsersSqlQueryRepository } from './infrastructure/users.sql.query-repository';
 import { UsersSqlRepository } from './infrastructure/users-sql.repository';
 import { DatabaseModule } from '../../database/database.modules';
+import { SecurityDevicesSqlRepository } from './infrastructure/security-devices.sql.repository';
+import { SecurityDevicesSqlQueryRepository } from './infrastructure/security-devices.sql.query-repository';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -113,7 +115,9 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         UsersFactory, //не забывать регистрировать фабрики
         IatFactory,
         SecurityDevicesRepository,
+        SecurityDevicesSqlRepository,
         SecurityDevicesQueryRepository,
+        SecurityDevicesSqlQueryRepository,
         UserAccountsConfig
     ],
     exports: [/*JwtModule*/ UsersExtQRepository]

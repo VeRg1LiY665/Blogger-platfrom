@@ -15,4 +15,14 @@ export class DevicesViewDto {
 
         return dto;
     }
+
+    static mapSqlToView(rows: any): DevicesViewDto {
+        const dto = new DevicesViewDto();
+        dto.ip = rows.ip;
+        dto.title = rows.title;
+        dto.lastActiveDate = new Date(+rows.iat * 1000).toISOString();
+        dto.deviceId = rows.id;
+
+        return dto;
+    }
 }

@@ -1,9 +1,6 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../../domain/user.entity';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { randomUUID } from 'node:crypto';
 import { UsersFactory } from '../../factories/users.factory';
 import { CreateUserDto } from '../../../dto/create-user.dto';
@@ -20,7 +17,6 @@ export class RegisterUserCommand {
 @CommandHandler(RegisterUserCommand)
 export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand, void> {
     constructor(
-        private usersRepository: UsersRepository,
         private usersSqlRepository: UsersSqlRepository,
         private usersFactory: UsersFactory,
         private emailService: EmailService
@@ -44,7 +40,7 @@ export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand,
         }
 
         const user = await this.usersFactory.create(dto);
-        //const user = await this.usersRepository.findOrNotFoundFail(userId);
+
         const confirmCode = randomUUID();
         user.setConfirmationCode(confirmCode);
         const userId = await this.usersSqlRepository.save(user);

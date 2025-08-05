@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { UserContextDto } from '../guards/dto/user-context.dto';
 import { CryptoService } from './crypto.service';
+import { UsersSqlRepository } from '../infrastructure/users-sql.repository';
 
 @Injectable()
 export class AuthService {
     constructor(
-        private usersRepository: UsersRepository,
+        //private usersRepository: UsersRepository,
+        private usersSqlRepository: UsersSqlRepository,
         private cryptoService: CryptoService
     ) {}
     async validateUser(loginOrEmail: string, password: string): Promise<UserContextDto | null> {
-        const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
+        const user = await this.usersSqlRepository.findByLoginOrEmail(loginOrEmail);
 
         if (!user) {
             return null;
@@ -25,6 +27,6 @@ export class AuthService {
             return null;
         }
 
-        return { id: user._id.toString() };
+        return { id: user.id.toString() };
     }
 }

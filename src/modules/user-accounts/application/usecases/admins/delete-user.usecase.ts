@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class DeleteUserCommand {
@@ -13,10 +12,7 @@ export class DeleteUserCommand {
  */
 @CommandHandler(DeleteUserCommand)
 export class DeleteUserUseCase implements ICommandHandler<DeleteUserCommand, void> {
-    constructor(
-        private usersRepository: UsersRepository,
-        private usersSqlRepository: UsersSqlRepository
-    ) {}
+    constructor(private usersSqlRepository: UsersSqlRepository) {}
 
     async execute({ id }: DeleteUserCommand): Promise<void> {
         const user = await this.usersSqlRepository.findById(id);

@@ -1,12 +1,10 @@
-import { InjectModel } from '@nestjs/mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { User, UserModelType } from '../../../domain/user.entity';
-import { UsersRepository } from '../../../infrastructure/users.repository';
-import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
+import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { randomUUID } from 'node:crypto';
 import { EmailService } from '../../../../notifications/email.service';
 import { InputPasswordRecoveryDto } from '../../../api/input-dto/input-password-recovery';
+import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
 
 export class PasswordRecoveryUserCommand {
     constructor(public dto: InputPasswordRecoveryDto) {}
@@ -18,12 +16,12 @@ export class PasswordRecoveryUserCommand {
 @CommandHandler(PasswordRecoveryUserCommand)
 export class PasswordRecoveryUserUseCase implements ICommandHandler<PasswordRecoveryUserCommand, void> {
     constructor(
-        private usersRepository: UsersRepository,
+        private usersSqlRepository: UsersSqlRepository,
         private emailService: EmailService
     ) {}
 
     async execute({ dto }: PasswordRecoveryUserCommand): Promise<void> {
-        const user = await this.usersRepository.findByLoginOrEmail(dto.email);
+        const user = await this.usersSqlRepository.findByLoginOrEmail(dto.email);
         if (!user) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
@@ -35,7 +33,8 @@ export class PasswordRecoveryUserUseCase implements ICommandHandler<PasswordReco
         const expirationDate = new Date(Date.now() + 86400000); //текущая + сутки в мс
 
         user.setRecoveryCode(confirmCode, expirationDate);
-        await this.usersRepository.save(user);
+
+        await this.usersSqlRepository.save(user);
 
         this.emailService.sendRecoveryEmail(user.email, confirmCode).catch(console.error);
         return;
