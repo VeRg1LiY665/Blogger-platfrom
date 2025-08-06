@@ -11,7 +11,7 @@ import { DeleteUserCommand } from '../application/usecases/admins/delete-user.us
 import { GetUserByIdQuery } from '../application/queries/get-user-by-id.query';
 import { GetAllUsersQuery } from '../application/queries/get-all-users.query';
 
-@Controller('users')
+@Controller('sa/users')
 export class UsersController {
     constructor(
         private readonly commandBus: CommandBus,

@@ -3,6 +3,7 @@ import { DomainException, Extension } from '../../../../../core/exceptions/domai
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { SecurityDevicesRepository } from '../../../infrastructure/security-devices.repository';
 import { DeleteDeviceDto } from '../../../dto/delete-device.dto';
+import { SecurityDevicesSqlRepository } from '../../../infrastructure/security-devices.sql.repository';
 
 export class DeleteDeviceCommand {
     constructor(public dto: DeleteDeviceDto) {}
@@ -13,10 +14,13 @@ export class DeleteDeviceCommand {
  */
 @CommandHandler(DeleteDeviceCommand)
 export class DeleteDeviceUseCase implements ICommandHandler<DeleteDeviceCommand, void> {
-    constructor(private securityDevicesRepository: SecurityDevicesRepository) {}
+    constructor(
+        private securityDevicesRepository: SecurityDevicesRepository,
+        private securityDevicesSqlRepository: SecurityDevicesSqlRepository
+    ) {}
 
     async execute({ dto }: DeleteDeviceCommand): Promise<void> {
-        const device = await this.securityDevicesRepository.ShowDevice(dto.deviceId);
+        const device = await this.securityDevicesSqlRepository.ShowDevice(dto.deviceId);
         if (!device) {
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
@@ -32,6 +36,6 @@ export class DeleteDeviceUseCase implements ICommandHandler<DeleteDeviceCommand,
                 extensions: [new Extension('Device to be deleted is not yours', 'token')]
             });
         }
-        return await this.securityDevicesRepository.DeleteDevice(device._id.toString());
+        return await this.securityDevicesSqlRepository.DeleteDevice(device.id.toString());
     }
 }

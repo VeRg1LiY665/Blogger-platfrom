@@ -9,9 +9,9 @@ import { DomainExceptionCode } from '../../../../core/exceptions/domain-exceptio
 export class BasicAuthGuard implements CanActivate {
     private readonly validUsername = 'admin';
     private readonly validPassword = 'qwerty';
-
+    //TODO move to .env file
     constructor(private reflector: Reflector) {}
-    //TODO check if it works synchronously
+
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
         const authHeader = request.headers.authorization;

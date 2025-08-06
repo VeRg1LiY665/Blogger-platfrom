@@ -5,6 +5,7 @@ import { SecurityDevicesRepository } from '../../infrastructure/security-devices
 import { RefreshTokenDto } from '../../dto/refresh-token.dto';
 import { IatFactory } from '../factories/Iat.factory';
 import { RefreshContextDto } from '../../guards/dto/refresh-context.dto';
+import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class LogoutUserCommand {
     constructor(public dto: RefreshContextDto) {} //TODO Separate DTO?
@@ -17,11 +18,12 @@ export class LogoutUserCommand {
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand, void> {
     constructor(
         private devicesRepo: SecurityDevicesRepository,
+        private devicesSqlRepo: SecurityDevicesSqlRepository,
         private iatFactory: IatFactory
     ) {}
 
     async execute({ dto }: LogoutUserCommand): Promise<void> {
-        const device = await this.devicesRepo.ShowDevice(dto.deviceId);
+        const device = await this.devicesSqlRepo.ShowDevice(dto.deviceId);
         if (!device) {
             //Error if secret is correct, but device has been logged out
             throw new DomainException({
@@ -40,6 +42,6 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand, voi
             });
         }
 
-        await this.devicesRepo.DeleteDevice(device._id.toString());
+        await this.devicesSqlRepo.DeleteDevice(device.id.toString());
     }
 }

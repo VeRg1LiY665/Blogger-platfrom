@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { SecurityDevicesRepository } from '../../../infrastructure/security-devices.repository';
 import { DeleteAllDevicesDto } from '../../../dto/delete-all-devices.dto';
+import { SecurityDevicesSqlRepository } from '../../../infrastructure/security-devices.sql.repository';
 
 export class DeleteAllDevicesCommand {
     constructor(public dto: DeleteAllDevicesDto) {}
@@ -11,9 +11,9 @@ export class DeleteAllDevicesCommand {
  */
 @CommandHandler(DeleteAllDevicesCommand)
 export class DeleteAllDevicesUseCase implements ICommandHandler<DeleteAllDevicesCommand, void> {
-    constructor(private securityDevicesRepository: SecurityDevicesRepository) {}
+    constructor(private devicesSqlRepo: SecurityDevicesSqlRepository) {}
 
     async execute({ dto }: DeleteAllDevicesCommand): Promise<void> {
-        return await this.securityDevicesRepository.DeleteAllDevices(dto);
+        return await this.devicesSqlRepo.DeleteAllDevices(dto);
     }
 }

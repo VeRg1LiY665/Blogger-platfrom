@@ -8,7 +8,7 @@ export class IatFactory {
         };
     }
 
-    rebuild(dto: { iat: number; rem: number }) {
+    rebuild(dto: { iat: number; rem: number }): number {
         return dto.iat * 1000 + dto.rem;
     }
 }

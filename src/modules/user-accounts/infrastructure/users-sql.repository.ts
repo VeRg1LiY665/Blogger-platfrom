@@ -203,14 +203,20 @@ export class UsersSqlRepository {
         if (JSON.stringify(this.entity) !== JSON.stringify(user) && this.entity !== null) {
             const res = await this.pool.query(
                 'UPDATE users SET login = $1, "passwordHash" = $2, email = $3, "createdAt" = $4 WHERE id = $5 RETURNING id',
-                [user.login, user.passwordHash, user.email, user.createdAt.toLocaleString('en-US'), user.id]
+                [
+                    user.login,
+                    user.passwordHash,
+                    user.email,
+                    user.createdAt.toISOString() /*toLocaleString('en-US')*/,
+                    user.id
+                ]
             );
 
             await this.pool.query(
                 'UPDATE "emailConfirmation" SET "confirmationCode" = $1, "expirationDate" = $2, "isConfirmed" = $3 WHERE "userId" = $4',
                 [
                     user.emailConfirmation.confirmationCode,
-                    user.emailConfirmation.expirationDate.toLocaleString('en-US'),
+                    user.emailConfirmation.expirationDate.toISOString(),
                     user.emailConfirmation.isConfirmed,
                     user.id
                 ]
@@ -218,11 +224,7 @@ export class UsersSqlRepository {
 
             await this.pool.query(
                 'UPDATE "passwordRecovery" SET "recoveryCode" = $1, "expirationDate" = $2 WHERE "userId" = $3',
-                [
-                    user.passwordRecovery.recoveryCode,
-                    user.passwordRecovery.expirationDate.toLocaleString('en-US'),
-                    user.id
-                ]
+                [user.passwordRecovery.recoveryCode, user.passwordRecovery.expirationDate.toISOString(), user.id]
             );
 
             const id = res.rows[0].id;
@@ -231,7 +233,7 @@ export class UsersSqlRepository {
 
         const res = await this.pool.query(
             'INSERT INTO users (login, "passwordHash", email, "createdAt") VALUES ($1, $2, $3, $4) RETURNING id',
-            [user.login, user.passwordHash, user.email, user.createdAt.toLocaleString('en-US')]
+            [user.login, user.passwordHash, user.email, user.createdAt.toISOString() /*toLocaleString('en-US')*/]
         );
         const id = res.rows[0].id;
 
@@ -240,14 +242,14 @@ export class UsersSqlRepository {
             [
                 id,
                 user.emailConfirmation.confirmationCode,
-                user.emailConfirmation.expirationDate.toLocaleString('en-US'),
+                user.emailConfirmation.expirationDate.toISOString(),
                 user.emailConfirmation.isConfirmed
             ]
         );
 
         await this.pool.query(
             'INSERT INTO "passwordRecovery" ("userId", "recoveryCode", "expirationDate") VALUES ($1, $2, $3)',
-            [id, user.passwordRecovery.recoveryCode, user.passwordRecovery.expirationDate.toLocaleString('en-US')]
+            [id, user.passwordRecovery.recoveryCode, user.passwordRecovery.expirationDate.toISOString()]
         );
 
         return id;

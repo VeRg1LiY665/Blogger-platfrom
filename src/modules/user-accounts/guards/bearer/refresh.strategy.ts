@@ -2,14 +2,15 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
 import { RefreshContextDto } from '../dto/refresh-context.dto';
+import { UserAccountsConfig } from '../../config/user-accounts.config';
 
 @Injectable()
 export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
-    constructor() {
+    constructor(userAccountsConfig: UserAccountsConfig) {
         super({
             jwtFromRequest: ExtractJwt.fromExtractors([(req) => req.cookies['refreshToken']]), // Extract token from cookie
             ignoreExpiration: false,
-            secretOrKey: 'pokjcleYm&hd93g1!' //TODO: move to env. will be in the following lessons
+            secretOrKey: userAccountsConfig.refreshTokenSecret
         });
     }
 

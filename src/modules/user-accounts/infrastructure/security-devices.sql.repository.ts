@@ -14,7 +14,7 @@ export class SecurityDevicesSqlRepository {
         device.userId = deviceData.userId;
         device.ip = deviceData.ip;
         device.title = deviceData.title;
-        device.iat = deviceData.iat;
+        device.iat = +deviceData.iat;
 
         this.entity = JSON.parse(JSON.stringify(device));
 

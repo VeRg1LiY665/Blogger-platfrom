@@ -28,13 +28,15 @@ export class UsersSqlQueryRepository {
             whereClause = `WHERE ${conditions}`;
         }
         const queryText =
-            `SELECT * FROM users ${whereClause} ORDER BY $${Object.keys(filter).length + 1}` +
+            `SELECT * FROM users ${whereClause} ORDER BY "${query.sortBy}"` +
             ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
             `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
 
-        const users = await this.pool.query(queryText, [...Object.values(filter), query.sortBy]);
+        const users = await this.pool.query(queryText, [...Object.values(filter)]);
 
-        const totalCount = users.rows.length;
+        const totalCount: number = +(
+            await this.pool.query(`SELECT COUNT(*) FROM users ${whereClause}`, [...Object.values(filter)])
+        ).rows[0].count;
 
         const items = users.rows.map((x) => UserViewDto.mapSqlToView(x));
 

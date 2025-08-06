@@ -30,7 +30,7 @@ export class EmailResendingUserUseCase implements ICommandHandler<EmailResending
             });
         }
 
-        if (user.emailConfirmation.isConfirmed == true) {
+        if (user.emailConfirmation.isConfirmed === true) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
                 message: 'User email has been already confirmed',
