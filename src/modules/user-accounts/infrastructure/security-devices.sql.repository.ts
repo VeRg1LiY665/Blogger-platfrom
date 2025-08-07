@@ -11,7 +11,7 @@ export class SecurityDevicesSqlRepository {
     private dataMapper(deviceData: any): SecurityDevice {
         const device = new SecurityDevice();
         device.id = deviceData.id;
-        device.userId = deviceData.userId;
+        device.userId = deviceData.userId.toString();
         device.ip = deviceData.ip;
         device.title = deviceData.title;
         device.iat = +deviceData.iat;
@@ -63,10 +63,7 @@ export class SecurityDevicesSqlRepository {
     }
 
     async DeleteAllDevices(dto: { deviceId: string; userId: string }): Promise<void> {
-        const filter: any = {};
-        filter.userId = dto.userId;
-        filter._id = { $nin: [dto.deviceId] };
-        await this.pool.query(`DELETE FROM devices WHERE id = ${dto.userId} AND "deviceId" NOT IN ${dto.deviceId}`);
+        await this.pool.query(`DELETE FROM devices WHERE "userId" = ${dto.userId} AND id NOT IN (${dto.deviceId})`);
 
         return;
     }

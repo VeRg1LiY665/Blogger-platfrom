@@ -120,7 +120,7 @@ export class AuthController {
     @Get('me')
     @UseGuards(JwtAuthGuard)
     me(@ExtractUserFromRequest() user: UserContextDto): Promise<MeViewDto> {
-        console.log(user);
+        //console.log(user);
         return this.authQueryRepository.me(user.id);
     }
 

@@ -1,4 +1,4 @@
-import { SecurityDeviceDocument } from '../../domain/device.entity';
+import { SecurityDevice, SecurityDeviceDocument } from '../../domain/device.entity';
 
 export class DevicesViewDto {
     ip: string;
@@ -16,12 +16,12 @@ export class DevicesViewDto {
         return dto;
     }
 
-    static mapSqlToView(rows: any): DevicesViewDto {
+    static mapSqlToView(rows: SecurityDevice): DevicesViewDto {
         const dto = new DevicesViewDto();
+        dto.deviceId = rows.id.toString();
         dto.ip = rows.ip;
-        dto.title = rows.title;
         dto.lastActiveDate = new Date(+rows.iat * 1000).toISOString();
-        dto.deviceId = rows.id;
+        dto.title = rows.title;
 
         return dto;
     }

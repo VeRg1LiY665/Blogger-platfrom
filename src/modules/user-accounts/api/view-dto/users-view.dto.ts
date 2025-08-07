@@ -19,6 +19,7 @@ export class UserViewDto {
     }
 
     static mapSqlToView(rows: any): UserViewDto {
+        //TODO Create type?
         const dto = new UserViewDto();
         dto.id = rows.id.toString();
         dto.login = rows.login;
