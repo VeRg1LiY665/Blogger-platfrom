@@ -1,7 +1,7 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { PostsSqlQueryRepository } from '../../../infrastructure/posts.sql.query-repository';
+import { DomainException, Extension } from '../../../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../../../core/exceptions/domain-exception-codes';
+import { PostsSqlQueryRepository } from '../../../../infrastructure/posts.sql.query-repository';
 
 export class GetPostByIdQuery {
     constructor(public postId: string) {}

@@ -34,23 +34,38 @@ export class PostsSqlQueryRepository {
         return post;
     }
 
-    /* async findAll(query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
-        let filter: FilterQuery<Post> = {};
+    async findAll(query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
+        const filter = {}; //This actually is not included in use case
         if (query.searchNameTerm) {
-            filter = {
-                title: { $regex: query.searchNameTerm, $options: 'i' }
-            };
+            filter['title'] = '%' + query.searchNameTerm + '%';
         }
 
-        const posts = await this.postModel
-            .find(filter)
-            .sort({ [query.sortBy]: query.sortDirection })
-            .skip(query.calculateSkip())
-            .limit(query.pageSize);
+        let whereClause = '';
 
-        const totalCount = await this.postModel.countDocuments(filter);
+        if (Object.keys(filter).length > 0) {
+            const conditions = Object.keys(filter)
+                .map((condition, i) => {
+                    // Assuming condition is an object with key-value pairs
+                    return `${condition} ILIKE $${i + 1}`;
+                })
+                .toString();
+            whereClause = `WHERE ${conditions}`;
+        }
 
-        const items = posts.map((x) => PostViewDto.mapToView(x));
+        const queryText =
+            `SELECT * FROM posts ${whereClause} ORDER BY "${query.sortBy}"` +
+            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
+            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
+
+        const posts = await this.pool.query(queryText, [...Object.values(filter)]);
+
+        const totalCount: number = +(
+            await this.pool.query(`SELECT COUNT(*) FROM posts ${whereClause}`, [...Object.values(filter)])
+        ).rows[0].count;
+
+        const items = posts.rows
+            .map((x: PostDbEntity) => this.dataMapper(x))
+            .map((x: Post) => PostViewDto.mapSqlToView(x));
 
         return PaginatedViewDto.mapToView({
             items,
@@ -58,7 +73,7 @@ export class PostsSqlQueryRepository {
             page: query.pageNumber,
             size: query.pageSize
         });
-    }*/
+    }
 
     async findById(id: string): Promise<PostViewDto> {
         const post = await this.pool.query(`SELECT * FROM posts WHERE id = $1`, [id]);

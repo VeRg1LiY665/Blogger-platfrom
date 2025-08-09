@@ -31,6 +31,14 @@ export class DeletePostForBlogUseCase implements ICommandHandler<DeletePostForBl
             });
         }
 
+        const post = await this.postsSqlRepository.findById(postId);
+        if (!post) {
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: 'Post not found'
+            });
+        }
+
         return await this.postsSqlRepository.delete(postId);
     }
 }

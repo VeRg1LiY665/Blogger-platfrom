@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { BlogsController } from './api/blogs.controller';
+import { BlogsSaController } from './api/blogs.sa.controller';
 import { BlogsService } from './application/blogs.service';
 import { BlogsRepository } from './infrastructure/blogs.repository';
 import { BlogsQRepository } from './infrastructure/blogs.query-repository';
@@ -27,16 +27,18 @@ import { DeleteBlogUseCase } from './application/usecases/blogs/delete-blog.usec
 import { DatabaseModule } from '../../database/database.modules';
 import { BlogsSqlRepository } from './infrastructure/blogs-sql.repository';
 import { BlogsSqlQueryRepository } from './infrastructure/blogs.sql.query-repository';
-import { GetBlogByIdQueryHandler } from './application/queries/blogs/get-blog-by-id.query';
-import { GetAllBlogsQueryHandler } from './application/queries/blogs/get-all-blogs.query';
+import { GetBlogByIdQueryHandler } from './application/queries/blogs/public/get-blog-by-id.query';
+import { GetAllBlogsQueryHandler } from './application/queries/blogs/public/get-all-blogs.query';
 import { DeletePostForBlogUseCase } from './application/usecases/posts/delete-post-for-blog.usecase';
 import { CreatePostUseCase } from './application/usecases/posts/create-post.usecase';
 import { CreateBlogPostUseCase } from './application/usecases/posts/create-post-for-blog.usecase';
 import { UpdateBlogPostUseCase } from './application/usecases/posts/update-post-for-blog.usecase';
-import { GetPostByIdQueryHandler } from './application/queries/posts/get-post-by-id.query';
+import { GetPostByIdQueryHandler } from './application/queries/posts/public/get-post-by-id.query';
 import { PostsSqlRepository } from './infrastructure/posts.sql.repository';
 import { PostsSqlQueryRepository } from './infrastructure/posts.sql.query-repository';
-import { GetPostsForBlogQueryHandler } from './application/queries/posts/get-posts-for-blog.query';
+import { GetPostsForBlogQueryHandler } from './application/queries/posts/public/get-posts-for-blog.query';
+import { BlogsController } from './api/blogs.controller';
+import { GetAllPostsQueryHandler } from './application/queries/posts/public/get-all-posts.query';
 
 const commandHandlers = [
     CreateBlogUseCase,
@@ -51,7 +53,8 @@ const queryHandlers = [
     GetBlogByIdQueryHandler,
     GetAllBlogsQueryHandler,
     GetPostByIdQueryHandler,
-    GetPostsForBlogQueryHandler
+    GetPostsForBlogQueryHandler,
+    GetAllPostsQueryHandler
 ];
 @Module({
     imports: [
@@ -64,7 +67,7 @@ const queryHandlers = [
         ]),
         DatabaseModule
     ],
-    controllers: [BlogsController, PostsController, CommentsController],
+    controllers: [BlogsSaController, BlogsController, PostsController, CommentsController],
     providers: [
         BlogsService,
         BlogsRepository,

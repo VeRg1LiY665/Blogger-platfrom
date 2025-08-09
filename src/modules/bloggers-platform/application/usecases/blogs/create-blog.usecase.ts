@@ -18,13 +18,13 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand, str
     constructor(private blogsSqlRepository: BlogsSqlRepository) {}
 
     async execute({ dto }: CreateBlogCommand): Promise<string> {
-        const blog = await this.blogsSqlRepository.findByName(dto.name);
+        /*const blog = await this.blogsSqlRepository.findByName(dto.name);
         if (blog) {
             throw new DomainException({
                 code: DomainExceptionCode.BadRequest,
                 message: 'Blog already exists'
             });
-        }
+        }*/ //TODO ask for uniqueness check
 
         const newBlog = Blog.createInstance({
             name: dto.name,

@@ -12,7 +12,6 @@ import {
     UseGuards
 } from '@nestjs/common';
 import { PostsService } from '../application/posts.service';
-import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { GetPostsQueryParams } from './input-dto/get-posts-query-params';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
@@ -30,10 +29,15 @@ import { PostInputDto } from './input-dto/post.input-dto';
 import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { GetCommentsQueryParams } from './input-dto/get-comments-query-params';
 import { ObjectIdValidationPipe } from '../../../core/pipes/object-id-validation-transformation-pipe.service';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { GetAllPostsQuery, GetAllPostsQueryHandler } from '../application/queries/posts/public/get-all-posts.query';
+import { GetPostByIdQuery } from '../application/queries/posts/public/get-post-by-id.query';
 
 @Controller('posts')
 export class PostsController {
     constructor(
+        private commandBus: CommandBus,
+        private queryBus: QueryBus,
         private postsService: PostsService,
         private likesService: LikesService,
         private commentsService: CommentsService
@@ -52,20 +56,17 @@ export class PostsController {
         @Query() query: GetPostsQueryParams,
         @ExtractUserIfExistsFromRequest() user: UserContextDto
     ): Promise<PaginatedViewDto<PostViewDto[]>> {
-        const dto = {
+        /*const dto = {
             query: query,
             userId: user ? user.id : undefined
-        };
-        return await this.postsService.findAll(dto);
+        };*/
+        return await this.queryBus.execute<GetAllPostsQuery>(new GetAllPostsQuery(query));
     }
 
     @Get(':id')
     @UseGuards(JwtOptionalAuthGuard)
-    async findOne(
-        @Param('id', ObjectIdValidationPipe) id: string,
-        @ExtractUserIfExistsFromRequest() user: UserContextDto
-    ) {
-        let userId;
+    async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
+        /* let userId;
         if (user) {
             userId = user.id;
         } else {
@@ -75,9 +76,9 @@ export class PostsController {
         const dto = {
             id: id,
             userId: userId
-        };
+        };*/
 
-        return await this.postsService.findOne(dto);
+        return await this.queryBus.execute<GetPostByIdQuery>(new GetPostByIdQuery(id));
     }
 
     @Put(':id')
