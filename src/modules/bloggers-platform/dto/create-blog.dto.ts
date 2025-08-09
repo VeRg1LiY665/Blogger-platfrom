@@ -5,6 +5,7 @@ export class CreateBlogDto {
 }
 
 export class UpdateBlogDto {
+    id: string;
     name: string;
     description: string;
     websiteUrl: string;

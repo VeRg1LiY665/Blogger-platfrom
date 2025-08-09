@@ -83,7 +83,7 @@ export class PostsController {
     @Put(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async update(@Param('id', ObjectIdValidationPipe) id: string, @Body() updatePostDto: UpdatePostDto) {
+    async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
         await this.postsService.update(id, updatePostDto);
         return;
     }

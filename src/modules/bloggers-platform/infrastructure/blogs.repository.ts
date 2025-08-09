@@ -17,7 +17,6 @@ export class BlogsRepository {
     }
 
     async delete(id: string): Promise<void> {
-        //TODO Soft delete?
         await this.blogModel.deleteOne({
             _id: id
         });

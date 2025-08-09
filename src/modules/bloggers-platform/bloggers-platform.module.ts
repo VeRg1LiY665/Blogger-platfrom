@@ -20,10 +20,39 @@ import { UsersExtQRepository } from '../user-accounts/infrastructure/external-qu
 import { User, UserSchema } from '../user-accounts/domain/user.entity';
 import { LikesService } from './application/likes.service';
 import { LikesRepo } from './infrastructure/likes.repository';
-import { PostsExtRepository } from './infrastructure/external/posts.external-repository';
 import { Like, LikeSchema } from './domain/like.entity';
-import { UsersAccountsModule } from '../user-accounts/user-accounts.module';
+import { CreateBlogUseCase } from './application/usecases/blogs/create-blog.usecase';
+import { UpdateBlogUseCase } from './application/usecases/blogs/update-blog.usecase';
+import { DeleteBlogUseCase } from './application/usecases/blogs/delete-blog.usecase';
+import { DatabaseModule } from '../../database/database.modules';
+import { BlogsSqlRepository } from './infrastructure/blogs-sql.repository';
+import { BlogsSqlQueryRepository } from './infrastructure/blogs.sql.query-repository';
+import { GetBlogByIdQueryHandler } from './application/queries/blogs/get-blog-by-id.query';
+import { GetAllBlogsQueryHandler } from './application/queries/blogs/get-all-blogs.query';
+import { DeletePostForBlogUseCase } from './application/usecases/posts/delete-post-for-blog.usecase';
+import { CreatePostUseCase } from './application/usecases/posts/create-post.usecase';
+import { CreateBlogPostUseCase } from './application/usecases/posts/create-post-for-blog.usecase';
+import { UpdateBlogPostUseCase } from './application/usecases/posts/update-post-for-blog.usecase';
+import { GetPostByIdQueryHandler } from './application/queries/posts/get-post-by-id.query';
+import { PostsSqlRepository } from './infrastructure/posts.sql.repository';
+import { PostsSqlQueryRepository } from './infrastructure/posts.sql.query-repository';
+import { GetPostsForBlogQueryHandler } from './application/queries/posts/get-posts-for-blog.query';
 
+const commandHandlers = [
+    CreateBlogUseCase,
+    UpdateBlogUseCase,
+    DeleteBlogUseCase,
+    CreatePostUseCase,
+    CreateBlogPostUseCase,
+    UpdateBlogPostUseCase,
+    DeletePostForBlogUseCase
+];
+const queryHandlers = [
+    GetBlogByIdQueryHandler,
+    GetAllBlogsQueryHandler,
+    GetPostByIdQueryHandler,
+    GetPostsForBlogQueryHandler
+];
 @Module({
     imports: [
         MongooseModule.forFeature([
@@ -32,23 +61,30 @@ import { UsersAccountsModule } from '../user-accounts/user-accounts.module';
             { name: Comment.name, schema: CommentSchema },
             { name: User.name, schema: UserSchema },
             { name: Like.name, schema: LikeSchema }
-        ])
+        ]),
+        DatabaseModule
     ],
     controllers: [BlogsController, PostsController, CommentsController],
     providers: [
         BlogsService,
         BlogsRepository,
+        BlogsSqlRepository,
         BlogsQRepository,
+        BlogsSqlQueryRepository,
         BlogsExtQRepository,
         PostsService,
         PostsRepository,
+        PostsSqlRepository,
         PostsQRepository,
+        PostsSqlQueryRepository,
         CommentsService,
         CommentsRepository,
         CommentsQRepository,
         LikesService,
         LikesRepo,
-        UsersExtQRepository
+        UsersExtQRepository,
+        ...commandHandlers,
+        ...queryHandlers
     ]
 })
 export class BloggersPlatformModule {}

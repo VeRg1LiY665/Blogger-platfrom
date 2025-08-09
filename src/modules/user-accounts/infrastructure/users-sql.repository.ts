@@ -6,9 +6,7 @@ import { Pool } from 'pg';
 
 @Injectable({ scope: Scope.REQUEST }) //Create repo/request to share the state between the methods within one request
 export class UsersSqlRepository {
-    constructor(@Inject('PG_POOL') private readonly pool: Pool) {
-        console.log('SQL Repository created');
-    }
+    constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
     private entity: User | null = null; //stores the state of the entity got from the db
 

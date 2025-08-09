@@ -6,7 +6,6 @@ import { UserViewDto } from './view-dto/users-view.dto';
 import { PaginatedViewDto } from 'src/core/dto/base.paginated.view-dto';
 import { BasicAuthGuard } from '../guards/basic/basic-auth.guard';
 import { CreateUserCommand } from '../application/usecases/admins/create-user.usecase';
-import { Types } from 'mongoose';
 import { DeleteUserCommand } from '../application/usecases/admins/delete-user.usecase';
 import { GetUserByIdQuery } from '../application/queries/get-user-by-id.query';
 import { GetAllUsersQuery } from '../application/queries/get-all-users.query';
@@ -21,7 +20,7 @@ export class UsersController {
     @Post()
     @UseGuards(BasicAuthGuard)
     async create(@Body() createUserDto: InputUserDto): Promise<UserViewDto> {
-        const createdId = await this.commandBus.execute<CreateUserCommand, Types.ObjectId>(
+        const createdId = await this.commandBus.execute<CreateUserCommand, number>(
             new CreateUserCommand(createUserDto)
         );
         return await this.queryBus.execute<GetUserByIdQuery>(new GetUserByIdQuery(createdId.toString()));
@@ -36,7 +35,6 @@ export class UsersController {
 
     @Get(':id')
     async findOne(@Param('id') id: string): Promise<UserViewDto> {
-        //TODO implement objectId Validation?
         return await this.queryBus.execute<GetUserByIdQuery>(new GetUserByIdQuery(id));
     }
 

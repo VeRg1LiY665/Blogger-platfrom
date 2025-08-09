@@ -5,25 +5,22 @@ import { UpdateBlogDto } from '../dto/create-blog.dto';
 
 @Schema()
 export class Blog {
-    @Prop({ type: String, required: true })
+    id: number;
+
     name: string;
 
-    @Prop({ type: String, required: true })
     description: string;
 
-    @Prop({ type: String, required: true })
     websiteUrl: string;
 
-    @Prop({ type: String, required: true })
     createdAt: string;
 
-    @Prop({ type: Boolean, required: true, default: false })
     isMembership: boolean;
 
-    get id() {
+    /*get id() {
         // @ts-ignore
         return this._id.toString();
-    }
+    }*/
 
     static createInstance(dto: CreateBlogDomainDto): BlogDocument {
         const blog = new this();
@@ -31,6 +28,7 @@ export class Blog {
         blog.description = dto.description;
         blog.websiteUrl = dto.websiteUrl;
         blog.createdAt = new Date().toISOString();
+        blog.isMembership = false;
         return blog as BlogDocument;
     }
 
