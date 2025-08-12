@@ -48,6 +48,7 @@ import { UsersSqlRepository } from './infrastructure/users-sql.repository';
 import { DatabaseModule } from '../../database/database.modules';
 import { SecurityDevicesSqlRepository } from './infrastructure/security-devices.sql.repository';
 import { SecurityDevicesSqlQueryRepository } from './infrastructure/security-devices.sql.query-repository';
+import { UsersExtSqlQRepository } from './infrastructure/external-query/users.external-sql-query-repository';
 
 const commandHandlers = [
     DeleteUserUseCase,
@@ -84,6 +85,7 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         UsersQRepository,
         UsersSqlQueryRepository,
         UsersExtQRepository,
+        UsersExtSqlQRepository,
         CryptoService,
         AuthService,
         AuthQueryRepository,
@@ -120,6 +122,6 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         SecurityDevicesSqlQueryRepository,
         UserAccountsConfig
     ],
-    exports: [/*JwtModule*/ UsersExtQRepository]
+    exports: [/*JwtModule*/ UsersExtQRepository, UsersExtSqlQRepository]
 })
 export class UsersAccountsModule {}

@@ -17,7 +17,6 @@ export class CommentsRepository {
     }
 
     async delete(id: string): Promise<void> {
-        //TODO Soft delete?
         await this.commentModel.deleteOne({
             _id: id
         });

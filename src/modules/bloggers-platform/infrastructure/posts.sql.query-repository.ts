@@ -1,5 +1,4 @@
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
-import { FilterQuery } from 'mongoose';
 import { Post } from '../domain/post.entity';
 import { PostViewDto } from '../api/view-dto/posts.view-dto';
 import { GetPostsQueryParams } from '../api/input-dto/get-posts-query-params';
@@ -10,7 +9,7 @@ import { Pool } from 'pg';
 import { PostDbEntity } from './dto/post-db-entity';
 import { NewestLike } from '../domain/extendedLikesInfo.schema';
 
-@Injectable({ scope: Scope.REQUEST })
+//@Injectable({ scope: Scope.REQUEST })
 export class PostsSqlQueryRepository {
     constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
 
@@ -25,10 +24,10 @@ export class PostsSqlQueryRepository {
         post.blogName = postData.blogName;
         post.createdAt = postData.createdAt;
         post.extendedLikesInfo = {
-            likesCount: 0,
-            dislikesCount: 0,
+            likesCount: postData.likesCount,
+            dislikesCount: postData.dislikesCount,
             myStatus: 'None',
-            newestLikes: [new NewestLike('', '', '')]
+            newestLikes: []
         };
 
         return post;
@@ -89,7 +88,7 @@ export class PostsSqlQueryRepository {
     }
 
     async findForBlog(blogId: string, query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
-        const filter: FilterQuery<Post> = {};
+        const filter = {};
         filter['"blogId"'] = blogId;
 
         let whereClause = '';

@@ -1,48 +1,22 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreateLikeDomainDto } from './dto/create-like.domain.dto';
 import { HydratedDocument, Model } from 'mongoose';
 import { UpdateLikeDomainDto } from './dto/update-like.domain.dto';
 
 @Schema()
 export class Like {
-    @Prop({
-        type: String,
-        required: true,
-        enum: {
-            values: ['Like', 'Dislike', 'None'],
-            message: 'likeStatus {VALUE} is not supported'
-        }
-    })
+    id: number;
+
     likeStatus: string;
 
-    @Prop({
-        type: String,
-        required: function isFieldRequired() {
-            return typeof this.userId === 'string' ? false : true; //for passing empty string validation
-        }
-    })
     userId: string;
 
-    @Prop({ type: String, required: true })
     parentId: string;
 
-    @Prop({
-        type: String,
-        required: function isFieldRequired() {
-            return typeof this.commentId === 'string' ? false : true;
-        }
-    })
     commentId: string;
 
-    @Prop({
-        type: String,
-        required: function isFieldRequired() {
-            return typeof this.postId === 'string' ? false : true;
-        }
-    })
     postId: string;
 
-    @Prop({ type: String, required: true })
     addedAt: string;
 
     static createInstance(dto: CreateLikeDomainDto): LikeDocument {

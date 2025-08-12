@@ -12,25 +12,12 @@ export class NewestLike {
     _id: false
 })
 export class extendedLikesInfo {
-    @Prop({ required: true, default: 0 })
-    likesCount: number;
+    likesCount: number = 0;
 
-    @Prop({ required: true, default: 0 })
-    dislikesCount: number;
+    dislikesCount: number = 0;
 
-    @Prop({ required: true, default: 'None' })
-    myStatus: string;
+    myStatus: string = 'None';
 
-    @Prop({
-        required: true,
-        default: [
-            {
-                addedAt: '', //Заглушка для последних лайков при создании поста
-                userId: '',
-                login: ''
-            }
-        ]
-    })
     newestLikes: NewestLike[];
 }
 

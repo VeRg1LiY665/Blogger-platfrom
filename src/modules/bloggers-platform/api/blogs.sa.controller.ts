@@ -76,16 +76,7 @@ export class BlogsSaController {
 
     @Get(':id/posts')
     @UseGuards(BasicAuthGuard)
-    async getBlogPosts(
-        @Param('id') id: string,
-        //@ExtractUserIfExistsFromRequest() user: UserContextDto,
-        @Query() query: GetPostsQueryParams
-    ) {
-        const dto = {
-            blogId: id,
-            query: query
-            //userId: user ? user.id : undefined
-        };
+    async getBlogPosts(@Param('id') id: string, @Query() query: GetPostsQueryParams) {
         return await this.queryBus.execute<GetPostsForBlogQuery>(new GetPostsForBlogQuery(id, query));
     }
 
@@ -95,7 +86,7 @@ export class BlogsSaController {
         const postId = await this.commandBus.execute<CreatePostForBlogCommand, string>(
             new CreatePostForBlogCommand(id, body)
         );
-        return await this.queryBus.execute<GetPostByIdQuery>(new GetPostByIdQuery(postId));
+        return await this.queryBus.execute<GetPostByIdQuery>(new GetPostByIdQuery(postId, null));
     }
 
     @Put(':blogId/posts/:postId')

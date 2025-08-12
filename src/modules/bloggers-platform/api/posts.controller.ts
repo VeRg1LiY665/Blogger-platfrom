@@ -1,54 +1,38 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Param,
-    Delete,
-    Query,
-    Put,
-    HttpCode,
-    HttpStatus,
-    UseGuards
-} from '@nestjs/common';
-import { PostsService } from '../application/posts.service';
-import { UpdatePostDto } from '../dto/update-post.dto';
+import { Controller, Get, Post, Body, Param, Query, Put, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { GetPostsQueryParams } from './input-dto/get-posts-query-params';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { PostViewDto } from './view-dto/posts.view-dto';
-import { LikesService } from '../application/likes.service';
 import { LikeInputDto } from './input-dto/likes.input-dto';
 import { BasicAuthGuard } from '../../user-accounts/guards/basic/basic-auth.guard';
 import { JwtAuthGuard } from '../../user-accounts/guards/bearer/jwt-auth.guard';
-import { CommentsService } from '../application/comments.service';
 import { CreateCommentInputDto } from './input-dto/comment.input-dto';
 import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../user-accounts/guards/dto/user-context.dto';
 import { ExtractUserIfExistsFromRequest } from '../../user-accounts/guards/decorators/extract-user-if-exists-from-request.decorator';
-import { PostInputDto } from './input-dto/post.input-dto';
 import { JwtOptionalAuthGuard } from '../../user-accounts/guards/bearer/jwt-optional-auth.guard';
 import { GetCommentsQueryParams } from './input-dto/get-comments-query-params';
 import { ObjectIdValidationPipe } from '../../../core/pipes/object-id-validation-transformation-pipe.service';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { GetAllPostsQuery, GetAllPostsQueryHandler } from '../application/queries/posts/public/get-all-posts.query';
+import { GetAllPostsQuery } from '../application/queries/posts/public/get-all-posts.query';
 import { GetPostByIdQuery } from '../application/queries/posts/public/get-post-by-id.query';
+import { CreateReactionForPostCommand } from '../application/usecases/posts/create-reaction-for-post.usecase';
+import { GetCommentsForPostQuery } from '../application/queries/comments/get-comments-for-post.query';
+import { CreateCommentForPostCommand } from '../application/usecases/comments/create-comment-for-post.usecase';
+import { GetCommentByIdQuery } from '../application/queries/comments/get-comment-by-id.query';
 
 @Controller('posts')
 export class PostsController {
     constructor(
         private commandBus: CommandBus,
-        private queryBus: QueryBus,
-        private postsService: PostsService,
-        private likesService: LikesService,
-        private commentsService: CommentsService
+        private queryBus: QueryBus
     ) {}
 
-    @Post()
+    /*@Post()
     @UseGuards(BasicAuthGuard)
     async create(@Body() postInputDto: PostInputDto) {
         const postId = await this.postsService.create(postInputDto);
         return await this.postsService.findOne({ id: postId });
-    }
+    }*/
 
     @Get()
     @UseGuards(JwtOptionalAuthGuard)
@@ -56,82 +40,70 @@ export class PostsController {
         @Query() query: GetPostsQueryParams,
         @ExtractUserIfExistsFromRequest() user: UserContextDto
     ): Promise<PaginatedViewDto<PostViewDto[]>> {
-        /*const dto = {
-            query: query,
-            userId: user ? user.id : undefined
-        };*/
-        return await this.queryBus.execute<GetAllPostsQuery>(new GetAllPostsQuery(query));
+        return await this.queryBus.execute<GetAllPostsQuery>(new GetAllPostsQuery(query, user ? user.id : undefined));
     }
 
     @Get(':id')
     @UseGuards(JwtOptionalAuthGuard)
     async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
-        /* let userId;
+        let userId: string | null;
         if (user) {
             userId = user.id;
         } else {
             userId = null;
         }
 
-        const dto = {
-            id: id,
-            userId: userId
-        };*/
-
-        return await this.queryBus.execute<GetPostByIdQuery>(new GetPostByIdQuery(id));
+        return await this.queryBus.execute<GetPostByIdQuery>(new GetPostByIdQuery(id, userId));
     }
 
-    @Put(':id')
+    /*@Put(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
         await this.postsService.update(id, updatePostDto);
         return;
-    }
+    }*/
 
-    @Delete(':id')
+    /*@Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async remove(@Param('id', ObjectIdValidationPipe) id: string) {
         return await this.postsService.remove(id);
-    }
+    }*/
 
     @Put(':id/like-status')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
     async like(
-        @Param('id', ObjectIdValidationPipe) id: string,
+        @Param('id') id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() inputLikeDto: LikeInputDto
     ) {
         const dto = {
             likeStatus: inputLikeDto.likeStatus,
             postId: id,
-            parentId: user.id //TODO Sessions
+            parentId: user.id
         };
 
-        return await this.likesService.createForPost(dto);
+        return await this.commandBus.execute<CreateReactionForPostCommand>(new CreateReactionForPostCommand(dto));
     }
 
     @Get(':id/comments')
     @UseGuards(JwtOptionalAuthGuard)
     async getCommentsForPost(
-        @Param('id', ObjectIdValidationPipe) id: string,
+        @Param('id') id: string,
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetCommentsQueryParams
     ) {
-        const dto = {
-            id: id,
-            query: query,
-            userId: user ? user.id : undefined
-        };
-        return await this.commentsService.findForPost(dto);
+        return await this.queryBus.execute<GetCommentsForPostQuery>(
+            new GetCommentsForPostQuery(id, query, user ? user.id : undefined)
+        );
     }
 
     @Post(':id/comments')
     @UseGuards(JwtAuthGuard)
     async createCommentForPost(
-        @Param('id', ObjectIdValidationPipe) id: string,
+        @Param('id') id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() createCommentInputDto: CreateCommentInputDto
     ) {
@@ -141,11 +113,10 @@ export class PostsController {
             content: createCommentInputDto.content
         };
 
-        const commentId = await this.commentsService.create(dto);
-        const findDto = {
-            id: commentId,
-            userId: user.id
-        };
-        return await this.commentsService.findOne(findDto);
+        const commentId: string = await this.commandBus.execute<CreateCommentForPostCommand>(
+            new CreateCommentForPostCommand(dto)
+        );
+
+        return await this.queryBus.execute<GetCommentByIdQuery>(new GetCommentByIdQuery(commentId, user.id));
     }
 }

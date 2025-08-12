@@ -20,10 +20,10 @@ export class PostsSqlRepository {
         post.blogName = postData.blogName;
         post.createdAt = postData.createdAt;
         post.extendedLikesInfo = {
-            likesCount: 0,
-            dislikesCount: 0,
+            likesCount: postData.likesCount,
+            dislikesCount: postData.dislikesCount,
             myStatus: 'None',
-            newestLikes: [new NewestLike('', '', '')]
+            newestLikes: []
         };
 
         this.entity = JSON.parse(JSON.stringify(post)); //save the state of the data through deep copy
@@ -43,16 +43,35 @@ export class PostsSqlRepository {
 
         if (JSON.stringify(this.entity) !== JSON.stringify(post) && this.entity !== null) {
             const res = await this.pool.query(
-                'UPDATE posts SET title = $1, "shortDescription" = $2, "content" = $3, "blogId" = $4, "blogName" = $5, "createdAt" = $6 WHERE id = $7 RETURNING id',
-                [post.title, post.shortDescription, post.content, post.blogId, post.blogName, post.createdAt, post.id]
+                'UPDATE posts SET title = $1, "shortDescription" = $2, "content" = $3, "blogId" = $4, "blogName" = $5, "createdAt" = $6, "likesCount" = $7, "dislikesCount" = $8 WHERE id = $9 RETURNING id',
+                [
+                    post.title,
+                    post.shortDescription,
+                    post.content,
+                    post.blogId,
+                    post.blogName,
+                    post.createdAt,
+                    post.extendedLikesInfo.likesCount,
+                    post.extendedLikesInfo.dislikesCount,
+                    post.id
+                ]
             );
             const id = res.rows[0].id;
             return id.toString();
         }
 
         const res = await this.pool.query(
-            'INSERT INTO posts (title, "shortDescription", "content", "blogId", "blogName", "createdAt") VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-            [post.title, post.shortDescription, post.content, post.blogId, post.blogName, post.createdAt]
+            'INSERT INTO posts (title, "shortDescription", "content", "blogId", "blogName", "createdAt", "likesCount", "dislikesCount") VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
+            [
+                post.title,
+                post.shortDescription,
+                post.content,
+                post.blogId,
+                post.blogName,
+                post.createdAt,
+                post.extendedLikesInfo.likesCount,
+                post.extendedLikesInfo.dislikesCount
+            ]
         );
         const id = res.rows[0].id;
         return id.toString();

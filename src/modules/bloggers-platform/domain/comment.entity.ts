@@ -1,25 +1,22 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema, SchemaFactory } from '@nestjs/mongoose';
 import { likesInfo } from './likesInfo.schema';
-import { commentatorInfo, commentatorInfoSchema } from './commentatorInfo.schema';
+import { commentatorInfo } from './commentatorInfo.schema';
 import { HydratedDocument, Model } from 'mongoose';
 import { CreateCommentDomainDto } from './dto/create-comment.domain.dto';
 import { UpdateCommentDomainDto } from './dto/update-comment.domain.dto';
 
 @Schema()
 export class Comment {
-    @Prop({ type: String, required: true })
+    id: number;
+
     content: string;
 
-    @Prop({ type: commentatorInfoSchema, required: true })
     commentatorInfo: commentatorInfo;
 
-    @Prop({ required: true })
     postId: string;
 
-    @Prop({ required: true })
     createdAt: string;
 
-    @Prop({ type: likesInfo, required: true })
     likesInfo: likesInfo;
 
     static createInstance(dto: CreateCommentDomainDto): CommentDocument {

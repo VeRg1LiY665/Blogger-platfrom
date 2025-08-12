@@ -23,6 +23,9 @@ export class TestingController {
         await this.pool.query('TRUNCATE TABLE "users" CASCADE'); //TODO add auto aggregation for tables
         await this.pool.query('TRUNCATE TABLE "blogs" CASCADE');
         await this.pool.query('TRUNCATE TABLE "posts" CASCADE');
+        await this.pool.query('TRUNCATE TABLE "comments" CASCADE');
+        await this.pool.query('TRUNCATE TABLE "likes" CASCADE');
+
         return {
             status: 'succeeded'
         };

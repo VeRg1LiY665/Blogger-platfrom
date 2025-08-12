@@ -36,6 +36,7 @@ export class Post {
         post.createdAt = new Date().toISOString();
         post.blogId = dto.blogId;
         post.blogName = dto.blogName;
+        post.extendedLikesInfo = new extendedLikesInfo();
         return post as PostDocument;
     }
 

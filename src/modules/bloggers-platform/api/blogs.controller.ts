@@ -37,11 +37,8 @@ export class BlogsController {
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetPostsQueryParams
     ) {
-        const dto = {
-            blogId: id,
-            query: query
-            //userId: user ? user.id : undefined
-        };
-        return await this.queryBus.execute<GetPostsForBlogQuery>(new GetPostsForBlogQuery(id, query));
+        return await this.queryBus.execute<GetPostsForBlogQuery>(
+            new GetPostsForBlogQuery(id, query, user ? user.id : undefined)
+        );
     }
 }

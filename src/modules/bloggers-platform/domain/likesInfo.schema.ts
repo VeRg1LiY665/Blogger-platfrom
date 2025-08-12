@@ -4,14 +4,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
     _id: false
 })
 export class likesInfo {
-    @Prop({ type: Number, required: true, default: 0 })
-    likesCount: number;
+    likesCount: number = 0;
 
-    @Prop({ type: Number, required: true, default: 0 })
-    dislikesCount: number;
+    dislikesCount: number = 0;
 
-    @Prop({ required: true, default: 'None' })
-    myStatus: string;
+    myStatus: string = 'None';
 }
 
 export const likesInfoSchema = SchemaFactory.createForClass(likesInfo);

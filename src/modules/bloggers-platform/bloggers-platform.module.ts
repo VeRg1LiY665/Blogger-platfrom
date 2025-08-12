@@ -39,6 +39,17 @@ import { PostsSqlQueryRepository } from './infrastructure/posts.sql.query-reposi
 import { GetPostsForBlogQueryHandler } from './application/queries/posts/public/get-posts-for-blog.query';
 import { BlogsController } from './api/blogs.controller';
 import { GetAllPostsQueryHandler } from './application/queries/posts/public/get-all-posts.query';
+import { CommentsSqlRepository } from './infrastructure/comments.sql.repository';
+import { CommentsSqlQueryRepository } from './infrastructure/comments.sql.query-repository';
+import { LikesSqlRepository } from './infrastructure/likes.sql.repository';
+import { CreateReactionForPostUseCase } from './application/usecases/posts/create-reaction-for-post.usecase';
+import { CreateReactionForCommentUseCase } from './application/usecases/comments/create-reaction-for-comment.usecase';
+import { DeleteCommentUseCase } from './application/usecases/comments/delete-comment-by-id.usecase';
+import { UpdateCommentUseCase } from './application/usecases/comments/update-comment.usecase';
+import { GetCommentByIdQueryHandler } from './application/queries/comments/get-comment-by-id.query';
+import { GetCommentsForPostQueryHandler } from './application/queries/comments/get-comments-for-post.query';
+import { CreateCommentForPostUseCase } from './application/usecases/comments/create-comment-for-post.usecase';
+import { UsersExtSqlQRepository } from '../user-accounts/infrastructure/external-query/users.external-sql-query-repository';
 
 const commandHandlers = [
     CreateBlogUseCase,
@@ -47,14 +58,21 @@ const commandHandlers = [
     CreatePostUseCase,
     CreateBlogPostUseCase,
     UpdateBlogPostUseCase,
-    DeletePostForBlogUseCase
+    DeletePostForBlogUseCase,
+    CreateReactionForPostUseCase,
+    CreateCommentForPostUseCase,
+    CreateReactionForCommentUseCase,
+    DeleteCommentUseCase,
+    UpdateCommentUseCase
 ];
 const queryHandlers = [
     GetBlogByIdQueryHandler,
     GetAllBlogsQueryHandler,
     GetPostByIdQueryHandler,
     GetPostsForBlogQueryHandler,
-    GetAllPostsQueryHandler
+    GetAllPostsQueryHandler,
+    GetCommentByIdQueryHandler,
+    GetCommentsForPostQueryHandler
 ];
 @Module({
     imports: [
@@ -82,10 +100,14 @@ const queryHandlers = [
         PostsSqlQueryRepository,
         CommentsService,
         CommentsRepository,
+        CommentsSqlRepository,
         CommentsQRepository,
+        CommentsSqlQueryRepository,
         LikesService,
         LikesRepo,
+        LikesSqlRepository,
         UsersExtQRepository,
+        UsersExtSqlQRepository,
         ...commandHandlers,
         ...queryHandlers
     ]

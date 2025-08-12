@@ -1,5 +1,3 @@
-import { extendedLikesInfo } from '../../domain/extendedLikesInfo.schema';
-
 export abstract class PostDbEntity {
     id: number;
     title: string;
@@ -8,5 +6,6 @@ export abstract class PostDbEntity {
     blogId: number;
     blogName: string;
     createdAt: string;
-    extendedLikesInfo: extendedLikesInfo;
+    likesCount: number;
+    dislikesCount: number;
 }
