@@ -1,5 +1,4 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UsersRepository } from '../../../infrastructure/users.repository';
 import { InputConfirmEmailDto } from '../../../api/input-dto/input-registration-confirmation';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
@@ -14,10 +13,7 @@ export class ConfirmRegistrationUserCommand {
  */
 @CommandHandler(ConfirmRegistrationUserCommand)
 export class ConfirmRegistrationUserUseCase implements ICommandHandler<ConfirmRegistrationUserCommand, void> {
-    constructor(
-        private usersRepository: UsersRepository,
-        private usersSqlRepository: UsersSqlRepository
-    ) {}
+    constructor(private usersSqlRepository: UsersSqlRepository) {}
 
     async execute({ dto }: ConfirmRegistrationUserCommand): Promise<void> {
         const user = await this.usersSqlRepository.findByUUID(dto.code);

@@ -1,5 +1,4 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { UsersQRepository } from '../../infrastructure/users.query-repository';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { UsersSqlQueryRepository } from '../../infrastructure/users.sql.query-repository';
@@ -10,10 +9,7 @@ export class GetUserByIdQuery {
 
 @QueryHandler(GetUserByIdQuery)
 export class GetUserByIdQueryHandler implements IQueryHandler<GetUserByIdQuery> {
-    constructor(
-        private usersQRepository: UsersQRepository,
-        private usersSqlQRepository: UsersSqlQueryRepository
-    ) {}
+    constructor(private usersSqlQRepository: UsersSqlQueryRepository) {}
 
     async execute(query: GetUserByIdQuery) {
         //const user = await this.usersQRepository.findById(query.userId);

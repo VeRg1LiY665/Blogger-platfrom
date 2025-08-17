@@ -1,25 +1,14 @@
 import { Module } from '@nestjs/common';
 import { BlogsSaController } from './api/blogs.sa.controller';
-import { BlogsService } from './application/blogs.service';
-import { BlogsRepository } from './infrastructure/blogs.repository';
-import { BlogsQRepository } from './infrastructure/blogs.query-repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Blog, BlogSchema } from './domain/blog.entity';
 import { PostsController } from './api/posts.controller';
-import { PostsService } from './application/posts.service';
 import { CommentsController } from './api/comments.controller';
-import { CommentsService } from './application/comments.service';
 import { Post, PostSchema } from './domain/post.entity';
 import { Comment, CommentSchema } from './domain/comment.entity';
-import { PostsRepository } from './infrastructure/posts.repository';
-import { PostsQRepository } from './infrastructure/posts.query-repository';
-import { CommentsRepository } from './infrastructure/comments.repository';
-import { CommentsQRepository } from './infrastructure/comments.query-repository';
 import { BlogsExtQRepository } from './infrastructure/external-query/blogs.external-query-repository';
 import { UsersExtQRepository } from '../user-accounts/infrastructure/external-query/users.external-query-repository';
 import { User, UserSchema } from '../user-accounts/domain/user.entity';
-import { LikesService } from './application/likes.service';
-import { LikesRepo } from './infrastructure/likes.repository';
 import { Like, LikeSchema } from './domain/like.entity';
 import { CreateBlogUseCase } from './application/usecases/blogs/create-blog.usecase';
 import { UpdateBlogUseCase } from './application/usecases/blogs/update-blog.usecase';
@@ -87,24 +76,13 @@ const queryHandlers = [
     ],
     controllers: [BlogsSaController, BlogsController, PostsController, CommentsController],
     providers: [
-        BlogsService,
-        BlogsRepository,
         BlogsSqlRepository,
-        BlogsQRepository,
         BlogsSqlQueryRepository,
         BlogsExtQRepository,
-        PostsService,
-        PostsRepository,
         PostsSqlRepository,
-        PostsQRepository,
         PostsSqlQueryRepository,
-        CommentsService,
-        CommentsRepository,
         CommentsSqlRepository,
-        CommentsQRepository,
         CommentsSqlQueryRepository,
-        LikesService,
-        LikesRepo,
         LikesSqlRepository,
         UsersExtQRepository,
         UsersExtSqlQRepository,

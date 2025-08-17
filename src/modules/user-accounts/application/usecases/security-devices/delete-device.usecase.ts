@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException, Extension } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
-import { SecurityDevicesRepository } from '../../../infrastructure/security-devices.repository';
 import { DeleteDeviceDto } from '../../../dto/delete-device.dto';
 import { SecurityDevicesSqlRepository } from '../../../infrastructure/security-devices.sql.repository';
 
@@ -14,10 +13,7 @@ export class DeleteDeviceCommand {
  */
 @CommandHandler(DeleteDeviceCommand)
 export class DeleteDeviceUseCase implements ICommandHandler<DeleteDeviceCommand, void> {
-    constructor(
-        private securityDevicesRepository: SecurityDevicesRepository,
-        private securityDevicesSqlRepository: SecurityDevicesSqlRepository
-    ) {}
+    constructor(private securityDevicesSqlRepository: SecurityDevicesSqlRepository) {}
 
     async execute({ dto }: DeleteDeviceCommand): Promise<void> {
         const device = await this.securityDevicesSqlRepository.ShowDevice(dto.deviceId);

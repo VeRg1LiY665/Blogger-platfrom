@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { User, UserSchema } from './domain/user.entity';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './api/users.controller';
-import { UsersRepository } from './infrastructure/users.repository';
-import { UsersQRepository } from './infrastructure/users.query-repository';
 import { UsersExtQRepository } from './infrastructure/external-query/users.external-query-repository';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './guards/local/local.strategy';
@@ -27,12 +25,10 @@ import { NewPasswordUserUseCase } from './application/usecases/users/new-passwor
 import { GetAllUsersQueryHandler } from './application/queries/get-all-users.query';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { GetDeviceInfoInterceptor } from './interceptors/get-device-info.interceptor';
-import { SecurityDevicesRepository } from './infrastructure/security-devices.repository';
 import { SecurityDevice, SecurityDeviceSchema } from './domain/device.entity';
 import { RefreshTokenUserUseCase } from './application/usecases/refresh-token-user.usecase';
 import { RefreshStrategy } from './guards/bearer/refresh.strategy';
 import { GetAllDevicesQueryHandler } from './application/queries/get-devices-for-user.usecase';
-import { SecurityDevicesQueryRepository } from './infrastructure/security-devices.query-repository';
 import { SecurityDevicesController } from './api/security-devices.controller';
 import { DeleteAllDevicesUseCase } from './application/usecases/security-devices/delete-all-except-current-device.usecase';
 import { DeleteDeviceUseCase } from './application/usecases/security-devices/delete-device.usecase';
@@ -80,9 +76,7 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
             provide: APP_INTERCEPTOR,
             useClass: GetDeviceInfoInterceptor
         },
-        UsersRepository,
         UsersSqlRepository,
-        UsersQRepository,
         UsersSqlQueryRepository,
         UsersExtQRepository,
         UsersExtSqlQRepository,
@@ -116,9 +110,7 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         ...queryHandlers,
         UsersFactory, //не забывать регистрировать фабрики
         IatFactory,
-        SecurityDevicesRepository,
         SecurityDevicesSqlRepository,
-        SecurityDevicesQueryRepository,
         SecurityDevicesSqlQueryRepository,
         UserAccountsConfig
     ],

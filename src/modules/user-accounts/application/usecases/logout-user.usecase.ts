@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { DomainException, Extension } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
-import { SecurityDevicesRepository } from '../../infrastructure/security-devices.repository';
 import { RefreshTokenDto } from '../../dto/refresh-token.dto';
 import { IatFactory } from '../factories/Iat.factory';
 import { RefreshContextDto } from '../../guards/dto/refresh-context.dto';
@@ -17,7 +16,6 @@ export class LogoutUserCommand {
 @CommandHandler(LogoutUserCommand)
 export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand, void> {
     constructor(
-        private devicesRepo: SecurityDevicesRepository,
         private devicesSqlRepo: SecurityDevicesSqlRepository,
         private iatFactory: IatFactory
     ) {}
