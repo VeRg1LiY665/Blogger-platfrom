@@ -1,4 +1,4 @@
-import { UserDocument } from '../../../domain/user.entity';
+import { User } from '../../../domain/user.entity';
 import { CreateUserDto } from '../../../dto/create-user.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UsersFactory } from '../../factories/users.factory';
@@ -37,7 +37,7 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand, num
             });
         }
 
-        const user: UserDocument = await this.usersFactory.create(dto);
+        const user: User = await this.usersFactory.create(dto);
         const domainDto = { emailConfirmation: user.emailConfirmation };
         domainDto.emailConfirmation.isConfirmed = true;
         user.update(domainDto);

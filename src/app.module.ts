@@ -2,7 +2,6 @@ import { configModule } from './config-dynamic-module';
 import { DynamicModule, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { MongooseModule } from '@nestjs/mongoose';
 import { BloggersPlatformModule } from './modules/bloggers-platform/bloggers-platform.module';
 import { UsersAccountsModule } from './modules/user-accounts/user-accounts.module';
 import { TestingModule } from './modules/testing/testing.module';
@@ -26,17 +25,6 @@ import { DatabaseModule } from './database/database.modules'; //кастомны
             ]
         }),
         DatabaseModule,
-        MongooseModule.forRootAsync({
-            useFactory: (coreConfig: CoreConfig) => {
-                const uri = coreConfig.mongoURI;
-                console.log('DB_URI', uri);
-
-                return {
-                    uri: uri
-                };
-            },
-            inject: [CoreConfig]
-        }),
         CoreModule,
         BloggersPlatformModule,
         UsersAccountsModule,

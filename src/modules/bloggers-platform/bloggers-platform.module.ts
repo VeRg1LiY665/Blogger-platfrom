@@ -1,15 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BlogsSaController } from './api/blogs.sa.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Blog, BlogSchema } from './domain/blog.entity';
 import { PostsController } from './api/posts.controller';
 import { CommentsController } from './api/comments.controller';
-import { Post, PostSchema } from './domain/post.entity';
-import { Comment, CommentSchema } from './domain/comment.entity';
-import { BlogsExtQRepository } from './infrastructure/external-query/blogs.external-query-repository';
-import { UsersExtQRepository } from '../user-accounts/infrastructure/external-query/users.external-query-repository';
-import { User, UserSchema } from '../user-accounts/domain/user.entity';
-import { Like, LikeSchema } from './domain/like.entity';
 import { CreateBlogUseCase } from './application/usecases/blogs/create-blog.usecase';
 import { UpdateBlogUseCase } from './application/usecases/blogs/update-blog.usecase';
 import { DeleteBlogUseCase } from './application/usecases/blogs/delete-blog.usecase';
@@ -64,27 +56,16 @@ const queryHandlers = [
     GetCommentsForPostQueryHandler
 ];
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            { name: Blog.name, schema: BlogSchema },
-            { name: Post.name, schema: PostSchema },
-            { name: Comment.name, schema: CommentSchema },
-            { name: User.name, schema: UserSchema },
-            { name: Like.name, schema: LikeSchema }
-        ]),
-        DatabaseModule
-    ],
+    imports: [DatabaseModule],
     controllers: [BlogsSaController, BlogsController, PostsController, CommentsController],
     providers: [
         BlogsSqlRepository,
         BlogsSqlQueryRepository,
-        BlogsExtQRepository,
         PostsSqlRepository,
         PostsSqlQueryRepository,
         CommentsSqlRepository,
         CommentsSqlQueryRepository,
         LikesSqlRepository,
-        UsersExtQRepository,
         UsersExtSqlQRepository,
         ...commandHandlers,
         ...queryHandlers

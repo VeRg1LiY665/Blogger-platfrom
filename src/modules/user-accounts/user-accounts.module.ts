@@ -1,8 +1,5 @@
 import { Module } from '@nestjs/common';
-import { User, UserSchema } from './domain/user.entity';
-import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './api/users.controller';
-import { UsersExtQRepository } from './infrastructure/external-query/users.external-query-repository';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './guards/local/local.strategy';
 import { JwtStrategy } from './guards/bearer/jwt.strategy';
@@ -25,7 +22,6 @@ import { NewPasswordUserUseCase } from './application/usecases/users/new-passwor
 import { GetAllUsersQueryHandler } from './application/queries/get-all-users.query';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { GetDeviceInfoInterceptor } from './interceptors/get-device-info.interceptor';
-import { SecurityDevice, SecurityDeviceSchema } from './domain/device.entity';
 import { RefreshTokenUserUseCase } from './application/usecases/refresh-token-user.usecase';
 import { RefreshStrategy } from './guards/bearer/refresh.strategy';
 import { GetAllDevicesQueryHandler } from './application/queries/get-devices-for-user.usecase';
@@ -62,14 +58,7 @@ const commandHandlers = [
 ];
 const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllDevicesQueryHandler];
 @Module({
-    imports: [
-        JwtModule,
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-        MongooseModule.forFeature([{ name: SecurityDevice.name, schema: SecurityDeviceSchema }]),
-        DatabaseModule,
-        NotificationsModule,
-        PassportModule
-    ],
+    imports: [JwtModule, DatabaseModule, NotificationsModule, PassportModule],
     controllers: [UsersController, AuthController, SecurityDevicesController],
     providers: [
         {
@@ -78,7 +67,6 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         },
         UsersSqlRepository,
         UsersSqlQueryRepository,
-        UsersExtQRepository,
         UsersExtSqlQRepository,
         CryptoService,
         AuthService,
@@ -114,6 +102,6 @@ const queryHandlers = [GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetAllD
         SecurityDevicesSqlQueryRepository,
         UserAccountsConfig
     ],
-    exports: [/*JwtModule*/ UsersExtQRepository, UsersExtSqlQRepository]
+    exports: [/*JwtModule*/ UsersExtSqlQRepository]
 })
 export class UsersAccountsModule {}
