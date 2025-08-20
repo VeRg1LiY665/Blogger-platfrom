@@ -31,7 +31,7 @@ export class LogoutUserUseCase implements ICommandHandler<LogoutUserCommand, voi
             });
         }
 
-        if (this.iatFactory.rebuild({ iat: dto.iat, rem: dto.rem }) !== device.iat) {
+        if (this.iatFactory.rebuild({ iat: BigInt(dto.iat), rem: dto.rem }) !== device.iat) {
             throw new DomainException({
                 // Error if depreciated token is in use (had been stolen after revoke)
                 code: DomainExceptionCode.Unauthorized,

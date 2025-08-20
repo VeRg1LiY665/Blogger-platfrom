@@ -37,28 +37,28 @@ export class AuthController {
     ) {}
     @Post('registration')
     @HttpCode(HttpStatus.NO_CONTENT)
-    //@UseGuards(ThrottlerGuard)
+    @UseGuards(ThrottlerGuard)
     registration(@Body() body: InputUserDto): Promise<void> {
         return this.commandBus.execute<RegisterUserCommand, void>(new RegisterUserCommand(body));
     }
 
     @Post('registration-confirmation')
     @HttpCode(HttpStatus.NO_CONTENT)
-    //@UseGuards(ThrottlerGuard)
+    @UseGuards(ThrottlerGuard)
     registrationConfirmation(@Body() body: InputConfirmEmailDto): Promise<void> {
         return this.commandBus.execute<ConfirmRegistrationUserCommand, void>(new ConfirmRegistrationUserCommand(body));
     }
 
     @Post('registration-email-resending')
     @HttpCode(HttpStatus.NO_CONTENT)
-    // @UseGuards(ThrottlerGuard)
+    @UseGuards(ThrottlerGuard)
     emailResending(@Body() body: InputEmailResendingDto): Promise<void> {
         return this.commandBus.execute<EmailResendingUserCommand, void>(new EmailResendingUserCommand(body));
     }
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    @UseGuards(/*ThrottlerGuard,*/ LocalAuthGuard)
+    @UseGuards(ThrottlerGuard, LocalAuthGuard)
     @UseInterceptors(GetDeviceInfoInterceptor)
     //swagger doc
     @ApiBody({
@@ -104,14 +104,14 @@ export class AuthController {
 
     @Post('password-recovery')
     @HttpCode(HttpStatus.NO_CONTENT)
-    //@UseGuards(ThrottlerGuard)
+    @UseGuards(ThrottlerGuard)
     passwordRecovery(@Body() body: InputPasswordRecoveryDto): Promise<void> {
         return this.commandBus.execute<PasswordRecoveryUserCommand>(new PasswordRecoveryUserCommand(body));
     }
 
     @Post('new-password')
     @HttpCode(HttpStatus.NO_CONTENT)
-    //@UseGuards(ThrottlerGuard)
+    @UseGuards(ThrottlerGuard)
     newPassword(@Body() body: InputNewPasswordDto): Promise<void> {
         return this.commandBus.execute<NewPasswordUserCommand, void>(new NewPasswordUserCommand(body));
     }

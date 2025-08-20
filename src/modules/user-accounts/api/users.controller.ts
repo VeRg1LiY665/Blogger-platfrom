@@ -23,6 +23,7 @@ export class UsersController {
         const createdId = await this.commandBus.execute<CreateUserCommand, number>(
             new CreateUserCommand(createUserDto)
         );
+
         return await this.queryBus.execute<GetUserByIdQuery>(new GetUserByIdQuery(createdId.toString()));
     }
 

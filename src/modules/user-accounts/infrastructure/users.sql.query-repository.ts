@@ -1,11 +1,19 @@
 import { GetUsersQueryParams } from '../api/input-dto/get-users-query-params';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { UserViewDto } from '../api/view-dto/users-view.dto';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
+import { DataSource, Repository } from 'typeorm';
+import { User } from '../domain/user.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 export class UsersSqlQueryRepository {
-    constructor(@Inject('PG_POOL') private pool: Pool) {}
+    private users: Repository<User>;
+
+    constructor(
+        @InjectDataSource()
+        private readonly dataSource: DataSource
+    ) {
+        this.users = this.dataSource.getRepository(User);
+    }
 
     async findAll(query: GetUsersQueryParams): Promise<PaginatedViewDto<UserViewDto[]>> {
         const filter = {};
@@ -20,25 +28,25 @@ export class UsersSqlQueryRepository {
 
         if (Object.keys(filter).length > 0) {
             const conditions = Object.keys(filter)
-                .map((condition, i) => {
+                .map((condition) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} ILIKE $${i + 1}`;
+                    return `u.${condition} ILIKE :${condition}`;
                 })
                 .join(' OR ');
-            whereClause = `WHERE ${conditions}`;
+            whereClause = conditions;
         }
-        const queryText =
-            `SELECT * FROM users ${whereClause} ORDER BY "${query.sortBy}"` +
-            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
-            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
 
-        const users = await this.pool.query(queryText, [...Object.values(filter)]);
+        const queryBuilder = this.users //TODO check usecase
+            .createQueryBuilder('u')
+            .select(['u.id as "id"', 'u.login as "login"', 'u.email as "email"', 'u.createdAt as "createdAt"'])
+            .where(whereClause, { ...filter })
+            .orderBy(`u."${query.sortBy}"`, query.sortDirection);
 
-        const totalCount: number = +(
-            await this.pool.query(`SELECT COUNT(*) FROM users ${whereClause}`, [...Object.values(filter)])
-        ).rows[0].count;
+        const users = await queryBuilder.take(query.pageSize).skip(query.calculateSkip()).getRawMany();
 
-        const items = users.rows.map((x) => UserViewDto.mapSqlToView(x));
+        const totalCount: number = +(await queryBuilder.getCount());
+
+        const items = users.map((x) => UserViewDto.mapSqlToView(x));
 
         return PaginatedViewDto.mapToView({
             items,
@@ -48,9 +56,13 @@ export class UsersSqlQueryRepository {
         });
     }
 
-    async findById(id: string): Promise<UserViewDto> {
-        const result = await this.pool.query('SELECT * FROM users WHERE id = $1', [id]);
-        const items = result.rows.map((x) => UserViewDto.mapSqlToView(x));
-        return items[0];
+    async findById(id: string): Promise<UserViewDto | null> {
+        const user = await this.users
+            .createQueryBuilder('u')
+            .select(['u.id as "id"', 'u.login as "login"', 'u.email as "email"', 'u.createdAt as "createdAt"'])
+            .where('u.id = :id', { id: +id })
+            .getRawOne();
+
+        return user ? UserViewDto.mapSqlToView(user) : null;
     }
 }

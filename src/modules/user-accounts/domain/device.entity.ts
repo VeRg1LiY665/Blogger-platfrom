@@ -1,18 +1,22 @@
-import { Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
 import { CreateDeviceDomainDto } from './dto/CreateDeviceDomainDto';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Schema({ timestamps: false })
+@Entity()
 export class SecurityDevice {
+    @PrimaryGeneratedColumn()
     id: number;
 
+    @Column()
     userId: string;
 
+    @Column()
     title: string;
 
+    @Column()
     ip: string;
 
-    iat: number;
+    @Column({ type: 'bigint' }) //Possibly leads to 500 error as js bigint is larger than postgres one
+    iat: bigint;
 
     static createInstance(dto: CreateDeviceDomainDto): SecurityDevice {
         const securityDevice = new this();
@@ -24,16 +28,8 @@ export class SecurityDevice {
         return securityDevice;
     }
 
-    updateInstance(iat: number) {
+    updateInstance(iat: bigint) {
         //updates iat for device in case of token refresh
         this.iat = iat;
     }
 }
-
-export const SecurityDeviceSchema = SchemaFactory.createForClass(SecurityDevice);
-
-SecurityDeviceSchema.loadClass(SecurityDevice);
-
-export type SecurityDeviceDocument = HydratedDocument<SecurityDevice>;
-
-export type SecurityDeviceModelType = Model<SecurityDeviceDocument> & typeof SecurityDevice;

@@ -1,4 +1,4 @@
-import { Post, PostDocument } from '../../domain/post.entity';
+import { Post } from '../../domain/post.entity';
 
 export class NewestLike {
     addedAt: string;
@@ -20,20 +20,6 @@ export class PostViewDto {
         myStatus: string;
         newestLikes: NewestLike[];
     };
-
-    static mapToView(post: PostDocument): PostViewDto {
-        const dto = new PostViewDto();
-        dto.id = post._id.toString();
-        dto.title = post.title;
-        dto.shortDescription = post.shortDescription;
-        dto.content = post.content;
-        dto.blogId = post.blogId;
-        dto.blogName = post.blogName;
-        dto.createdAt = post.createdAt;
-        dto.extendedLikesInfo = post.extendedLikesInfo;
-
-        return dto;
-    }
 
     static mapSqlToView(post: Post): PostViewDto {
         const dto = new PostViewDto();

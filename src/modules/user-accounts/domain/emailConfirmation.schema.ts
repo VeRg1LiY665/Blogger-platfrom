@@ -1,17 +1,29 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 
-@Schema({
-    _id: false
-})
-export class emailConfirmation {
-    @Prop({ type: String, required: false })
+@Entity({ name: 'emailConfirmation' })
+export class EmailConfirmation {
+    /* constructor() {
+        this.confirmationCode = '';
+        this.expirationDate = new Date();
+        this.isConfirmed = false;
+    }*/
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ default: '' })
     confirmationCode: string;
 
-    @Prop({ type: Date, required: true })
+    @Column({ default: new Date() })
     expirationDate: Date;
 
-    @Prop({ type: Boolean, required: true })
+    @Column({ default: false })
     isConfirmed: boolean;
-}
 
-export const emailConfirmationSchema = SchemaFactory.createForClass(emailConfirmation);
+    @OneToOne(() => User, (user) => user.emailConfirmation, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User;
+
+    @Column()
+    userId: number;
+}

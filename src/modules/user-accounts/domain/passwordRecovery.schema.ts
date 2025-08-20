@@ -1,14 +1,25 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 
-@Schema({
-    _id: false
-})
-export class passwordRecovery {
-    @Prop({ type: String, required: false })
+@Entity({ name: 'passwordRecovery' })
+export class PasswordRecovery {
+    /*constructor() {
+        this.recoveryCode = '';
+        this.expirationDate = new Date();
+    }*/
+    @PrimaryGeneratedColumn()
+    id: number;
+
+    @Column({ default: '' })
     recoveryCode: string;
 
-    @Prop({ type: Date, required: true })
+    @Column({ default: new Date() })
     expirationDate: Date;
-}
 
-export const passwordRecoverySchema = SchemaFactory.createForClass(passwordRecovery);
+    @OneToOne(() => User, (user) => user.passwordRecovery, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User;
+
+    @Column()
+    userId: number;
+}

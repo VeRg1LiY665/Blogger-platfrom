@@ -1,6 +1,10 @@
-//import * as mongoose from 'mongoose';
 import { Pool } from 'pg';
 import { CoreConfig } from '../core/core.config';
+import { DataSource } from 'typeorm';
+import { User } from '../modules/user-accounts/domain/user.entity';
+import { EmailConfirmation } from '../modules/user-accounts/domain/emailConfirmation.schema';
+import { PasswordRecovery } from '../modules/user-accounts/domain/passwordRecovery.schema';
+import { SecurityDevice } from '../modules/user-accounts/domain/device.entity';
 
 export const databaseProviders = [
     /*{
@@ -24,6 +28,23 @@ export const databaseProviders = [
                 throw new Error(err.message); //throw 500 error //TODO Add infrastructure exception filter?
             });
             return pool;
+        },
+        inject: [CoreConfig]
+    },
+    {
+        provide: DataSource,
+        useFactory: async (coreConfig: CoreConfig) => {
+            const dataSource = new DataSource({
+                type: 'postgres', // or other database type
+                host: coreConfig.postgresHost,
+                port: coreConfig.postgresPort,
+                username: coreConfig.postgresUser,
+                password: coreConfig.postgresPassword,
+                database: coreConfig.postgresDBName,
+                entities: [User, EmailConfirmation, PasswordRecovery, SecurityDevice],
+                synchronize: true // false in production
+            });
+            return await dataSource.initialize();
         },
         inject: [CoreConfig]
     }

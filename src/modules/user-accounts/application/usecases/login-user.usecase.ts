@@ -38,12 +38,11 @@ export class LoginUserUseCase
             userId: dto.userId,
             ip: dto.ip,
             title: dto.title,
-            iat: iat
+            iat: BigInt(iat)
         };
 
         const device = SecurityDevice.createInstance(deviceDto);
 
-        await this.devicesSqlRepo.FindByTitle(dto.title, +dto.userId);
         const id = await this.devicesSqlRepo.save(device);
 
         const accessToken = this.accessTokenContext.sign({

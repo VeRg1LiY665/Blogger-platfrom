@@ -1,34 +1,35 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
 import { CreatePostDomainDto } from './dto/create-post.domain.dto';
 import { UpdatePostDomainDto } from './dto/update-post.domain.dto';
-import { extendedLikesInfo, extendedLikesInfoSchema } from './extendedLikesInfo.schema';
+import { extendedLikesInfo } from './extendedLikesInfo.schema';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Schema()
+@Entity()
 export class Post {
+    @PrimaryGeneratedColumn()
     id: number;
-    @Prop({ type: String, required: true }) //Можно здесь валидировать, либо декораторами в iput dto
+
+    @Column()
     title: string;
 
-    @Prop({ type: String, required: true })
+    @Column()
     shortDescription: string;
 
-    @Prop({ type: String, required: true })
+    @Column()
     content: string;
 
-    @Prop({ type: String, required: true })
+    @Column()
     blogId: string;
 
-    @Prop({ type: String, required: true })
+    @Column()
     blogName: string;
 
-    @Prop({ type: String, required: true })
+    @Column()
     createdAt: string;
 
-    @Prop({ type: extendedLikesInfoSchema, default: () => ({}) })
+    @Column()
     extendedLikesInfo: extendedLikesInfo;
 
-    static createInstance(dto: CreatePostDomainDto): PostDocument {
+    static createInstance(dto: CreatePostDomainDto): Post {
         const post = new this();
         post.title = dto.title;
         post.shortDescription = dto.shortDescription;
@@ -37,7 +38,7 @@ export class Post {
         post.blogId = dto.blogId;
         post.blogName = dto.blogName;
         post.extendedLikesInfo = new extendedLikesInfo();
-        return post as PostDocument;
+        return post;
     }
 
     update(dto: UpdatePostDomainDto) {
@@ -47,13 +48,3 @@ export class Post {
         this.blogId = dto.blogId;
     }
 }
-
-export const PostSchema = SchemaFactory.createForClass(Post);
-
-PostSchema.loadClass(Post);
-
-//Типизация документа
-export type PostDocument = HydratedDocument<Post>;
-
-//Типизация модели + статические методы
-export type PostModelType = Model<PostDocument> & typeof Post;

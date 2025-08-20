@@ -4,6 +4,7 @@ import { DomainExceptionCode } from '../../../../../core/exceptions/domain-excep
 import { InputNewPasswordDto } from '../../../api/input-dto/input-new-password-dto';
 import { CryptoService } from '../../crypto.service';
 import { UsersSqlRepository } from '../../../infrastructure/users-sql.repository';
+import { PasswordRecovery } from '../../../domain/passwordRecovery.schema';
 
 export class NewPasswordUserCommand {
     constructor(public dto: InputNewPasswordDto) {}
@@ -36,7 +37,7 @@ export class NewPasswordUserUseCase implements ICommandHandler<NewPasswordUserCo
         }
 
         const passwordHash = await this.cryptoService.createPasswordHash(dto.newPassword);
-        const passwordRecovery = { recoveryCode: '', expirationDate: new Date() };
+        const passwordRecovery = new PasswordRecovery();
         user.update({ passwordHash: passwordHash, passwordRecovery });
 
         await this.usersSqlRepository.save(user);

@@ -45,7 +45,7 @@ export class RefreshTokenUserUseCase
             });
         }
 
-        if (this.iatFactory.rebuild({ iat: dto.iat, rem: dto.rem }) !== device.iat) {
+        if (this.iatFactory.rebuild({ iat: BigInt(dto.iat), rem: dto.rem }) !== device.iat) {
             throw new DomainException({
                 // Error if depreciated token is in use (had been stolen after revoke)
                 code: DomainExceptionCode.Unauthorized,
@@ -63,7 +63,7 @@ export class RefreshTokenUserUseCase
             rem: rem
         });
 
-        device.updateInstance(iat);
+        device.updateInstance(BigInt(iat));
         await this.devicesSqlRepo.save(device);
 
         return {

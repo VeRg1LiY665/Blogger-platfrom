@@ -1,10 +1,10 @@
-import { emailConfirmation } from '../emailConfirmation.schema';
-import { passwordRecovery } from '../passwordRecovery.schema';
+import { EmailConfirmation } from '../emailConfirmation.schema';
+import { PasswordRecovery } from '../passwordRecovery.schema';
 
 export class UpdateUserDomainDto {
     login: string;
     email: string;
     passwordHash: string;
-    emailConfirmation: emailConfirmation;
-    passwordRecovery: passwordRecovery;
+    emailConfirmation: EmailConfirmation;
+    passwordRecovery: PasswordRecovery;
 }

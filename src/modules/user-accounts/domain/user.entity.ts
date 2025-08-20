@@ -1,9 +1,8 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
 import { CreateUserDomainDto } from './dto/CreateUserDomainDto';
-import { emailConfirmation, emailConfirmationSchema } from './emailConfirmation.schema';
-import { passwordRecovery, passwordRecoverySchema } from './passwordRecovery.schema';
+import { EmailConfirmation } from './emailConfirmation.schema';
+import { PasswordRecovery } from './passwordRecovery.schema';
 import { UpdateUserDomainDto } from './dto/UpdateUserDomainDto';
+import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 export const loginConstraints = {
     minLength: 3,
@@ -23,21 +22,24 @@ export const emailConstraints = {
  * User Entity Schema
  * This class represents the schema and behavior of a User entity.
  */
-@Schema({ timestamps: true })
+@Entity({ name: 'users' })
 export class User {
+    @PrimaryGeneratedColumn()
     id: number;
     /**
      * Login of the user (must be uniq)
      * @type {string}
      * @required
      */
-    login: string;
 
+    @Column()
+    login: string;
     /**
      * Password hash for authentication
      * @type {string}
      * @required
      */
+    @Column()
     passwordHash: string;
 
     /**
@@ -45,6 +47,7 @@ export class User {
      * @type {string}
      * @required
      */
+    @Column()
     email: string;
 
     /**
@@ -53,34 +56,30 @@ export class User {
      * properties without @Prop for typescript so that they are in the class instance (or in instance methods)
      * @type {Date}
      */
+    @CreateDateColumn()
     createdAt: Date;
 
-    emailConfirmation: emailConfirmation;
+    @OneToOne(() => EmailConfirmation, (emailConfirmation) => emailConfirmation.user, { cascade: true })
+    emailConfirmation: EmailConfirmation;
 
-    passwordRecovery: passwordRecovery;
+    @OneToOne(() => PasswordRecovery, (passwordRecovery) => passwordRecovery.user, { cascade: true })
+    passwordRecovery: PasswordRecovery;
 
     /**
      * Factory method to create a User instance
      * @param {CreateUserDto} dto - The data transfer object for user creation
      * @returns {UserDocument} The created user document
      */
-    static createInstance(dto: CreateUserDomainDto): UserDocument {
+    static createInstance(dto: CreateUserDomainDto): User {
         const user = new this();
         user.email = dto.email;
         user.login = dto.login;
         user.passwordHash = dto.passwordHash;
         user.createdAt = new Date();
-        user.emailConfirmation = {
-            confirmationCode: '',
-            expirationDate: new Date(),
-            isConfirmed: false
-        };
-        user.passwordRecovery = {
-            expirationDate: new Date(),
-            recoveryCode: ''
-        };
+        user.emailConfirmation = new EmailConfirmation();
+        user.passwordRecovery = new PasswordRecovery();
 
-        return user as UserDocument;
+        return user;
     }
 
     setConfirmationCode(code: string) {
@@ -153,14 +152,3 @@ export class User {
         }
     }
 }
-
-export const UserSchema = SchemaFactory.createForClass(User);
-
-//регистрирует методы сущности в схеме
-UserSchema.loadClass(User);
-
-//Типизация документа
-export type UserDocument = HydratedDocument<User>;
-
-//Типизация модели + статические методы
-export type UserModelType = Model<UserDocument> & typeof User;

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CryptoService } from '../crypto.service';
-import { User, UserDocument } from '../../domain/user.entity';
+import { User } from '../../domain/user.entity';
 import { CreateUserDto } from '../../dto/create-user.dto';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class UsersFactory {
     }
 
     private createUserInstance(dto: CreateUserDto, passwordHash: string) {
-        const user: UserDocument = User.createInstance({
+        const user: User = User.createInstance({
             email: dto.email,
             login: dto.login,
             passwordHash: passwordHash

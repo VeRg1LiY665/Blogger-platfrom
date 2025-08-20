@@ -1,35 +1,35 @@
-import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model } from 'mongoose';
 import { CreateBlogDomainDto } from './dto/create-blog.domain.dto';
 import { UpdateBlogDto } from '../dto/create-blog.dto';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Schema()
+@Entity()
 export class Blog {
+    @PrimaryGeneratedColumn()
     id: number;
 
+    @Column()
     name: string;
 
+    @Column()
     description: string;
 
+    @Column()
     websiteUrl: string;
 
+    @Column()
     createdAt: string;
 
+    @Column()
     isMembership: boolean;
 
-    /*get id() {
-        // @ts-ignore
-        return this._id.toString();
-    }*/
-
-    static createInstance(dto: CreateBlogDomainDto): BlogDocument {
+    static createInstance(dto: CreateBlogDomainDto): Blog {
         const blog = new this();
         blog.name = dto.name;
         blog.description = dto.description;
         blog.websiteUrl = dto.websiteUrl;
         blog.createdAt = new Date().toISOString();
         blog.isMembership = false;
-        return blog as BlogDocument;
+        return blog;
     }
 
     update(dto: UpdateBlogDto) {
@@ -38,13 +38,3 @@ export class Blog {
         this.websiteUrl = dto.websiteUrl;
     }
 }
-
-export const BlogSchema = SchemaFactory.createForClass(Blog);
-
-BlogSchema.loadClass(Blog);
-
-//Типизация документа
-export type BlogDocument = HydratedDocument<Blog>;
-
-//Типизация модели + статические методы
-export type BlogModelType = Model<BlogDocument> & typeof Blog;

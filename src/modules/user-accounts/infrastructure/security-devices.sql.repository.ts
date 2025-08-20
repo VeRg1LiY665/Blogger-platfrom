@@ -1,69 +1,42 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SecurityDevice } from '../domain/device.entity';
-import { Pool } from 'pg';
+import { DataSource, Not, Repository } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class SecurityDevicesSqlRepository {
-    constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
+    private devices: Repository<SecurityDevice>;
 
-    private entity: SecurityDevice | null = null;
-
-    private dataMapper(deviceData: any): SecurityDevice {
-        const device = new SecurityDevice();
-        device.id = deviceData.id;
-        device.userId = deviceData.userId.toString();
-        device.ip = deviceData.ip;
-        device.title = deviceData.title;
-        device.iat = +deviceData.iat;
-
-        this.entity = JSON.parse(JSON.stringify(device));
-
-        return device;
+    constructor(
+        @InjectDataSource()
+        private readonly dataSource: DataSource
+    ) {
+        this.devices = this.dataSource.getRepository(SecurityDevice);
     }
 
     async ShowDevice(deviceId: string): Promise<SecurityDevice | null> {
-        const device = await this.pool.query(`SELECT * FROM devices WHERE id = ${deviceId}`);
-        if (!device) {
-            return null;
-        }
-        return device.rows.length > 0 ? this.dataMapper(device.rows[0]) : null;
-    }
+        const device = await this.devices.findOne({
+            where: { id: +deviceId }
+        });
 
-    async FindByTitle(title: string, userId: number): Promise<void> {
-        const device = await this.pool.query(
-            `SELECT * FROM devices WHERE title LIKE '${title}' AND "userId" = ${userId}`
-        );
-        if (device.rows.length > 0) {
-            this.dataMapper(device.rows[0]);
-        }
+        return device ? device : null;
     }
 
     async save(device: SecurityDevice): Promise<number> {
-        if (JSON.stringify(this.entity) !== JSON.stringify(device) && this.entity !== null) {
-            await this.pool.query(`UPDATE devices SET "userId" = $1, ip = $2, title = $3, iat = $4 WHERE id = $5`, [
-                device.userId,
-                device.ip,
-                device.title,
-                device.iat,
-                this.entity.id
-            ]);
-            return this.entity.id;
-        }
-
-        const res = await this.pool.query(
-            `INSERT INTO devices ("userId", ip, title, iat) VALUES ($1, $2, $3, $4) RETURNING id`,
-            [device.userId, device.ip, device.title, device.iat]
-        );
-        return res.rows[0].id;
+        const res = await this.devices.save(device);
+        return res.id;
     }
 
     async DeleteDevice(deviceId: string): Promise<void> {
-        await this.pool.query(`DELETE FROM devices WHERE id = ${deviceId}`);
+        await this.devices.delete({ id: +deviceId });
         return;
     }
 
     async DeleteAllDevices(dto: { deviceId: string; userId: string }): Promise<void> {
-        await this.pool.query(`DELETE FROM devices WHERE "userId" = ${dto.userId} AND id NOT IN (${dto.deviceId})`);
+        await this.devices.delete({
+            userId: dto.userId,
+            id: Not(+dto.deviceId)
+        });
 
         return;
     }

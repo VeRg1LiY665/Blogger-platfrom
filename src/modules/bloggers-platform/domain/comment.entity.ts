@@ -1,43 +1,40 @@
-import { Schema, SchemaFactory } from '@nestjs/mongoose';
 import { likesInfo } from './likesInfo.schema';
 import { commentatorInfo } from './commentatorInfo.schema';
-import { HydratedDocument, Model } from 'mongoose';
 import { CreateCommentDomainDto } from './dto/create-comment.domain.dto';
 import { UpdateCommentDomainDto } from './dto/update-comment.domain.dto';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Schema()
+@Entity()
 export class Comment {
+    @PrimaryGeneratedColumn()
     id: number;
 
+    @Column()
     content: string;
 
+    @Column()
     commentatorInfo: commentatorInfo;
 
+    @Column()
     postId: string;
 
+    @Column()
     createdAt: string;
 
+    @Column()
     likesInfo: likesInfo;
 
-    static createInstance(dto: CreateCommentDomainDto): CommentDocument {
+    static createInstance(dto: CreateCommentDomainDto): Comment {
         const comment = new this();
         comment.content = dto.content;
         comment.commentatorInfo = dto.commentatorInfo;
         comment.postId = dto.postId;
         comment.createdAt = new Date().toISOString();
         comment.likesInfo = dto.likesInfo;
-        return comment as CommentDocument;
+        return comment;
     }
 
     update(dto: UpdateCommentDomainDto) {
         this.content = dto.content;
     }
 }
-
-export const CommentSchema = SchemaFactory.createForClass(Comment);
-
-CommentSchema.loadClass(Comment);
-
-export type CommentDocument = HydratedDocument<Comment>;
-
-export type CommentModeltype = Model<CommentDocument> & typeof Comment;
