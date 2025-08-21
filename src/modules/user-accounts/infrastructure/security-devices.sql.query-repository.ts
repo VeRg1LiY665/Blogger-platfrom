@@ -17,7 +17,7 @@ export class SecurityDevicesSqlQueryRepository {
     async showAllDevices(userId: string): Promise<DevicesViewDto[]> {
         const AllDevices = await this.devices
             .createQueryBuilder('d')
-            .select(['d.id as "id"', 'd.ip as "ip"', 'd.lastActiveDate as "lastActiveDate"', 'd.title as "title"'])
+            .select(['d.id as "id"', 'd.ip as "ip"', 'd."iat" as "iat"', 'd.title as "title"'])
             .where({ userId: userId })
             .getRawMany();
 

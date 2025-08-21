@@ -1,13 +1,18 @@
 import { CreateDeviceDomainDto } from './dto/CreateDeviceDomainDto';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from './user.entity';
 
-@Entity()
+@Entity({ name: 'devices' })
 export class SecurityDevice {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @ManyToOne(() => User, (user) => user.devices)
+    @JoinColumn({ name: 'userId' })
+    user: User;
+
     @Column()
-    userId: string;
+    userId: number;
 
     @Column()
     title: string;
@@ -15,12 +20,12 @@ export class SecurityDevice {
     @Column()
     ip: string;
 
-    @Column({ type: 'bigint' }) //Possibly leads to 500 error as js bigint is larger than postgres one
-    iat: bigint;
+    @Column({ type: 'bigint' }) //REMEMBER postgres casts int to string if using bigint type
+    iat: number;
 
     static createInstance(dto: CreateDeviceDomainDto): SecurityDevice {
         const securityDevice = new this();
-        securityDevice.userId = dto.userId;
+        securityDevice.userId = +dto.userId;
         securityDevice.title = dto.title;
         securityDevice.iat = dto.iat;
         securityDevice.ip = dto.ip;
@@ -28,7 +33,7 @@ export class SecurityDevice {
         return securityDevice;
     }
 
-    updateInstance(iat: bigint) {
+    updateInstance(iat: number) {
         //updates iat for device in case of token refresh
         this.iat = iat;
     }

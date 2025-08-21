@@ -38,7 +38,7 @@ export class LoginUserUseCase
             userId: dto.userId,
             ip: dto.ip,
             title: dto.title,
-            iat: BigInt(iat)
+            iat: iat
         };
 
         const device = SecurityDevice.createInstance(deviceDto);

@@ -24,7 +24,7 @@ export class DeleteDeviceUseCase implements ICommandHandler<DeleteDeviceCommand,
             });
         }
 
-        if (dto.userId !== device.userId) {
+        if (+dto.userId !== device.userId) {
             //error if user tries to delete device of another user
             throw new DomainException({
                 code: DomainExceptionCode.Forbidden,

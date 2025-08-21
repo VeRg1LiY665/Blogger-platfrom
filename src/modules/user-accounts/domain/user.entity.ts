@@ -2,7 +2,8 @@ import { CreateUserDomainDto } from './dto/CreateUserDomainDto';
 import { EmailConfirmation } from './emailConfirmation.schema';
 import { PasswordRecovery } from './passwordRecovery.schema';
 import { UpdateUserDomainDto } from './dto/UpdateUserDomainDto';
-import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { SecurityDevice } from './device.entity';
 
 export const loginConstraints = {
     minLength: 3,
@@ -64,6 +65,9 @@ export class User {
 
     @OneToOne(() => PasswordRecovery, (passwordRecovery) => passwordRecovery.user, { cascade: true })
     passwordRecovery: PasswordRecovery;
+
+    @OneToMany(() => SecurityDevice, (device) => device.user, { cascade: true })
+    devices: SecurityDevice[];
 
     /**
      * Factory method to create a User instance

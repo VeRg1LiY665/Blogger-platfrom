@@ -34,7 +34,7 @@ export class SecurityDevicesSqlRepository {
 
     async DeleteAllDevices(dto: { deviceId: string; userId: string }): Promise<void> {
         await this.devices.delete({
-            userId: dto.userId,
+            userId: +dto.userId,
             id: Not(+dto.deviceId)
         });
 
