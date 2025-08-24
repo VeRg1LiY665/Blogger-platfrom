@@ -2,12 +2,18 @@ import { Blog } from '../domain/blog.entity';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { BlogViewDto } from '../api/view-dto/blogs.view-dto';
 import { GetBlogsQueryParams } from '../api/input-dto/get-blogs-query-params.input-dto';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
+import { DataSource, Repository } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 export class BlogsSqlQueryRepository {
-    constructor(@Inject('PG_POOL') private pool: Pool) {}
+    private blogs: Repository<Blog>;
 
+    constructor(
+        @InjectDataSource()
+        private readonly dataSource: DataSource
+    ) {
+        this.blogs = this.dataSource.getRepository(Blog);
+    }
     async findAll(query: GetBlogsQueryParams): Promise<PaginatedViewDto<BlogViewDto[]>> {
         const filter = {};
         if (query.searchNameTerm) {
@@ -18,26 +24,24 @@ export class BlogsSqlQueryRepository {
 
         if (Object.keys(filter).length > 0) {
             const conditions = Object.keys(filter)
-                .map((condition, i) => {
+                .map((condition) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} ILIKE $${i + 1}`;
+                    return `b.${condition} ILIKE :${condition}`;
                 })
-                .join(' OR ');
-            whereClause = `WHERE ${conditions}`;
+                .toString();
+            whereClause = conditions;
         }
+        const queryBuilder = this.blogs
+            .createQueryBuilder('b')
+            .select('b.*')
+            .where(whereClause, { ...filter })
+            .orderBy(`b."${query.sortBy}"`, query.sortDirection);
 
-        const queryText =
-            `SELECT * FROM blogs ${whereClause} ORDER BY "${query.sortBy}"` +
-            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
-            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
+        const blogs = await queryBuilder.take(query.pageSize).skip(query.calculateSkip()).getRawMany();
 
-        const blogs = await this.pool.query(queryText, [...Object.values(filter)]);
+        const totalCount: number = +(await queryBuilder.getCount());
 
-        const totalCount: number = +(
-            await this.pool.query(`SELECT COUNT(*) FROM blogs ${whereClause}`, [...Object.values(filter)])
-        ).rows[0].count;
-
-        const items = blogs.rows.map((x: Blog) => BlogViewDto.mapSqlToView(x));
+        const items = blogs.map((x: Blog) => BlogViewDto.mapSqlToView(x));
 
         return PaginatedViewDto.mapToView({
             items,
@@ -47,9 +51,13 @@ export class BlogsSqlQueryRepository {
         });
     }
 
-    async findById(id: string): Promise<BlogViewDto> {
-        const result = await this.pool.query('SELECT * FROM blogs WHERE id = $1', [id]);
-        const items = result.rows.map((x: Blog) => BlogViewDto.mapSqlToView(x));
-        return items[0];
+    async findById(id: string): Promise<BlogViewDto | null> {
+        const blog = await this.blogs
+            .createQueryBuilder('b')
+            .select('b.*')
+            .where('b.id = :id', { id: +id })
+            .getRawOne();
+
+        return blog ? BlogViewDto.mapSqlToView(blog) : null;
     }
 }

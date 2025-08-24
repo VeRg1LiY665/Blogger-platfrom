@@ -2,7 +2,7 @@ import { CreateBlogDomainDto } from './dto/create-blog.domain.dto';
 import { UpdateBlogDto } from '../dto/create-blog.dto';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity({ name: 'blogs' })
 export class Blog {
     @PrimaryGeneratedColumn()
     id: number;

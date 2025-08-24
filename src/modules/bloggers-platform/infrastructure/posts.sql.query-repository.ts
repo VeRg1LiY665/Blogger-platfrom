@@ -4,33 +4,20 @@ import { PostViewDto } from '../api/view-dto/posts.view-dto';
 import { GetPostsQueryParams } from '../api/input-dto/get-posts-query-params';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
-import { Inject, Injectable, Scope } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Injectable } from '@nestjs/common';
 import { PostDbEntity } from './dto/post-db-entity';
-import { NewestLike } from '../domain/extendedLikesInfo.schema';
+import { DataSource, Repository } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
-//@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class PostsSqlQueryRepository {
-    constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
+    private posts: Repository<Post>;
 
-    private dataMapper(postData: PostDbEntity): Post {
-        //temporary until likes done or not - create instance here, add extLikesInfo in BLL later
-        const post = new Post();
-        post.id = postData.id;
-        post.title = postData.title;
-        post.shortDescription = postData.shortDescription;
-        post.content = postData.content;
-        post.blogId = postData.blogId.toString();
-        post.blogName = postData.blogName;
-        post.createdAt = postData.createdAt;
-        post.extendedLikesInfo = {
-            likesCount: postData.likesCount,
-            dislikesCount: postData.dislikesCount,
-            myStatus: 'None',
-            newestLikes: []
-        };
-
-        return post;
+    constructor(
+        @InjectDataSource()
+        private readonly dataSource: DataSource
+    ) {
+        this.posts = this.dataSource.getRepository(Post);
     }
 
     async findAll(query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
@@ -43,28 +30,25 @@ export class PostsSqlQueryRepository {
 
         if (Object.keys(filter).length > 0) {
             const conditions = Object.keys(filter)
-                .map((condition, i) => {
+                .map((condition) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} ILIKE $${i + 1}`;
+                    return `p.${condition} ILIKE :${condition}`;
                 })
                 .toString();
-            whereClause = `WHERE ${conditions}`;
+            whereClause = conditions;
         }
 
-        const queryText =
-            `SELECT * FROM posts ${whereClause} ORDER BY "${query.sortBy}"` +
-            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
-            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
+        const queryBuilder = this.posts
+            .createQueryBuilder('p')
+            .select()
+            .where(whereClause, { ...filter })
+            .orderBy(`p."${query.sortBy}"`, query.sortDirection);
 
-        const posts = await this.pool.query(queryText, [...Object.values(filter)]);
+        const posts = await queryBuilder.take(query.pageSize).skip(query.calculateSkip()).getMany();
 
-        const totalCount: number = +(
-            await this.pool.query(`SELECT COUNT(*) FROM posts ${whereClause}`, [...Object.values(filter)])
-        ).rows[0].count;
+        const totalCount: number = +(await queryBuilder.getCount());
 
-        const items = posts.rows
-            .map((x: PostDbEntity) => this.dataMapper(x))
-            .map((x: Post) => PostViewDto.mapSqlToView(x));
+        const items = posts.map((x: Post) => PostViewDto.mapSqlToView(x));
 
         return PaginatedViewDto.mapToView({
             items,
@@ -74,49 +58,39 @@ export class PostsSqlQueryRepository {
         });
     }
 
-    async findById(id: string): Promise<PostViewDto> {
-        const post = await this.pool.query(`SELECT * FROM posts WHERE id = $1`, [id]);
+    async findById(id: string): Promise<PostViewDto | null> {
+        const post = await this.posts.createQueryBuilder('p').select().where('p.id = :id', { id: +id }).getOne();
 
-        if (post.rows.length < 1) {
-            throw new DomainException({
-                code: DomainExceptionCode.NotFound,
-                message: 'Post not found'
-            });
-        }
-
-        return PostViewDto.mapSqlToView(this.dataMapper(post.rows[0] as PostDbEntity));
+        return post ? PostViewDto.mapSqlToView(post) : null;
     }
 
     async findForBlog(blogId: string, query: GetPostsQueryParams): Promise<PaginatedViewDto<PostViewDto[]>> {
         const filter = {};
-        filter['"blogId"'] = blogId;
+        filter['blogId'] = blogId;
 
         let whereClause = '';
 
         if (Object.keys(filter).length > 0) {
             const conditions = Object.keys(filter)
-                .map((condition, i) => {
+                .map((condition) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} = $${i + 1}`;
+                    return `p."${condition}" ILIKE :${condition}`;
                 })
                 .toString();
-            whereClause = `WHERE ${conditions}`;
+            whereClause = conditions;
         }
 
-        const queryText =
-            `SELECT * FROM posts ${whereClause} ORDER BY "${query.sortBy}"` +
-            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
-            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
+        const queryBuilder = this.posts
+            .createQueryBuilder('p')
+            .select()
+            .where(whereClause, { ...filter })
+            .orderBy(`p."${query.sortBy}"`, query.sortDirection);
 
-        const posts = await this.pool.query(queryText, [...Object.values(filter)]);
+        const posts = await queryBuilder.take(query.pageSize).skip(query.calculateSkip()).getMany();
 
-        const totalCount: number = +(
-            await this.pool.query(`SELECT COUNT(*) FROM posts ${whereClause}`, [...Object.values(filter)])
-        ).rows[0].count;
+        const totalCount: number = +(await queryBuilder.getCount());
 
-        const items = posts.rows
-            .map((x: PostDbEntity) => this.dataMapper(x))
-            .map((x: Post) => PostViewDto.mapSqlToView(x));
+        const items = posts.map((x: Post) => PostViewDto.mapSqlToView(x));
 
         return PaginatedViewDto.mapToView({
             items,

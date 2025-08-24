@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Entity } from 'typeorm';
 
 export class NewestLike {
     constructor(
@@ -8,17 +8,12 @@ export class NewestLike {
     ) {}
 }
 
-@Schema({
-    _id: false
-})
-export class extendedLikesInfo {
+export class ExtendedLikesInfo {
     likesCount: number = 0;
 
     dislikesCount: number = 0;
 
     myStatus: string = 'None';
 
-    newestLikes: NewestLike[];
+    newestLikes: NewestLike[] = [new NewestLike('', '', '')];
 }
-
-export const extendedLikesInfoSchema = SchemaFactory.createForClass(extendedLikesInfo);
