@@ -13,7 +13,7 @@ import { GetAllBlogsQuery } from '../application/queries/blogs/public/get-all-bl
 import { GetPostsForBlogQuery } from '../application/queries/posts/public/get-posts-for-blog.query';
 import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 
-@Controller('blogs')
+@Controller('blogs') //TODO SWAGGER
 export class BlogsController {
     constructor(
         private readonly commandBus: CommandBus,
