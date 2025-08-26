@@ -59,7 +59,7 @@ export class PostsSqlQueryRepository {
     }
 
     async findById(id: string): Promise<PostViewDto | null> {
-        const post = await this.posts.createQueryBuilder('p').select().where('p.id = :id', { id: +id }).getOne();
+        const post = await this.posts.createQueryBuilder('p').select().where('p.id = :id', { id: id }).getOne();
 
         return post ? PostViewDto.mapSqlToView(post) : null;
     }
@@ -74,7 +74,7 @@ export class PostsSqlQueryRepository {
             const conditions = Object.keys(filter)
                 .map((condition) => {
                     // Assuming condition is an object with key-value pairs
-                    return `p."${condition}" ILIKE :${condition}`;
+                    return `p."${condition}" = :${condition}`;
                 })
                 .toString();
             whereClause = conditions;

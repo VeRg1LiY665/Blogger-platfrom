@@ -34,10 +34,9 @@ export class CreateReactionForCommentUseCase implements ICommandHandler<CreateRe
         if (!reaction) {
             const CreateLikeDto = {
                 status: dto.likeStatus,
-                userId: '',
                 parentId: dto.parentId,
                 commentId: dto.commentId,
-                postId: '',
+                postId: null,
                 addedAt: new Date().toISOString()
             };
 

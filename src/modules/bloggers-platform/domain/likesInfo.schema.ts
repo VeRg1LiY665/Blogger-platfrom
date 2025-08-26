@@ -1,14 +1,11 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Column } from 'typeorm';
 
-@Schema({
-    _id: false
-})
-export class likesInfo {
+export class LikesInfo {
+    @Column({ name: 'likesCount' })
     likesCount: number = 0;
 
+    @Column({ name: 'dislikesCount' })
     dislikesCount: number = 0;
 
     myStatus: string = 'None';
 }
-
-export const likesInfoSchema = SchemaFactory.createForClass(likesInfo);

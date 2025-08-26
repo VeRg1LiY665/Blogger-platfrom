@@ -7,6 +7,8 @@ import { PasswordRecovery } from '../modules/user-accounts/domain/passwordRecove
 import { SecurityDevice } from '../modules/user-accounts/domain/device.entity';
 import { Blog } from '../modules/bloggers-platform/domain/blog.entity';
 import { Post } from '../modules/bloggers-platform/domain/post.entity';
+import { Comment } from '../modules/bloggers-platform/domain/comment.entity';
+import { Like } from '../modules/bloggers-platform/domain/like.entity';
 
 export const databaseProviders = [
     /*{
@@ -43,7 +45,7 @@ export const databaseProviders = [
                 username: coreConfig.postgresUser,
                 password: coreConfig.postgresPassword,
                 database: coreConfig.postgresDBName,
-                entities: [Blog, Post, User, EmailConfirmation, PasswordRecovery, SecurityDevice],
+                entities: [Blog, Post, Comment, Like, User, EmailConfirmation, PasswordRecovery, SecurityDevice],
                 synchronize: true // false in production
             });
             return await dataSource.initialize();

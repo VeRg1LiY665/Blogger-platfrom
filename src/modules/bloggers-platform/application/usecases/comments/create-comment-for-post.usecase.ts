@@ -3,7 +3,7 @@ import { PostsSqlRepository } from '../../../infrastructure/posts.sql.repository
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { CreateCommentDto } from '../../../dto/create-comment.dto';
-import { likesInfo } from '../../../domain/likesInfo.schema';
+import { LikesInfo } from '../../../domain/likesInfo.schema';
 import { Comment } from '../../../domain/comment.entity';
 import { CommentsSqlRepository } from '../../../infrastructure/comments.sql.repository';
 import { UsersExtSqlQRepository } from '../../../../user-accounts/infrastructure/external-query/users.external-sql-query-repository';
@@ -49,7 +49,7 @@ export class CreateCommentForPostUseCase implements ICommandHandler<CreateCommen
             },
             content: dto.content,
             postId: dto.postId,
-            likesInfo: new likesInfo()
+            likesInfo: new LikesInfo()
         };
 
         const newComment = Comment.createInstance(createCommentDomainDto);

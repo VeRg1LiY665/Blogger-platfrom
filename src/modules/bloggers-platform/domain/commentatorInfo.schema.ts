@@ -1,14 +1,9 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Column } from 'typeorm';
 
-@Schema({
-    _id: false
-})
-export class commentatorInfo {
-    @Prop({ type: String, required: true })
+export class CommentatorInfo {
+    @Column({ name: 'userId' })
     userId: string;
 
-    @Prop({ type: String, required: true })
+    @Column({ name: 'userLogin' })
     userLogin: string;
 }
-
-export const commentatorInfoSchema = SchemaFactory.createForClass(commentatorInfo);

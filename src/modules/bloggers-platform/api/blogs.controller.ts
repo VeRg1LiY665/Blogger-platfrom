@@ -11,6 +11,7 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { GetBlogByIdQuery } from '../application/queries/blogs/public/get-blog-by-id.query';
 import { GetAllBlogsQuery } from '../application/queries/blogs/public/get-all-blogs.query';
 import { GetPostsForBlogQuery } from '../application/queries/posts/public/get-posts-for-blog.query';
+import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 
 @Controller('blogs')
 export class BlogsController {
@@ -26,14 +27,14 @@ export class BlogsController {
 
     @ApiParam({ name: 'id' }) //для сваггера
     @Get(':id')
-    async getBlogByID(@Param('id') id: string): Promise<BlogViewDto> {
+    async getBlogByID(@Param('id', UUIDValidationPipe) id: string): Promise<BlogViewDto> {
         return await this.queryBus.execute<GetBlogByIdQuery>(new GetBlogByIdQuery(id));
     }
 
     @Get(':id/posts')
     @UseGuards(JwtOptionalAuthGuard)
     async getBlogPosts(
-        @Param('id') id: string,
+        @Param('id', UUIDValidationPipe) id: string,
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetPostsQueryParams
     ) {

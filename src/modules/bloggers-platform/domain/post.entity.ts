@@ -1,12 +1,14 @@
 import { CreatePostDomainDto } from './dto/create-post.domain.dto';
 import { UpdatePostDomainDto } from './dto/update-post.domain.dto';
 import { ExtendedLikesInfo } from './extendedLikesInfo.schema';
-import { AfterLoad, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { AfterLoad, Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Like } from './like.entity';
+import { Blog } from './blog.entity';
 
 @Entity({ name: 'posts' })
 export class Post {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column()
     title: string;
@@ -17,6 +19,10 @@ export class Post {
     @Column()
     content: string;
 
+    @ManyToOne(() => Blog, (blog) => blog.posts)
+    @JoinColumn({ name: 'blogId' })
+    blog: Blog;
+
     @Column()
     blogId: string;
 
@@ -26,18 +32,17 @@ export class Post {
     @Column()
     createdAt: string;
 
+    @OneToMany(() => Like, (like) => like.post)
+    likes: Like[];
+
     @Column({ default: 0 })
     likesCount: number;
 
     @Column({ default: 0 })
     dislikesCount: number;
 
+    @Column(() => ExtendedLikesInfo)
     extendedLikesInfo: ExtendedLikesInfo;
-
-    @AfterLoad() //TODO Уточнить по поводу этого декоратора в данном контексте
-    createExtLikesInfo() {
-        this.extendedLikesInfo = new ExtendedLikesInfo();
-    }
 
     static createInstance(dto: CreatePostDomainDto): Post {
         const post = new this();

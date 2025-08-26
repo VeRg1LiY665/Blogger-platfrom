@@ -19,6 +19,7 @@ import { CreateReactionForPostCommand } from '../application/usecases/posts/crea
 import { GetCommentsForPostQuery } from '../application/queries/comments/get-comments-for-post.query';
 import { CreateCommentForPostCommand } from '../application/usecases/comments/create-comment-for-post.usecase';
 import { GetCommentByIdQuery } from '../application/queries/comments/get-comment-by-id.query';
+import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 
 @Controller('posts')
 export class PostsController {
@@ -45,7 +46,7 @@ export class PostsController {
 
     @Get(':id')
     @UseGuards(JwtOptionalAuthGuard)
-    async findOne(@Param('id') id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
+    async findOne(@Param('id', UUIDValidationPipe) id: string, @ExtractUserIfExistsFromRequest() user: UserContextDto) {
         let userId: string | null;
         if (user) {
             userId = user.id;
@@ -75,7 +76,7 @@ export class PostsController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(JwtAuthGuard)
     async like(
-        @Param('id') id: string,
+        @Param('id', UUIDValidationPipe) id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() inputLikeDto: LikeInputDto
     ) {
@@ -91,7 +92,7 @@ export class PostsController {
     @Get(':id/comments')
     @UseGuards(JwtOptionalAuthGuard)
     async getCommentsForPost(
-        @Param('id') id: string,
+        @Param('id', UUIDValidationPipe) id: string,
         @ExtractUserIfExistsFromRequest() user: UserContextDto,
         @Query() query: GetCommentsQueryParams
     ) {
@@ -103,7 +104,7 @@ export class PostsController {
     @Post(':id/comments')
     @UseGuards(JwtAuthGuard)
     async createCommentForPost(
-        @Param('id') id: string,
+        @Param('id', UUIDValidationPipe) id: string,
         @ExtractUserFromRequest() user: UserContextDto,
         @Body() createCommentInputDto: CreateCommentInputDto
     ) {

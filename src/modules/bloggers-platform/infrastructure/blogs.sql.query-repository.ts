@@ -52,11 +52,7 @@ export class BlogsSqlQueryRepository {
     }
 
     async findById(id: string): Promise<BlogViewDto | null> {
-        const blog = await this.blogs
-            .createQueryBuilder('b')
-            .select('b.*')
-            .where('b.id = :id', { id: +id })
-            .getRawOne();
+        const blog = await this.blogs.createQueryBuilder('b').select('b.*').where('b.id = :id', { id: id }).getRawOne();
 
         return blog ? BlogViewDto.mapSqlToView(blog) : null;
     }

@@ -60,7 +60,11 @@ export class GetPostsForBlogQueryHandler implements IQueryHandler<GetPostsForBlo
                     const user = await this.usersExtSqlQRepository.findById(lastLikes[i].parentId);
 
                     if (user !== null) {
-                        newestLikes[i] = new NewestLike(lastLikes[i].addedAt, lastLikes[i].parentId, user.login);
+                        newestLikes[i] = new NewestLike(
+                            lastLikes[i].addedAt.toISOString(),
+                            lastLikes[i].parentId,
+                            user.login
+                        );
                     }
                 }
 

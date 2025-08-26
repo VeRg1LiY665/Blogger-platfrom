@@ -2,67 +2,48 @@ import { Comment } from '../domain/comment.entity';
 import { CommentViewDto } from '../api/view-dto/comments.view-dto';
 import { GetCommentsQueryParams } from '../api/input-dto/get-comments-query-params';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
-import { CommentDbEntity } from './dto/comment-db-entity';
-import { Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { DomainException } from '../../../core/exceptions/domain-exceptions';
-import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
+import { Injectable } from '@nestjs/common';
+import { DataSource, Repository } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
 
+@Injectable()
 export class CommentsSqlQueryRepository {
-    constructor(@Inject('PG_POOL') private readonly pool: Pool) {}
+    private comments: Repository<Comment>;
 
-    private entity: Comment | null = null;
-
-    private dataMapper(commentData: CommentDbEntity): Comment {
-        const comment = new Comment();
-        comment.id = commentData.id;
-        comment.content = commentData.content;
-        comment.commentatorInfo = {
-            userId: commentData.userId.toString(),
-            userLogin: commentData.userLogin
-        };
-        comment.createdAt = commentData.createdAt;
-        comment.likesInfo = {
-            likesCount: commentData.likesCount,
-            dislikesCount: commentData.dislikesCount,
-            myStatus: 'None'
-        };
-
-        this.entity = JSON.parse(JSON.stringify(comment)); //save the state of the data through deep copy
-
-        return comment;
+    constructor(
+        @InjectDataSource()
+        private readonly dataSource: DataSource
+    ) {
+        this.comments = this.dataSource.getRepository(Comment);
     }
 
     async findForPost(postId: string, query: GetCommentsQueryParams): Promise<PaginatedViewDto<CommentViewDto[]>> {
         const filter = {};
-        filter['"postId"'] = postId;
+        filter['postId'] = postId;
 
         let whereClause = '';
 
         if (Object.keys(filter).length > 0) {
             const conditions = Object.keys(filter)
-                .map((condition, i) => {
+                .map((condition) => {
                     // Assuming condition is an object with key-value pairs
-                    return `${condition} = $${i + 1}`;
+                    return `c."${condition}" = :${condition}`;
                 })
                 .toString();
-            whereClause = `WHERE ${conditions}`;
+            whereClause = conditions;
         }
 
-        const queryText =
-            `SELECT * FROM comments ${whereClause} ORDER BY "${query.sortBy}"` +
-            ` ${query.sortDirection} ` + //Because pool.query inserts substring with "" by default
-            `OFFSET ${query.calculateSkip()} LIMIT ${query.pageSize}`;
+        const queryBuilder = this.comments
+            .createQueryBuilder('c')
+            .select()
+            .where(whereClause, { ...filter })
+            .orderBy(`c."${query.sortBy}"`, query.sortDirection);
 
-        const comments = await this.pool.query(queryText, [...Object.values(filter)]);
+        const comments = await queryBuilder.take(query.pageSize).skip(query.calculateSkip()).getMany();
 
-        const totalCount: number = +(
-            await this.pool.query(`SELECT COUNT(*) FROM comments ${whereClause}`, [...Object.values(filter)])
-        ).rows[0].count;
+        const totalCount: number = +(await queryBuilder.getCount());
 
-        const items = comments.rows
-            .map((x: CommentDbEntity) => this.dataMapper(x))
-            .map((x: Comment) => CommentViewDto.mapSqlToView(x));
+        const items = comments.map((x: Comment) => CommentViewDto.mapSqlToView(x));
 
         return PaginatedViewDto.mapToView({
             items,
@@ -72,16 +53,9 @@ export class CommentsSqlQueryRepository {
         });
     }
 
-    async findOne(id: string): Promise<CommentViewDto> {
-        const comment = await this.pool.query(`SELECT * FROM comments WHERE id = $1`, [id]);
+    async findOne(id: string): Promise<CommentViewDto | null> {
+        const comment = await this.comments.createQueryBuilder('c').select().where('c.id = :id', { id: id }).getOne();
 
-        if (comment.rows.length < 1) {
-            throw new DomainException({
-                code: DomainExceptionCode.NotFound,
-                message: 'No comment found'
-            });
-        }
-
-        return CommentViewDto.mapSqlToView(this.dataMapper(comment.rows[0] as CommentDbEntity));
+        return comment ? CommentViewDto.mapSqlToView(comment) : null;
     }
 }

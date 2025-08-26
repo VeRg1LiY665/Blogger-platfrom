@@ -15,7 +15,7 @@ export class PostsSqlRepository {
     }
 
     async findById(id: string): Promise<Post | null> {
-        const post = await this.posts.findOne({ where: { id: +id } });
+        const post = await this.posts.findOne({ where: { id: id } });
         return post;
     }
 
@@ -26,7 +26,7 @@ export class PostsSqlRepository {
     }
 
     async delete(id: string): Promise<void> {
-        await this.posts.delete({ id: +id });
+        await this.posts.delete({ id: id });
         return;
     }
 }

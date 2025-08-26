@@ -72,7 +72,7 @@ export class User {
     /**
      * Factory method to create a User instance
      * @param {CreateUserDto} dto - The data transfer object for user creation
-     * @returns {UserDocument} The created user document
+     * @returns {User} The created user document
      */
     static createInstance(dto: CreateUserDomainDto): User {
         const user = new this();

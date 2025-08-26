@@ -15,7 +15,7 @@ export class BlogsSqlRepository {
     }
 
     async findById(id: string): Promise<Blog | null> {
-        const blog = await this.blogs.findOne({ where: { id: +id } });
+        const blog = await this.blogs.findOne({ where: { id: id } });
         return blog;
     }
 
@@ -31,7 +31,7 @@ export class BlogsSqlRepository {
     }
 
     async delete(id: string): Promise<void> {
-        await this.blogs.delete({ id: +id });
+        await this.blogs.delete({ id: id });
 
         return;
     }

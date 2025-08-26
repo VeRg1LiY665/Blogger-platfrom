@@ -36,6 +36,7 @@ import { UpdateBlogPostCommand } from '../application/usecases/posts/update-post
 import { GetPostsForBlogQuery } from '../application/queries/posts/public/get-posts-for-blog.query';
 import { UpdateBlogPostDto } from '../dto/update-blog-post.dto';
 import { DeletePostForBlogCommand } from '../application/usecases/posts/delete-post-for-blog.usecase';
+import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 
 @Controller('sa/blogs')
 export class BlogsSaController {
@@ -54,21 +55,21 @@ export class BlogsSaController {
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async deleteBlog(@Param('id') id: string): Promise<void> {
+    async deleteBlog(@Param('id', UUIDValidationPipe) id: string): Promise<void> {
         return await this.commandBus.execute<DeleteBlogCommand, void>(new DeleteBlogCommand(id));
     }
 
     @Post()
     @UseGuards(BasicAuthGuard)
     async createBlog(@Body() body: CreateBlogInputDto): Promise<BlogViewDto> {
-        const newBlogId = await this.commandBus.execute<CreateBlogCommand, number>(new CreateBlogCommand(body));
-        return await this.queryBus.execute<GetBlogByIdQuery>(new GetBlogByIdQuery(newBlogId.toString()));
+        const newBlogId = await this.commandBus.execute<CreateBlogCommand, string>(new CreateBlogCommand(body));
+        return await this.queryBus.execute<GetBlogByIdQuery>(new GetBlogByIdQuery(newBlogId));
     }
 
     @Put(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async updateBlog(@Param('id') id: string, @Body() body: BlogsInputUpdateDto): Promise<void> {
+    async updateBlog(@Param('id', UUIDValidationPipe) id: string, @Body() body: BlogsInputUpdateDto): Promise<void> {
         const dto = { id: id, ...body };
         await this.commandBus.execute<UpdateBlogCommand, string>(new UpdateBlogCommand(dto));
         return;
@@ -76,13 +77,16 @@ export class BlogsSaController {
 
     @Get(':id/posts')
     @UseGuards(BasicAuthGuard)
-    async getBlogPosts(@Param('id') id: string, @Query() query: GetPostsQueryParams) {
+    async getBlogPosts(@Param('id', UUIDValidationPipe) id: string, @Query() query: GetPostsQueryParams) {
         return await this.queryBus.execute<GetPostsForBlogQuery>(new GetPostsForBlogQuery(id, query));
     }
 
     @Post(':id/posts')
     @UseGuards(BasicAuthGuard)
-    async createPostForBlog(@Param('id') id: string, @Body() body: CreateBlogPostDto): Promise<PostViewDto> {
+    async createPostForBlog(
+        @Param('id', UUIDValidationPipe) id: string,
+        @Body() body: CreateBlogPostDto
+    ): Promise<PostViewDto> {
         const postId = await this.commandBus.execute<CreatePostForBlogCommand, string>(
             new CreatePostForBlogCommand(id, body)
         );
@@ -93,8 +97,8 @@ export class BlogsSaController {
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
     async updatePostForBlog(
-        @Param('blogId') blogId: string,
-        @Param('postId') postId: string,
+        @Param('blogId', UUIDValidationPipe) blogId: string,
+        @Param('postId', UUIDValidationPipe) postId: string,
         @Body() body: UpdateBlogPostDto
     ): Promise<void> {
         return await this.commandBus.execute<UpdateBlogPostCommand>(new UpdateBlogPostCommand(blogId, postId, body));
@@ -103,7 +107,10 @@ export class BlogsSaController {
     @Delete(':blogId/posts/:postId')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async deletePostForBlog(@Param('blogId') blogId: string, @Param('postId') postId: string): Promise<void> {
+    async deletePostForBlog(
+        @Param('blogId', UUIDValidationPipe) blogId: string,
+        @Param('postId', UUIDValidationPipe) postId: string
+    ): Promise<void> {
         return await this.commandBus.execute<DeletePostForBlogCommand>(new DeletePostForBlogCommand(blogId, postId));
     }
 }

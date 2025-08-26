@@ -1,16 +1,29 @@
-import { Inject, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserExternalDto } from './external-dto/users.external-dto';
-import { Pool } from 'pg';
+import { DataSource, Repository } from 'typeorm';
+import { User } from '../../domain/user.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
 
+@Injectable()
 export class UsersExtSqlQRepository {
-    constructor(@Inject('PG_POOL') private pool: Pool) {}
+    private users: Repository<User>;
 
+    constructor(
+        @InjectDataSource()
+        private readonly dataSource: DataSource
+    ) {
+        this.users = this.dataSource.getRepository(User);
+    }
     async findById(userId: string): Promise<UserExternalDto> {
-        const result = await this.pool.query('SELECT * FROM users WHERE id = $1', [userId]);
-        if (result.rows.length < 1) {
+        const user = await this.users
+            .createQueryBuilder('u')
+            .select(['u.id as "id"', 'u.login as "login"', 'u.email as "email"', 'u.createdAt as "createdAt"'])
+            .where('u.id = :id', { id: userId })
+            .getRawOne();
+        if (!user) {
             throw new NotFoundException(`User with id ${userId} not found`);
         }
-        const items = result.rows.map((x) => UserExternalDto.mapSqlToView(x));
-        return items[0];
+
+        return UserExternalDto.mapSqlToView(user as User);
     }
 }

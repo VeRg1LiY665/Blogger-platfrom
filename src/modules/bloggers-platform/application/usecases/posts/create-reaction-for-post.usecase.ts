@@ -34,12 +34,12 @@ export class CreateReactionForPostUseCase implements ICommandHandler<CreateReact
         }
 
         const reaction = await this.likesSqlRepository.ShowReactionForPost(dto.parentId, dto.postId);
+
         if (!reaction) {
             const CreateLikeDto = {
                 status: dto.likeStatus,
-                userId: '',
                 parentId: dto.parentId,
-                commentId: '',
+                commentId: null,
                 postId: dto.postId,
                 addedAt: new Date().toISOString()
             };

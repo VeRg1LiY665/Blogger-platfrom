@@ -1,9 +1,9 @@
-import { commentatorInfo } from '../commentatorInfo.schema';
-import { likesInfo } from '../likesInfo.schema';
+import { CommentatorInfo } from '../commentatorInfo.schema';
+import { LikesInfo } from '../likesInfo.schema';
 import { CreateCommentInputDto } from '../../api/input-dto/comment.input-dto';
 
 export class CreateCommentDomainDto extends CreateCommentInputDto {
-    commentatorInfo: commentatorInfo;
+    commentatorInfo: CommentatorInfo;
     postId: string;
-    likesInfo: likesInfo;
+    likesInfo: LikesInfo;
 }

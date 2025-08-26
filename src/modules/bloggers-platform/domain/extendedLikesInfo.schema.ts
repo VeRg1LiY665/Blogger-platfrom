@@ -1,4 +1,5 @@
-import { Entity } from 'typeorm';
+import { LikeInput } from '../api/input-dto/likes.input-dto';
+import { Column } from 'typeorm';
 
 export class NewestLike {
     constructor(
@@ -9,11 +10,13 @@ export class NewestLike {
 }
 
 export class ExtendedLikesInfo {
+    @Column({ default: 0 })
     likesCount: number = 0;
 
+    @Column({ default: 0 })
     dislikesCount: number = 0;
 
-    myStatus: string = 'None';
+    myStatus: string = LikeInput.None;
 
-    newestLikes: NewestLike[] = [new NewestLike('', '', '')];
+    newestLikes: NewestLike[] = [];
 }

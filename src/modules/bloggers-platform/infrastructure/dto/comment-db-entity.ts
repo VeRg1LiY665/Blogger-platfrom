@@ -1,5 +1,3 @@
-import { likesInfo } from '../../domain/likesInfo.schema';
-
 export abstract class CommentDbEntity {
     id: number;
     content: string;

@@ -1,11 +1,12 @@
 import { CreateBlogDomainDto } from './dto/create-blog.domain.dto';
 import { UpdateBlogDto } from '../dto/create-blog.dto';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Post } from './post.entity';
 
 @Entity({ name: 'blogs' })
 export class Blog {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column()
     name: string;
@@ -21,6 +22,9 @@ export class Blog {
 
     @Column()
     isMembership: boolean;
+
+    @OneToMany(() => Post, (post) => post.blog, { cascade: true })
+    posts: Post[];
 
     static createInstance(dto: CreateBlogDomainDto): Blog {
         const blog = new this();

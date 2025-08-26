@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { Trim } from '../../../../core/decorators/transform/trim';
 
-enum LikeInput {
+export enum LikeInput {
     Like = 'Like',
     Dislike = 'Dislike',
     None = 'None'

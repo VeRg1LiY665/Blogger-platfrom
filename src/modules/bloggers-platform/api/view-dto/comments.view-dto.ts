@@ -1,13 +1,13 @@
-import { likesInfo } from '../../domain/likesInfo.schema';
-import { commentatorInfo } from '../../domain/commentatorInfo.schema';
+import { LikesInfo } from '../../domain/likesInfo.schema';
+import { CommentatorInfo } from '../../domain/commentatorInfo.schema';
 import { Comment } from '../../domain/comment.entity';
 
 export class CommentViewDto {
     id: string;
-    commentatorInfo: commentatorInfo;
+    commentatorInfo: CommentatorInfo;
     content: string;
     createdAt: string;
-    likesInfo: likesInfo;
+    likesInfo: LikesInfo;
 
     static mapSqlToView(comment: Comment): CommentViewDto {
         const dto = new this();

@@ -1,19 +1,21 @@
-import { likesInfo } from './likesInfo.schema';
-import { commentatorInfo } from './commentatorInfo.schema';
+import { LikesInfo } from './likesInfo.schema';
+import { CommentatorInfo } from './commentatorInfo.schema';
 import { CreateCommentDomainDto } from './dto/create-comment.domain.dto';
 import { UpdateCommentDomainDto } from './dto/update-comment.domain.dto';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { AfterLoad, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Like } from './like.entity';
+import { LikeInput } from '../api/input-dto/likes.input-dto';
 
-@Entity()
+@Entity({ name: 'comments' })
 export class Comment {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
 
     @Column()
     content: string;
 
-    @Column()
-    commentatorInfo: commentatorInfo;
+    @Column(() => CommentatorInfo)
+    commentatorInfo: CommentatorInfo;
 
     @Column()
     postId: string;
@@ -21,8 +23,16 @@ export class Comment {
     @Column()
     createdAt: string;
 
-    @Column()
-    likesInfo: likesInfo;
+    @OneToMany(() => Like, (like) => like.comment, { cascade: true })
+    likes: Like[];
+
+    @Column(() => LikesInfo)
+    likesInfo: LikesInfo;
+
+    @AfterLoad() //TODO Уточнить по поводу этого декоратора в данном контексте
+    createLikeStatus() {
+        this.likesInfo.myStatus = LikeInput.None; //Как бы не особо правильно дергать апи слой в домене, но пока так
+    }
 
     static createInstance(dto: CreateCommentDomainDto): Comment {
         const comment = new this();
