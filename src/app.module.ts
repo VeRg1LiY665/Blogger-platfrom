@@ -12,7 +12,8 @@ import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter
 import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-exception.filter';
 import { CoreModule } from './core/core.module';
 import { CoreConfig } from './core/core.config';
-import { DatabaseModule } from './database/database.modules'; //кастомный модуль подключения к монго или postgres
+import { DatabaseModule } from './database/database.modules';
+import { QuizGameModule } from './modules/quiz-game/quiz-game.module'; //кастомный модуль подключения к монго или postgres
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { DatabaseModule } from './database/database.modules'; //кастомны
         CoreModule,
         BloggersPlatformModule,
         UsersAccountsModule,
+        QuizGameModule,
         TestingModule,
         configModule
     ],

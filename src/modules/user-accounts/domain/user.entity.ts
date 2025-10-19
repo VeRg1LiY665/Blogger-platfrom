@@ -53,8 +53,6 @@ export class User {
 
     /**
      * Creation timestamp
-     * Explicitly defined despite timestamps: true
-     * properties without @Prop for typescript so that they are in the class instance (or in instance methods)
      * @type {Date}
      */
     @CreateDateColumn()

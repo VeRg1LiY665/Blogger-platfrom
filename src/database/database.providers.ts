@@ -9,6 +9,11 @@ import { Blog } from '../modules/bloggers-platform/domain/blog.entity';
 import { Post } from '../modules/bloggers-platform/domain/post.entity';
 import { Comment } from '../modules/bloggers-platform/domain/comment.entity';
 import { Like } from '../modules/bloggers-platform/domain/like.entity';
+import { GameEntity } from '../modules/quiz-game/domain/game.entity';
+import { Question } from '../modules/quiz-game/domain/question.entity';
+import { PlayerProgress } from '../modules/quiz-game/domain/playerProgress.entity';
+import { Answer } from '../modules/quiz-game/domain/answers.entity';
+import { GameQuestion } from '../modules/quiz-game/domain/game-questions.entity';
 
 export const databaseProviders = [
     /*{
@@ -45,7 +50,21 @@ export const databaseProviders = [
                 username: coreConfig.postgresUser,
                 password: coreConfig.postgresPassword,
                 database: coreConfig.postgresDBName,
-                entities: [Blog, Post, Comment, Like, User, EmailConfirmation, PasswordRecovery, SecurityDevice],
+                entities: [
+                    Blog,
+                    Post,
+                    Comment,
+                    Like,
+                    User,
+                    EmailConfirmation,
+                    PasswordRecovery,
+                    SecurityDevice,
+                    GameEntity,
+                    Question,
+                    PlayerProgress,
+                    Answer,
+                    GameQuestion
+                ],
                 synchronize: true // false in production
             });
             return await dataSource.initialize();

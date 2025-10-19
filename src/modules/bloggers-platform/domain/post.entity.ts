@@ -36,10 +36,10 @@ export class Post {
     likes: Like[];
 
     @Column({ default: 0 })
-    likesCount: number;
+    likesCount: number; //TODO Убрать нафиг - дублируется в ExtendedLikesInfo
 
     @Column({ default: 0 })
-    dislikesCount: number;
+    dislikesCount: number; //TODO Убрать нафиг - дублируется в ExtendedLikesInfo
 
     @Column(() => ExtendedLikesInfo)
     extendedLikesInfo: ExtendedLikesInfo;

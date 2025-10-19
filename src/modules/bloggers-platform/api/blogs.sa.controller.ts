@@ -71,7 +71,7 @@ export class BlogsSaController {
     @UseGuards(BasicAuthGuard)
     async updateBlog(@Param('id', UUIDValidationPipe) id: string, @Body() body: BlogsInputUpdateDto): Promise<void> {
         const dto = { id: id, ...body };
-        await this.commandBus.execute<UpdateBlogCommand, string>(new UpdateBlogCommand(dto));
+        await this.commandBus.execute<UpdateBlogCommand, void>(new UpdateBlogCommand(dto));
         return;
     }
 

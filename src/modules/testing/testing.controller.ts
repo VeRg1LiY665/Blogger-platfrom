@@ -13,6 +13,7 @@ export class TestingController {
         await this.pool.query('TRUNCATE TABLE "posts" CASCADE');
         await this.pool.query('TRUNCATE TABLE "comments" CASCADE');
         await this.pool.query('TRUNCATE TABLE "likes" CASCADE');
+        await this.pool.query('TRUNCATE TABLE "games" CASCADE');
 
         return {
             status: 'succeeded'
