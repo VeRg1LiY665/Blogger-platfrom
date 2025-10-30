@@ -31,6 +31,7 @@ import { GetCommentByIdQueryHandler } from './application/queries/comments/get-c
 import { GetCommentsForPostQueryHandler } from './application/queries/comments/get-comments-for-post.query';
 import { CreateCommentForPostUseCase } from './application/usecases/comments/create-comment-for-post.usecase';
 import { UsersExtSqlQRepository } from '../user-accounts/infrastructure/external-query/users.external-sql-query-repository';
+import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
 
 const commandHandlers = [
     CreateBlogUseCase,
@@ -68,7 +69,8 @@ const queryHandlers = [
         LikesSqlRepository,
         UsersExtSqlQRepository,
         ...commandHandlers,
-        ...queryHandlers
+        ...queryHandlers,
+        UserAccountsConfig //For basic auth credentials
     ]
 })
 export class BloggersPlatformModule {}

@@ -24,6 +24,7 @@ import { DeleteQuestionCommand } from '../application/usecases/admins/delete-que
 import { UpdateQuestionCommand } from '../application/usecases/admins/update-question.usecase';
 import { PublishQuestionCommand } from '../application/usecases/admins/publish-question.usecase';
 import { PublishInputDto } from './input-dto/publish.input-dto';
+import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 
 @Controller('sa/quiz')
 export class QuizSaController {
@@ -49,14 +50,14 @@ export class QuizSaController {
     @Delete('/questions/:id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async deleteQuestion(@Param('id') id: string): Promise<void> {
+    async deleteQuestion(@Param('id', UUIDValidationPipe) id: string): Promise<void> {
         return await this.commandBus.execute<DeleteQuestionCommand, void>(new DeleteQuestionCommand(id));
     }
 
     @Put('/questions/:id')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async updateQuestion(@Param('id') id: string, @Body() body: QuestionInputDto): Promise<void> {
+    async updateQuestion(@Param('id', UUIDValidationPipe) id: string, @Body() body: QuestionInputDto): Promise<void> {
         const dto = { id: id, ...body };
         return await this.commandBus.execute<UpdateQuestionCommand, void>(new UpdateQuestionCommand(dto));
     }
@@ -64,7 +65,10 @@ export class QuizSaController {
     @Put('/questions/:id/publish')
     @HttpCode(HttpStatus.NO_CONTENT)
     @UseGuards(BasicAuthGuard)
-    async publishUnpublishQuestion(@Param('id') id: string, @Body() body: PublishInputDto): Promise<void> {
+    async publishUnpublishQuestion(
+        @Param('id', UUIDValidationPipe) id: string,
+        @Body() body: PublishInputDto
+    ): Promise<void> {
         const dto = { id: id, ...body };
         return await this.commandBus.execute<PublishQuestionCommand>(new PublishQuestionCommand(dto));
     }

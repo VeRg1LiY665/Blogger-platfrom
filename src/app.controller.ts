@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 @Controller()
 export class AppController {
     constructor(private readonly appService: AppService) {
-        console.log('App Controller created');
+        //console.log('App Controller created');
     }
 
     @Get()

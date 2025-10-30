@@ -6,6 +6,7 @@ import { DomainExceptionCode } from '../../../../../core/exceptions/domain-excep
 import { GameEntity } from '../../../domain/game.entity';
 import { GameQuestionsFactory } from '../../factories/game-questions.factory';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { randomUUID } from 'node:crypto';
 
 export class ConnectToGameCommand {
     constructor(public dto: GameConnectionDto) {}
@@ -49,15 +50,19 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
             Pgame.addPlayer(dto);
             return Pgame.id;
         } else {
-            const questions = await this.gameQuestionsFactory.create();
+            const gameId = randomUUID(); //TODO А так вообще можно?
+            const questions = await this.gameQuestionsFactory.create(gameId);
+
             const dto = {
+                gameId: gameId,
                 userId: user.userId,
                 userLogin: user.login,
                 questions: questions
             };
             const newGame = GameEntity.createInstance(dto);
 
-            const gameId = await this.gamesSqlRepository.save(newGame);
+            await this.gamesSqlRepository.save(newGame);
+
             return gameId;
         }
     }

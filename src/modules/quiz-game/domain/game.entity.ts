@@ -10,7 +10,7 @@ export class GameEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @OneToMany(() => PlayerProgress, (playerProgress) => playerProgress.gameEntity, { cascade: true })
+    @OneToMany(() => PlayerProgress, (playerProgress) => playerProgress.gameEntity, { cascade: false })
     playerProgress: PlayerProgress[];
 
     @Column({ default: false })
@@ -23,7 +23,7 @@ export class GameEntity {
     })
     status: GameStatus;
 
-    @OneToMany(() => GameQuestion, (question) => question.gameEntity, { cascade: true })
+    @OneToMany(() => GameQuestion, (question) => question.gameEntity, { cascade: false })
     questions: GameQuestion[];
 
     @CreateDateColumn({ name: 'pairCreatedDate' })
@@ -37,15 +37,17 @@ export class GameEntity {
 
     static createInstance(dto: CreateGameDomainDto): GameEntity {
         const game = new this();
-
-        game.playerProgress = [new PlayerProgress(dto.userId, dto.userLogin)];
+        const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: dto.gameId };
+        game.id = dto.gameId;
+        game.playerProgress = [PlayerProgress.createInstance(ppDto)];
         game.questions = dto.questions;
 
         return game;
     }
 
     addPlayer(dto: AddPlayerDomainDto) {
-        this.playerProgress.push(new PlayerProgress(dto.userId, dto.userLogin));
+        const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: this.id };
+        this.playerProgress.push(PlayerProgress.createInstance(ppDto));
         this.status = GameStatus.Active;
     }
 }

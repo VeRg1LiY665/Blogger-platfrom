@@ -8,11 +8,12 @@ export class GameQuestionsFactory {
         private readonly questionsSqlRepository: QuestionsSqlRepository,
         private readonly questionLimit: number
     ) {}
-    async create(): Promise<GameQuestion[]> {
+    async create(gameId: string): Promise<GameQuestion[]> {
         const questions = await this.questionsSqlRepository.findForGame(this.questionLimit);
         const result: GameQuestion[] = [];
         for (const question of questions) {
-            result.push(GameQuestion.createInstance(question));
+            const dto = { ...question, gameId: gameId };
+            result.push(GameQuestion.createInstance(dto));
         }
         return result;
     }

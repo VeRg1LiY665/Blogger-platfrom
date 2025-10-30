@@ -5,6 +5,7 @@ import { Question } from '../domain/question.entity';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { GetQuestionsQueryParams } from '../api/input-dto/get-questions-query-params.input-dto';
 import { QuestionViewDto } from '../api/view-dto/questions.view-dto';
+import { QuestionsPublishedStatus } from '../api/input-dto/questions-published-status';
 
 @Injectable()
 export class QuestionsSqlQRepository {
@@ -24,8 +25,10 @@ export class QuestionsSqlQRepository {
             filter['body'] = '%' + query.bodySearchTerm + '%';
         }
 
-        if (query.publishedStatus) {
+        if (query.publishedStatus == QuestionsPublishedStatus.Published) {
             filter['published'] = true;
+        } else if (query.publishedStatus == QuestionsPublishedStatus.NotPublished) {
+            filter['published'] = false;
         }
 
         let whereClause = '';

@@ -1,10 +1,12 @@
-import { Column, Entity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 import { CreateQuestionDomainDto } from './dto/create-question.domain.dto';
 import { GameEntity } from './game.entity';
+import { randomUUID } from 'node:crypto';
+import { CreateGameQuestionDomainDto } from './dto/create-game-question.domain.dto';
 
 @Entity({ name: 'game_questions' })
 export class GameQuestion {
-    @PrimaryColumn()
+    @PrimaryColumn('uuid')
     id: string;
 
     @Column()
@@ -14,13 +16,19 @@ export class GameQuestion {
     correctAnswers: string[];
 
     @ManyToOne(() => GameEntity, (gameEntity) => gameEntity.questions)
+    @JoinColumn({ name: 'gameEntityId' })
     gameEntity: GameEntity;
 
-    static createInstance(dto: CreateQuestionDomainDto): GameQuestion {
+    @Column()
+    gameEntityId: string;
+
+    static createInstance(dto: CreateGameQuestionDomainDto): GameQuestion {
         const question = new GameQuestion();
 
+        question.id = dto.id;
         question.body = dto.body;
         question.correctAnswers = dto.correctAnswers;
+        question.gameEntityId = dto.gameId;
 
         return question;
     }

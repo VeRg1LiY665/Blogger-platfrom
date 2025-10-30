@@ -12,7 +12,7 @@ import { ConnectToGameUseCase } from './application/usecases/quiz-game/connect-t
 import { SendNextQuestionAnswerUseCase } from './application/usecases/quiz-game/send-next-question.usecase';
 import { GetCurrentGameQueryHandler } from './application/queries/public/get-current-game.query';
 import { GetGameByIdQueryHandler } from './application/queries/public/get-game-by-id.query';
-import { QuizGameConfig } from './application/config/quiz-game.config';
+import { QuizGameConfig } from './config/quiz-game.config';
 import { GameQuestionsFactory } from './application/factories/game-questions.factory';
 import { GamesSqlRepository } from './infrastructure/games-sql.repository';
 import { GamesSqlQueryRepository } from './infrastructure/games-sql.query.repository';
@@ -20,6 +20,7 @@ import { AnswersFactory } from './application/factories/answer.factory';
 import { UsersExtSqlQRepository } from '../user-accounts/infrastructure/external-query/users.external-sql-query-repository';
 import { QuizGameController } from './api/quiz.controller';
 import { DeleteQuestionUseCase } from './application/usecases/admins/delete-question.usecase';
+import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
 
 const commandHandlers = [
     CreateQuestionUseCase,
@@ -59,7 +60,8 @@ const queryHandlers = [
         UsersExtSqlQRepository,
         ...commandHandlers,
         ...queryHandlers,
-        QuizGameConfig
+        QuizGameConfig,
+        UserAccountsConfig //For basic auth credentials
     ]
 })
 export class QuizGameModule {}

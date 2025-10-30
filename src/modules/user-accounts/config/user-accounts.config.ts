@@ -25,12 +25,24 @@ export class UserAccountsConfig {
     })
     accessTokenSecret: string;
 
+    @IsNotEmpty({
+        message: 'Set Env variable ADMIN_PASSWORD, dangerous for security!'
+    })
+    adminPassword: string;
+
+    @IsNotEmpty({
+        message: 'Set Env variable ADMIN_LOGIN, dangerous for security!'
+    })
+    adminLogin: string;
+
     constructor(private configService: ConfigService<any, true>) {
         // Initialize properties in the constructor
         this.accessTokenExpireIn = this.configService.get('ACCESS_TOKEN_EXPIRE_IN');
         this.refreshTokenExpireIn = this.configService.get('REFRESH_TOKEN_EXPIRE_IN');
         this.refreshTokenSecret = this.configService.get('REFRESH_TOKEN_SECRET');
         this.accessTokenSecret = this.configService.get('ACCESS_TOKEN_SECRET');
+        this.adminLogin = this.configService.get('ADMIN_LOGIN');
+        this.adminPassword = this.configService.get('ADMIN_PASSWORD');
 
         //then validate props
         configValidationUtility.validateConfig(this);

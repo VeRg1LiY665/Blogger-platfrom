@@ -4,13 +4,14 @@ import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { UserAccountsConfig } from '../../config/user-accounts.config';
 
 @Injectable()
 export class BasicAuthGuard implements CanActivate {
-    private readonly validUsername = 'admin';
-    private readonly validPassword = 'qwerty';
-    //TODO move to .env file
-    constructor(private reflector: Reflector) {}
+    constructor(
+        private reflector: Reflector,
+        private readonly userAccountsConfig: UserAccountsConfig
+    ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest<Request>();
@@ -37,7 +38,7 @@ export class BasicAuthGuard implements CanActivate {
         const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
         const [username, password] = credentials.split(':');
 
-        if (username === this.validUsername && password === this.validPassword) {
+        if (username === this.userAccountsConfig.adminLogin && password === this.userAccountsConfig.adminPassword) {
             return true;
         } else {
             throw new DomainException({

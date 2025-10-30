@@ -19,7 +19,6 @@ describe('users', () => {
             moduleBuilder.overrideProvider(JwtService).useValue(
                 //Оно не работает если переопределять пропсы в момент вызова методов провайдера
                 new JwtService({
-                    secret: 'kjsjhd67t43b9v', //TODO: move to env. will be in the following lessons
                     signOptions: { expiresIn: '2s' }
                 })
             )
@@ -56,7 +55,7 @@ describe('users', () => {
     it('should get users with paging', async () => {
         const users = await userTestManager.createSeveralUsers(12);
         const { body: responseBody } = (await request(app.getHttpServer())
-            .get(`/users?pageNumber=2&sortDirection=asc`)
+            .get(`/sa/users?pageNumber=2&sortDirection=asc`)
             .auth('admin', 'qwerty')
             .expect(HttpStatus.OK)) as { body: PaginatedViewDto<UserViewDto> };
 

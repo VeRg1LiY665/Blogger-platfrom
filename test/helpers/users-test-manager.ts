@@ -6,11 +6,14 @@ import { delay } from './delay';
 import { UpdateUserInputDto } from '../../src/modules/user-accounts/api/input-dto/update-user.input-dto';
 
 export class UsersTestManager {
-    constructor(private app: INestApplication) {}
+    constructor(
+        private app: INestApplication
+        //private httpServer
+    ) {}
 
     async createUser(createModel: InputUserDto, statusCode: number = HttpStatus.CREATED): Promise<UserViewDto> {
         const response = await request(this.app.getHttpServer())
-            .post(`/users`)
+            .post(`/sa/users`)
             .send(createModel)
             .auth('admin', 'qwerty')
             .expect(statusCode);
@@ -24,7 +27,7 @@ export class UsersTestManager {
         statusCode: number = HttpStatus.NO_CONTENT
     ): Promise<UserViewDto> {
         const response = await request(this.app.getHttpServer())
-            .put(`/users/${userId}`)
+            .put(`/sa/users/${userId}`)
             .send(updateModel)
             .auth('admin', 'qwerty')
             .expect(statusCode);
@@ -39,6 +42,7 @@ export class UsersTestManager {
     ): Promise<{ accessToken: string; refreshToken: string }> {
         const response = await request(this.app.getHttpServer())
             .post(`/auth/login`)
+            .set('user-agent', 'supertest')
             .send({ loginOrEmail, password })
             .expect(statusCode);
 

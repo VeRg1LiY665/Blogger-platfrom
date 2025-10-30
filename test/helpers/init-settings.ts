@@ -9,6 +9,8 @@ import { EmailService } from '../../src/modules/notifications/email.service';
 import { EmailServiceMock } from '../mock/email-service.mock';
 import { initAppModule } from '../../init-app-module';
 import { CoreConfig } from '../../src/core/core.config';
+import { DataSource } from 'typeorm';
+import { QuizGameTestManager } from './quiz-game-test-manager';
 
 export const initSettings = async (
     //передаем callback, который получает ModuleBuilder, если хотим изменить настройку тестового модуля
@@ -28,15 +30,15 @@ export const initSettings = async (
 
     const app = testingAppModule.createNestApplication();
     const coreConfig = app.get<CoreConfig>(CoreConfig);
-    console.log('CONFIG', coreConfig);
 
     appSetup(app, coreConfig.isSwaggerEnabled);
 
     await app.init();
 
-    const databaseConnection = app.get<Connection>(getConnectionToken());
+    const databaseConnection = app.get<DataSource>(DataSource);
     const httpServer = app.getHttpServer();
     const userTestManger = new UsersTestManager(app);
+    const quizTestManager = new QuizGameTestManager(app);
 
     await deleteAllData(app);
 
@@ -44,6 +46,7 @@ export const initSettings = async (
         app,
         databaseConnection,
         httpServer,
-        userTestManger
+        userTestManger,
+        quizTestManager
     };
 };
