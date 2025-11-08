@@ -23,12 +23,13 @@ export class GamesSqlQueryRepository {
         const game = await this.games
             .createQueryBuilder('g')
             .leftJoinAndSelect(
-                (qb) => qb.select(['id' as '"q_id"', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
+                (qb) => qb.select(['id', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
                 'questions',
                 'questions."gameEntityId" = g.id'
             )
             .leftJoinAndSelect('g.playerProgress', 'playerProgress')
-            .leftJoinAndSelect(
+            .leftJoinAndMapMany(
+                'answers',
                 (qb) =>
                     qb.select(['"questionId"', '"answerStatus"', '"addedAt"', '"playerProgressId"']).from(Answer, 'a'),
                 'answers',
@@ -37,31 +38,23 @@ export class GamesSqlQueryRepository {
             .select([
                 'g.id',
                 'g.status',
-                'g."pairCreatedDate"',
-                'g."startGameDate"',
-                'g."finishGameDate"',
+                'g.pairCreatedDate',
+                'g.startGameDate',
+                'g.finishGameDate',
                 '"playerProgress".*',
                 'answers."questionId"',
                 'answers."answerStatus"',
                 'answers."addedAt"',
-                'questions.id' as '"q_id"',
+                'questions.id as q_id',
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
+            .orderBy('id', 'ASC')
             .getRawMany();
 
         console.log(game);
         return game ? GameViewDto.mapSqlToView(game) : null;
     }
-
-    /*.leftJoinAndSelect(
-                (qb) =>
-                    qb
-                        .select(['id', '"playerId"', '"playerLogin"', '"playerScore"', '"gameEntityId"'])
-                        .from(PlayerProgress, 'p'),
-                'playerProgress',
-                '"playerProgress"."gameEntityId" = g.id'
-            )*/
 
     async findActiveForUser(userId: string): Promise<GameViewDto | null> {
         const game = await this.games
