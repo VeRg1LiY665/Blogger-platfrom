@@ -48,6 +48,9 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
                 userLogin: user.login
             };
             Pgame.addPlayer(dto);
+
+            console.log(Pgame);
+            await this.gamesSqlRepository.save(Pgame);
             return Pgame.id;
         } else {
             const gameId = randomUUID(); //TODO А так вообще можно?

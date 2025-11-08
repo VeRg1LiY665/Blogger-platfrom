@@ -28,8 +28,7 @@ export class GamesSqlQueryRepository {
                 'questions."gameEntityId" = g.id'
             )
             .leftJoinAndSelect('g.playerProgress', 'playerProgress')
-            .leftJoinAndMapMany(
-                'answers',
+            .leftJoinAndSelect(
                 (qb) =>
                     qb.select(['"questionId"', '"answerStatus"', '"addedAt"', '"playerProgressId"']).from(Answer, 'a'),
                 'answers',
@@ -52,7 +51,7 @@ export class GamesSqlQueryRepository {
             .orderBy('id', 'ASC')
             .getRawMany();
 
-        console.log(game);
+        //console.log(game, game.length);
         return game ? GameViewDto.mapSqlToView(game) : null;
     }
 

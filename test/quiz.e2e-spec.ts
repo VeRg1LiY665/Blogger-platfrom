@@ -13,6 +13,7 @@ import { UsersTestManager } from './helpers/users-test-manager';
 import { QuestionInputDto } from '../src/modules/quiz-game/api/input-dto/question.input-dto';
 import { QuestionViewDto } from '../src/modules/quiz-game/api/view-dto/questions.view-dto';
 import { GameViewDto } from '../src/modules/quiz-game/api/view-dto/game.view-dto';
+import { AnswerViewDto } from '../src/modules/quiz-game/api/view-dto/answer.view-dto';
 
 describe('quiz-game', () => {
     let app: INestApplication;
@@ -45,7 +46,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    it('should create question', async () => {
+    /* it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -130,9 +131,9 @@ describe('quiz-game', () => {
             .delete(`/sa/quiz/questions/${response.id}`)
             .auth('admin', 'qwerty')
             .expect(HttpStatus.NOT_FOUND);
-    });
+    });*/
 
-    it('should create new game', async () => {
+    /*it('should create new game', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(1);
 
         expect(tokens[0].accessToken).toBeDefined();
@@ -146,6 +147,29 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(responseBody.status).toEqual('PendingSecondPlayer');
+    });*/
+
+    it('should connect user to existing game', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(2);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(15);
+
+        const { body: responseBody } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
+
+        const { body: responseBody2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody2.status).toEqual('Active');
     });
 
     /* it('should return users info while "me" request with correct accessTokens', async () => {

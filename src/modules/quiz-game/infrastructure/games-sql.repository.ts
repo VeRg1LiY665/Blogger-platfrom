@@ -11,7 +11,6 @@ export class GamesSqlRepository {
     private games: Repository<GameEntity>;
     private gameQuestions: Repository<GameQuestion>;
     private playerProgress: Repository<PlayerProgress>;
-    private queryRunner: QueryRunner;
 
     constructor(
         @InjectDataSource()
@@ -20,7 +19,6 @@ export class GamesSqlRepository {
         this.games = this.dataSource.getRepository(GameEntity);
         this.gameQuestions = this.dataSource.getRepository(GameQuestion);
         this.playerProgress = this.dataSource.getRepository(PlayerProgress);
-        this.queryRunner = this.dataSource.createQueryRunner();
     }
 
     async findById(id: string): Promise<GameEntity | null> {
@@ -28,7 +26,16 @@ export class GamesSqlRepository {
     }
 
     async findPendingGame(): Promise<GameEntity | null> {
-        return await this.games.findOne({ where: { status: GameStatus.PendingSecondPlayer } });
+        const queryBuilder = this.games
+            .createQueryBuilder('g')
+            .leftJoinAndSelect('g.questions', 'q')
+            .leftJoinAndSelect('g.playerProgress', 'pp')
+            .leftJoinAndSelect('pp.answers', 'a')
+            .where('g.status = :status', { status: GameStatus.PendingSecondPlayer });
+
+        const game = await queryBuilder.getOne();
+
+        return game;
     }
 
     async findActiveByPlayer(userId: string): Promise<GameEntity | null> {
@@ -44,8 +51,9 @@ export class GamesSqlRepository {
     }
 
     async save(game: GameEntity): Promise<string> {
-        await this.queryRunner.connect();
-        await this.queryRunner.startTransaction();
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
         try {
             const res = await this.games.save(game);
             await this.gameQuestions.save(game.questions);
@@ -53,11 +61,11 @@ export class GamesSqlRepository {
 
             return res.id.toString();
         } catch (err) {
-            await this.queryRunner.rollbackTransaction();
+            await queryRunner.rollbackTransaction();
             throw new Error(err);
         } finally {
             // you need to release query runner which is manually created:
-            await this.queryRunner.release();
+            await queryRunner.release();
         }
     }
 }

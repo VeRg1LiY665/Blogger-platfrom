@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '../../user-accounts/guards/bearer/jwt-auth.guard';
 import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
@@ -30,6 +30,7 @@ export class QuizGameController {
     }
 
     @Post('connection')
+    @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     async connect(@ExtractUserFromRequest() user: UserContextDto): Promise<GameViewDto> {
         const dto = { userId: user.id };
