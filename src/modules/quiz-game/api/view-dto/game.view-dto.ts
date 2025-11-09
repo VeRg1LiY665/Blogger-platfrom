@@ -34,15 +34,6 @@ export class GameViewDto {
             answers: []
         };
 
-        dto.secondPlayerProgress = {
-            player: {
-                id: 'null',
-                login: 'null'
-            },
-            score: 0,
-            answers: []
-        };
-
         dto.status = game[0].g_status;
         dto.pairCreatedDate = game[0].g_pairCreatedDate.toISOString();
         dto.startGameDate = game[0].g_startGameDate ? game[0].g_startGameDate.toISOString() : 'null';
@@ -54,6 +45,15 @@ export class GameViewDto {
                 answerStatus: 'null',
                 addedAt: 'null'
             });
+
+            dto.secondPlayerProgress = {
+                player: {
+                    id: 'null',
+                    login: 'null'
+                },
+                score: 0,
+                answers: []
+            };
 
             dto.secondPlayerProgress.answers.push({
                 questionId: 'null',
@@ -67,6 +67,15 @@ export class GameViewDto {
                 });
             });
         } else {
+            dto.secondPlayerProgress = {
+                player: {
+                    id: game[5].playerId as string,
+                    login: game[5].playerLogin as string
+                },
+                score: game[5].playerScore as number,
+                answers: []
+            };
+
             game.forEach((el, i) => {
                 if (i < 5) {
                     dto.questions.push({
@@ -88,8 +97,6 @@ export class GameViewDto {
                 }
             });
         }
-
-        //console.log(dto);
 
         return dto;
     }

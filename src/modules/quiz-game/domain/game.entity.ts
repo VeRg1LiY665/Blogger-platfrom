@@ -49,5 +49,6 @@ export class GameEntity {
         const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: this.id };
         this.playerProgress.push(PlayerProgress.createInstance(ppDto));
         this.status = GameStatus.Active;
+        this.startGameDate = new Date();
     }
 }

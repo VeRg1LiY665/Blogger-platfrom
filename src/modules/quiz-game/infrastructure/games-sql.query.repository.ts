@@ -3,10 +3,10 @@ import { DataSource, Repository } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { GameEntity } from '../domain/game.entity';
 import { GameViewDto } from '../api/view-dto/game.view-dto';
-import { PlayerProgress } from '../domain/playerProgress.entity';
 import { Answer } from '../domain/answers.entity';
 import { GameQuestion } from '../domain/game-questions.entity';
 import { GameStatus } from '../domain/constants/game-status.constants';
+import { PlayerProgress } from '../domain/playerProgress.entity';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -48,34 +48,40 @@ export class GamesSqlQueryRepository {
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
-            .orderBy('id', 'ASC')
+            .orderBy('"createdAt"', 'ASC')
             .getRawMany();
 
-        //console.log(game, game.length);
         return game ? GameViewDto.mapSqlToView(game) : null;
     }
 
     async findActiveForUser(userId: string): Promise<GameViewDto | null> {
-        const game = await this.games
+        const gameId = await this.games
             .createQueryBuilder('g')
             .leftJoinAndSelect(
-                (qb) =>
-                    qb
-                        .select(['"playerId"', '"playerLogin"', '"playerScore"', '"gameEntityId"'])
-                        .from(PlayerProgress, 'p'),
+                (qb) => qb.select(['"playerId", "gameEntityId"']).from(PlayerProgress, 'pp'),
                 'playerProgress',
-                'playerProgress.gameEntityId = g.id'
+                '"playerProgress"."gameEntityId" = g.id'
             )
+            .select('g.id')
+            .where('"playerProgress"."playerId" = :id', { id: userId })
+            .andWhere('g.status = :status', { status: GameStatus.Active })
+            .getRawOne();
+
+        const game = await this.findById(gameId.g_id as string);
+
+        /*const game = await this.games
+            .createQueryBuilder('g')
+            .leftJoinAndSelect(
+                (qb) => qb.select(['id', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
+                'questions',
+                'questions."gameEntityId" = g.id'
+            )
+            .leftJoinAndSelect('g.playerProgress', 'playerProgress')
             .leftJoinAndSelect(
                 (qb) =>
                     qb.select(['"questionId"', '"answerStatus"', '"addedAt"', '"playerProgressId"']).from(Answer, 'a'),
                 'answers',
-                'answers.playerProgressId = playerProgress.id'
-            )
-            .leftJoinAndSelect(
-                (qb) => qb.select(['"id"', '"body"', '"gameEntityId"']).from(GameQuestion, 'q'),
-                'questions',
-                'questions.gameEntityId = g.id'
+                'answers."playerProgressId" = playerProgress.id'
             )
             .select([
                 'g.id',
@@ -83,14 +89,18 @@ export class GamesSqlQueryRepository {
                 'g.pairCreatedDate',
                 'g.startGameDate',
                 'g.finishGameDate',
-                'playerProgress.*',
-                'answers.*',
-                'questions.*'
+                '"playerProgress".*',
+                'answers."questionId"',
+                'answers."answerStatus"',
+                'answers."addedAt"',
+                'questions.id as q_id',
+                'questions.body'
             ])
-            .where('playerProgress.playerId = :id', { id: userId }) //TODO Check!
+            .where('"playerProgress"."playerId" = :id', { id: userId })
             .andWhere('g.status = :status', { status: GameStatus.Active })
-            .getRawOne();
+            .orderBy('"createdAt"', 'ASC')
+            .getRawMany();*/ //TODO СПРОСИТЬ норм ли делать через два запроса
 
-        return game ? GameViewDto.mapSqlToView(game) : null;
+        return game;
     }
 }

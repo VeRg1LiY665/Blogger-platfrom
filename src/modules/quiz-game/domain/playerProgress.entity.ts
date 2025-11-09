@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Answer } from './answers.entity';
 import { GameEntity } from './game.entity';
 import { randomUUID } from 'node:crypto';
@@ -27,6 +27,9 @@ export class PlayerProgress {
 
     @Column()
     gameEntityId: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
 
     static createInstance(dto: CreatePlayerProgressDomainDto) {
         const newInstanse = new this();

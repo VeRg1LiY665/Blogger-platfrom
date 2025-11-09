@@ -49,7 +49,6 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
             };
             Pgame.addPlayer(dto);
 
-            console.log(Pgame);
             await this.gamesSqlRepository.save(Pgame);
             return Pgame.id;
         } else {

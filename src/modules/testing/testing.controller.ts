@@ -14,6 +14,9 @@ export class TestingController {
         await this.pool.query('TRUNCATE TABLE "comments" CASCADE');
         await this.pool.query('TRUNCATE TABLE "likes" CASCADE');
         await this.pool.query('TRUNCATE TABLE "games" CASCADE');
+        /*await this.pool.query('TRUNCATE TABLE "playersProgress"');
+        await this.pool.query('TRUNCATE TABLE "answers"');
+        await this.pool.query('TRUNCATE TABLE "game_questions"');*/
         await this.pool.query('TRUNCATE TABLE "questions"');
 
         return {

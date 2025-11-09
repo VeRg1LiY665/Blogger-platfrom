@@ -59,6 +59,7 @@ export class GamesSqlRepository {
             await this.gameQuestions.save(game.questions);
             await this.playerProgress.save(game.playerProgress);
 
+            await queryRunner.commitTransaction();
             return res.id.toString();
         } catch (err) {
             await queryRunner.rollbackTransaction();

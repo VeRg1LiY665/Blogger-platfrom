@@ -1,19 +1,14 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { initSettings } from './helpers/init-settings';
-import { CreateUserDto } from '../src/modules/user-accounts/dto/create-user.dto';
 import { deleteAllData } from './helpers/delete-all-data';
 import { PaginatedViewDto } from '../src/core/dto/base.paginated.view-dto';
-import { MeViewDto, UserViewDto } from '../src/modules/user-accounts/api/view-dto/users-view.dto';
-import { delay } from './helpers/delay';
-import { EmailService } from '../src/modules/notifications/email.service';
 import { JwtService } from '@nestjs/jwt';
 import { QuizGameTestManager } from './helpers/quiz-game-test-manager';
 import { UsersTestManager } from './helpers/users-test-manager';
 import { QuestionInputDto } from '../src/modules/quiz-game/api/input-dto/question.input-dto';
 import { QuestionViewDto } from '../src/modules/quiz-game/api/view-dto/questions.view-dto';
 import { GameViewDto } from '../src/modules/quiz-game/api/view-dto/game.view-dto';
-import { AnswerViewDto } from '../src/modules/quiz-game/api/view-dto/answer.view-dto';
 
 describe('quiz-game', () => {
     let app: INestApplication;
@@ -46,7 +41,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    /* it('should create question', async () => {
+    it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -131,9 +126,9 @@ describe('quiz-game', () => {
             .delete(`/sa/quiz/questions/${response.id}`)
             .auth('admin', 'qwerty')
             .expect(HttpStatus.NOT_FOUND);
-    });*/
+    });
 
-    /*it('should create new game', async () => {
+    it('should create new game', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(1);
 
         expect(tokens[0].accessToken).toBeDefined();
@@ -147,7 +142,7 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(responseBody.status).toEqual('PendingSecondPlayer');
-    });*/
+    });
 
     it('should connect user to existing game', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(2);
@@ -172,51 +167,63 @@ describe('quiz-game', () => {
         expect(responseBody2.status).toEqual('Active');
     });
 
-    /* it('should return users info while "me" request with correct accessTokens', async () => {
-        const tokens = await userTestManager.createAndLoginSeveralUsers(1);
+    it('should return active game for current user', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(2);
 
-        const response = await userTestManager.me(tokens[0].accessToken);
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
 
-        expect(response).toEqual({
-            login: expect.anything(),
-            userId: expect.anything(),
-            email: expect.anything()
-        } as MeViewDto);
-    });*/
+        await quizGameTestManager.createAndPublishSeveralQuestions(15);
 
-    /* it(`shouldn't return users info while "me" request if accessTokens expired`, async () => {
-        const tokens = await userTestManager.createAndLoginSeveralUsers(1);
+        const { body: responseBody } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
 
-        await delay(2000);
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
 
-        await userTestManager.me(tokens[0].accessToken, HttpStatus.UNAUTHORIZED);
-    });*/
+        const { body: responseBody2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
 
-    /*it(`should register user without really send email`, async () => {
-        await request(app.getHttpServer())
-            .post(`/auth/registration`)
-            .send({
-                email: 'email@email.em',
-                password: '123123123',
-                login: 'login123'
-            } as CreateUserDto)
-            .expect(HttpStatus.NO_CONTENT);
-    });*/
+        expect(responseBody2.status).toEqual('Active');
 
-    /*it(`should call email sending method while registration`, async () => {
-        const sendEmailMethod = (app.get(EmailService).sendConfirmationEmail = jest
-            .fn()
-            .mockImplementation(() => Promise.resolve()));
+        const { body: responseBody3 } = (await request(app.getHttpServer())
+            .get('/pair-game-quiz/pairs/my-current')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
 
-        await request(app.getHttpServer())
-            .post(`/auth/registration`)
-            .send({
-                email: 'email@email.em',
-                password: '123123123',
-                login: 'login123'
-            } as CreateUserDto)
-            .expect(HttpStatus.NO_CONTENT);
+        expect(responseBody3).toEqual(responseBody2);
+    });
 
-        expect(sendEmailMethod).toHaveBeenCalled();
-    });*/
+    it('should play game with 2 players', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(2);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(15);
+
+        const { body: responseBody } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
+
+        const { body: responseBody2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody2.status).toEqual('Active');
+
+        const { body: responseBody3 } = (await request(app.getHttpServer())
+            .get('/pair-game-quiz/pairs/my-current')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody3).toEqual(responseBody2);
+    });
 });
