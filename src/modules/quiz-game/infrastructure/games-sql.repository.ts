@@ -22,7 +22,15 @@ export class GamesSqlRepository {
     }
 
     async findById(id: string): Promise<GameEntity | null> {
-        return await this.games.findOne({ where: { id: id } });
+        const queryBuilder = this.games
+            .createQueryBuilder('g')
+            .leftJoinAndSelect('g.questions', 'q')
+            .leftJoinAndSelect('g.playerProgress', 'pp')
+            .leftJoinAndSelect('pp.answers', 'a')
+            .where('g.id = :id', { id });
+        const game = await queryBuilder.getOne();
+
+        return game;
     }
 
     async findPendingGame(): Promise<GameEntity | null> {
@@ -39,7 +47,21 @@ export class GamesSqlRepository {
     }
 
     async findActiveByPlayer(userId: string): Promise<GameEntity | null> {
-        const queryBuilder = this.games
+        const gameId = await this.games
+            .createQueryBuilder('g')
+            .leftJoinAndSelect(
+                (qb) => qb.select(['"playerId", "gameEntityId"']).from(PlayerProgress, 'pp'),
+                'playerProgress',
+                '"playerProgress"."gameEntityId" = g.id'
+            )
+            .select('g.id')
+            .where('"playerProgress"."playerId" = :id', { id: userId })
+            .andWhere('g.status = :status', { status: GameStatus.Active })
+            .getRawOne();
+
+        return gameId ? await this.findById(gameId.g_id as string) : null;
+
+        /* const queryBuilder = this.games
             .createQueryBuilder('g')
             .leftJoinAndSelect('g.questions', 'q')
             .leftJoinAndSelect('g.playerProgress', 'pp')
@@ -48,7 +70,7 @@ export class GamesSqlRepository {
             .andWhere('g.status = :status', { status: GameStatus.Active });
 
         const game = await queryBuilder.getOne();
-        return game;
+        return game;*/
     }
 
     async save(game: GameEntity): Promise<string> {

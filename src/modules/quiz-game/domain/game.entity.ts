@@ -51,4 +51,9 @@ export class GameEntity {
         this.status = GameStatus.Active;
         this.startGameDate = new Date();
     }
+
+    finishGame() {
+        this.finishGameDate = new Date();
+        this.status = GameStatus.Finished;
+    }
 }

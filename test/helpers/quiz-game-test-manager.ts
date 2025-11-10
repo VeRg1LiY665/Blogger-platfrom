@@ -54,7 +54,7 @@ export class QuizGameTestManager {
         for (let i = 0; i < count; ++i) {
             //await delay(50);
             const response = this.createQuestion({
-                body: `question` + i,
+                body: `test question` + i,
                 correctAnswers: [`correct answer${i}`, `alternative correct answer${i}`]
             });
             questionsPromises.push(response);

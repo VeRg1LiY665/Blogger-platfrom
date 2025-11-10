@@ -277,5 +277,6 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(finalResponse.status).toEqual('Finished');
+        expect(finalResponse.finishGameDate !== 'null').toBeTruthy();
     });
 });

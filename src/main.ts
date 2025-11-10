@@ -16,7 +16,6 @@ async function bootstrap(): Promise<void> {
     const port = coreConfig.port;
 
     app.use(cookieParser());
-
     //appSetup(app);
 
     await app.listen(port, () => {

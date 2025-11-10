@@ -19,7 +19,7 @@ export class Question {
     @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ nullable: true })
+    @UpdateDateColumn({ nullable: true, insert: false })
     updatedAt: Date;
 
     static createInstance(dto: CreateQuestionDomainDto): Question {

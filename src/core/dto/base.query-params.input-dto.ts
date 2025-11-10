@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsNumber } from 'class-validator';
 
 export enum SortDirection {
     Asc = 'ASC',
@@ -9,9 +9,13 @@ export enum SortDirection {
 //значения по-умолчанию применятся автоматически при настройке глобального ValidationPipe в main.ts
 export class BaseQueryParams {
     //для трансформации в number
+
     @Type(() => Number)
+    @IsNumber()
     pageNumber: number = 1;
+
     @Type(() => Number)
+    @IsNumber()
     pageSize: number = 10;
 
     @Transform(({ value }) => value.toUpperCase() ?? SortDirection.Desc)

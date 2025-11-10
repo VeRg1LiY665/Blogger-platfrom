@@ -38,7 +38,7 @@ export function pipesSetup(app: INestApplication) {
             //и методы классов dto
             transform: true,
 
-            //whitelist: true,  //Почему он удалет даже те пропсы, которые есть в DTO?
+            whitelist: true, //Почему он удалет даже те пропсы, которые есть в DTO?
             //Выдавать первую ошибку для каждого поля
             stopAtFirstError: true,
             //Для преобразования ошибок класс валидатора в необходимый вид

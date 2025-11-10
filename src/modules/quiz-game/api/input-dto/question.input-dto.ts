@@ -4,7 +4,7 @@ import { Trim } from '../../../../core/decorators/transform/trim';
 export class QuestionInputDto {
     @IsString()
     @Trim()
-    @Length(1, 300) //от балды выставил, чтобы было
+    @Length(10, 500)
     body: string;
 
     @IsArray()

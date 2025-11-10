@@ -43,7 +43,11 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
                     p.playerScore++;
                 }
 
-                if (p.answers.length == Agame.questions.length - 1 && Agame.firstFinished == false) {
+                if (p.answers.length == Agame.questions.length && Agame.firstFinished == true) {
+                    Agame.finishGame();
+                }
+
+                if (p.answers.length == Agame.questions.length && Agame.firstFinished == false) {
                     p.playerScore++; //add 1 point for the first player to answer all questions
                     Agame.firstFinished = true;
                 }
