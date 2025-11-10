@@ -58,7 +58,7 @@ export class AuthController {
 
     @Post('login')
     @HttpCode(HttpStatus.OK)
-    @UseGuards(ThrottlerGuard, LocalAuthGuard)
+    @UseGuards(/*ThrottlerGuard,*/ LocalAuthGuard)
     @UseInterceptors(GetDeviceInfoInterceptor)
     //swagger doc
     @ApiBody({

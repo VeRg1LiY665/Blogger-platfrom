@@ -40,6 +40,7 @@ export class QuizGameController {
     }
 
     @Post('my-current/answers')
+    @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     async myAnswers(@ExtractUserFromRequest() user: UserContextDto, @Body() answer: string): Promise<AnswerViewDto> {
         const dto = {

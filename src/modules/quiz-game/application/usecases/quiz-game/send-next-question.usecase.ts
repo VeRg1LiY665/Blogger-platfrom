@@ -28,7 +28,7 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
         if (!Agame) {
             throw new DomainException({
                 code: DomainExceptionCode.Forbidden,
-                message: 'User does not participates in game'
+                message: 'User does not participate in game'
             });
         }
 

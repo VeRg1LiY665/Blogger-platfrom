@@ -9,6 +9,7 @@ import { UsersTestManager } from './helpers/users-test-manager';
 import { QuestionInputDto } from '../src/modules/quiz-game/api/input-dto/question.input-dto';
 import { QuestionViewDto } from '../src/modules/quiz-game/api/view-dto/questions.view-dto';
 import { GameViewDto } from '../src/modules/quiz-game/api/view-dto/game.view-dto';
+import { AnswerViewDto } from '../src/modules/quiz-game/api/view-dto/answer.view-dto';
 
 describe('quiz-game', () => {
     let app: INestApplication;
@@ -197,7 +198,7 @@ describe('quiz-game', () => {
         expect(responseBody3).toEqual(responseBody2);
     });
 
-    it('should play game with 2 players', async () => {
+    it('should reject connection if an active game exists', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(2);
 
         expect(tokens[0].accessToken).toBeDefined();
@@ -219,11 +220,62 @@ describe('quiz-game', () => {
 
         expect(responseBody2.status).toEqual('Active');
 
-        const { body: responseBody3 } = (await request(app.getHttpServer())
-            .get('/pair-game-quiz/pairs/my-current')
+        await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.FORBIDDEN);
+    });
+
+    it('should play game with 2 players', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(2);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(15);
+
+        const { body: responseBody } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
             .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
-        expect(responseBody3).toEqual(responseBody2);
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
+
+        const { body: responseBody2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody2.status).toEqual('Active'); //Игру создали и убедились, что она активна
+
+        const gameId = responseBody2.id;
+
+        for (let i = 0; i < 5; i++) {
+            // Играем - используем псевдо рандомные ответы для чистоты эксперимента
+            const { body: responseBodyg1 } = (await request(app.getHttpServer())
+                .post('/pair-game-quiz/pairs/my-current/answers')
+                .send({ answer: `correct answer${Math.floor(Math.random() * 15)}` })
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+            expect(responseBodyg1.answerStatus).toBeDefined();
+            expect(responseBodyg1.questionId).toBeDefined();
+
+            const { body: responseBodyg2 } = (await request(app.getHttpServer())
+                .post('/pair-game-quiz/pairs/my-current/answers')
+                .send({ answer: `alternative correct answer${Math.floor(Math.random() * 15)}` })
+                .auth(tokens[1].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+            expect(responseBodyg2.answerStatus).toBeDefined();
+            expect(responseBodyg2.questionId).toBeDefined();
+        }
+
+        const { body: finalResponse } = (await request(app.getHttpServer()) //Получаем игру по id, проверяем, что она закончена
+            .get(`/pair-game-quiz/pairs/${gameId}`)
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(finalResponse.status).toEqual('Finished');
     });
 });

@@ -41,8 +41,9 @@ export class GamesSqlRepository {
     async findActiveByPlayer(userId: string): Promise<GameEntity | null> {
         const queryBuilder = this.games
             .createQueryBuilder('g')
+            .leftJoinAndSelect('g.questions', 'q')
             .leftJoinAndSelect('g.playerProgress', 'pp')
-            .select('g.*')
+            .leftJoinAndSelect('pp.answers', 'a')
             .where('pp.playerId = :playerId', { playerId: userId })
             .andWhere('g.status = :status', { status: GameStatus.Active });
 
