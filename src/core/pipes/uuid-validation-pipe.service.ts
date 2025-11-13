@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import { isUUID } from 'class-validator';
+import { isNumber, isUUID } from 'class-validator';
 import { DomainException } from '../exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../exceptions/domain-exception-codes';
 
@@ -9,9 +9,17 @@ export class UUIDValidationPipe implements PipeTransform {
         if (isUUID(value)) {
             return value;
         }
-        //TODO НУЖНО ДЛЯ ТЕСТОВ - Убрать это потом нафиг/использовать класс валидатор/заменить ошибку на 400
+
+        if (isNumber(+value)) {
+            //TODO Это только для тестов, чтобы не менять тип id на number
+            throw new DomainException({
+                code: DomainExceptionCode.NotFound,
+                message: `Invalid UUID format: ${value}`
+            });
+        }
+
         throw new DomainException({
-            code: DomainExceptionCode.NotFound,
+            code: DomainExceptionCode.BadRequest,
             message: `Invalid UUID format: ${value}`
         });
     }

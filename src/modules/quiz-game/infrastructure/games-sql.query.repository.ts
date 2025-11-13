@@ -48,7 +48,7 @@ export class GamesSqlQueryRepository {
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
-            .orderBy('"createdAt"', 'ASC')
+            //.orderBy('"createdAt"', 'ASC')
             .getRawMany();
 
         return game ? GameViewDto.mapSqlToView(game) : null;
@@ -64,10 +64,10 @@ export class GamesSqlQueryRepository {
             )
             .select('g.id')
             .where('"playerProgress"."playerId" = :id', { id: userId })
-            .andWhere('g.status = :status', { status: GameStatus.Active })
+            .andWhere('g.status <> :status', { status: GameStatus.Finished }) //Возвращаем любую(!) не завершенную(!!) игру
             .getRawOne();
 
-        const game = await this.findById(gameId.g_id as string);
+        const game = gameId ? await this.findById(gameId.g_id as string) : null;
 
         /*const game = await this.games
             .createQueryBuilder('g')

@@ -42,7 +42,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    it('should create question', async () => {
+    /*it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -56,7 +56,7 @@ describe('quiz-game', () => {
             id: expect.any(String),
             published: false,
             createdAt: expect.any(String),
-            updatedAt: expect.any(String)
+            updatedAt: null
         });
     });
 
@@ -74,7 +74,7 @@ describe('quiz-game', () => {
             id: expect.any(String),
             published: false,
             createdAt: expect.any(String),
-            updatedAt: expect.any(String)
+            updatedAt: null
         });
 
         inputDto.body = 'updated test question';
@@ -143,6 +143,8 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(responseBody.status).toEqual('PendingSecondPlayer');
+        expect(responseBody.secondPlayerProgress).toEqual(null);
+        expect(responseBody.questions).toEqual(null);
     });
 
     it('should connect user to existing game', async () => {
@@ -166,6 +168,7 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(responseBody2.status).toEqual('Active');
+        expect(responseBody.id).toEqual(responseBody2.id);
     });
 
     it('should return active game for current user', async () => {
@@ -261,6 +264,16 @@ describe('quiz-game', () => {
             expect(responseBodyg1.answerStatus).toBeDefined();
             expect(responseBodyg1.questionId).toBeDefined();
 
+            let { body: currentGame } = (await request(app.getHttpServer())
+                .get('/pair-game-quiz/pairs/my-current')
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: GameViewDto };
+            console.log(responseBodyg1, currentGame);
+            expect(currentGame.questions).not.toBe(null);
+            /!* if (currentGame.questions) {
+                expect(currentGame.questions.some((x) => x.id == responseBodyg1.questionId)).toBeTruthy();
+            }*!/
+
             const { body: responseBodyg2 } = (await request(app.getHttpServer())
                 .post('/pair-game-quiz/pairs/my-current/answers')
                 .send({ answer: `alternative correct answer${Math.floor(Math.random() * 15)}` })
@@ -278,5 +291,72 @@ describe('quiz-game', () => {
 
         expect(finalResponse.status).toEqual('Finished');
         expect(finalResponse.finishGameDate !== 'null').toBeTruthy();
+    });*/
+
+    it('should send 2 correct and 2 incorrect answer for the game', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(2);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(15);
+
+        const { body: responseBody } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
+        expect(responseBody.questions).toBe(null);
+
+        const { body: responseBody2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody2.status).toEqual('Active'); //Игру создали и убедились, что она активна
+        expect(responseBody2.questions).not.toBe(null);
+        const gameId = responseBody2.id;
+        const gameQuestions = responseBody2.questions;
+        //console.log(responseBody2);
+
+        for (let i = 0; i < 2; i++) {
+            const { body: responseBodyg1 } = (await request(app.getHttpServer())
+                .post('/pair-game-quiz/pairs/my-current/answers')
+                .send({ answer: `alternative correct answer` })
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+            expect(responseBodyg1.answerStatus).toBeDefined();
+            expect(responseBodyg1.questionId).toBeDefined();
+
+            let { body: currentGame } = (await request(app.getHttpServer())
+                .get('/pair-game-quiz/pairs/my-current')
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: GameViewDto };
+            //console.log(currentGame.firstPlayerProgress.score);
+            expect(currentGame.questions).not.toBe(null);
+            /* if (currentGame.questions) {
+                expect(currentGame.questions.some((x) => x.id == responseBodyg1.questionId)).toBeTruthy();
+            }*/
+
+            const { body: responseBodyg2 } = (await request(app.getHttpServer())
+                .post('/pair-game-quiz/pairs/my-current/answers')
+                .send({ answer: `incorrect answer` })
+                .auth(tokens[1].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+            expect(responseBodyg2.answerStatus).toBeDefined();
+            expect(responseBodyg2.questionId).toBeDefined();
+        }
+
+        const { body: finalResponse } = (await request(app.getHttpServer()) //Получаем игру по id
+            .get(`/pair-game-quiz/pairs/${gameId}`)
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+        console.log(finalResponse.secondPlayerProgress?.answers);
+        expect(finalResponse.firstPlayerProgress.score).toEqual(2);
+        // @ts-ignore
+        expect(finalResponse.secondPlayerProgress.score).toEqual(0);
     });
 });

@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BeforeUpdate, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { CreateQuestionDomainDto } from './dto/create-question.domain.dto';
 import { UpdateQuestionDomainDto } from './dto/update-question.domain.dto';
 
@@ -19,8 +19,13 @@ export class Question {
     @CreateDateColumn()
     createdAt: Date;
 
-    @UpdateDateColumn({ nullable: true, insert: false })
+    @Column({ nullable: true, default: null })
     updatedAt: Date;
+
+    @BeforeUpdate()
+    updateTimestamp() {
+        this.updatedAt = new Date();
+    }
 
     static createInstance(dto: CreateQuestionDomainDto): Question {
         const question = new Question();

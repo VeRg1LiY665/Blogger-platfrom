@@ -35,7 +35,9 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
         for (const p of Agame.playerProgress) {
             if (p.playerId === dto.userId && p.answers.length < Agame.questions.length) {
                 const i = p.answers.length;
-                const flag: boolean = Agame.questions[i].correctAnswers.some((x) => x == dto.answer);
+                const flag: boolean = Agame.questions[i].correctAnswers.some(
+                    (x) => x == Object.values(dto.answer).toString()
+                );
                 const answer = this.answersFactory.create(Agame.questions[i].id, flag);
                 p.answers.push(answer);
 
@@ -47,11 +49,11 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
                     Agame.finishGame();
                 }
 
-                if (p.answers.length == Agame.questions.length && Agame.firstFinished == false) {
-                    p.playerScore++; //add 1 point for the first player to answer all questions
+                if (p.answers.length == Agame.questions.length && Agame.firstFinished == false && p.playerScore > 0) {
+                    p.playerScore++; //add 1 point for the first player to answer all questions AND to have at least one correct answer
                     Agame.firstFinished = true;
                 }
-
+                //console.log(Agame);
                 await this.gamesSqlRepository.save(Agame);
 
                 return AnswerViewDto.mapSqlToView(answer);

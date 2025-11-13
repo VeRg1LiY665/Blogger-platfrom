@@ -9,17 +9,17 @@ export class GameViewDto {
 
     firstPlayerProgress: PlayerProgressViewDto;
 
-    secondPlayerProgress: PlayerProgressViewDto;
+    secondPlayerProgress: PlayerProgressViewDto | null;
 
     status: GameStatus;
 
-    questions: QuestionsForGameViewDto[] = [];
+    questions: QuestionsForGameViewDto[] | null;
 
     pairCreatedDate: string;
 
-    startGameDate: string;
+    startGameDate: string | null;
 
-    finishGameDate: string;
+    finishGameDate: string | null;
 
     static mapSqlToView(game: any[]): GameViewDto {
         const dto = new GameViewDto();
@@ -33,39 +33,15 @@ export class GameViewDto {
             score: game[0].playerScore as number,
             answers: []
         };
-
+        dto.questions = [];
         dto.status = game[0].g_status;
         dto.pairCreatedDate = game[0].g_pairCreatedDate.toISOString();
-        dto.startGameDate = game[0].g_startGameDate ? game[0].g_startGameDate.toISOString() : 'null';
-        dto.finishGameDate = game[0].g_finishGameDate ? game[0].g_finishGameDate.toISOString() : 'null';
+        dto.startGameDate = game[0].g_startGameDate ? game[0].g_startGameDate.toISOString() : null;
+        dto.finishGameDate = game[0].g_finishGameDate ? game[0].g_finishGameDate.toISOString() : null;
 
         if (game[0].g_status == GameStatus.PendingSecondPlayer) {
-            dto.firstPlayerProgress.answers.push({
-                questionId: 'null',
-                answerStatus: 'null',
-                addedAt: 'null'
-            });
-
-            dto.secondPlayerProgress = {
-                player: {
-                    id: 'null',
-                    login: 'null'
-                },
-                score: 0,
-                answers: []
-            };
-
-            dto.secondPlayerProgress.answers.push({
-                questionId: 'null',
-                answerStatus: 'null',
-                addedAt: 'null'
-            });
-            game.forEach((el) => {
-                dto.questions.push({
-                    id: el.q_id,
-                    body: el.body
-                });
-            });
+            dto.secondPlayerProgress = null;
+            dto.questions = null;
         } else {
             dto.secondPlayerProgress = {
                 player: {
@@ -78,22 +54,26 @@ export class GameViewDto {
 
             game.forEach((el, i) => {
                 if (i < 5) {
-                    dto.questions.push({
+                    dto.questions!.push({
                         id: el.q_id,
                         body: el.body
                     });
 
-                    dto.firstPlayerProgress.answers.push({
-                        questionId: el.questionId,
-                        answerStatus: el.answerStatus,
-                        addedAt: el.addedAt
-                    });
+                    if (el.answerStatus) {
+                        dto.firstPlayerProgress.answers.push({
+                            questionId: el.questionId,
+                            answerStatus: el.answerStatus,
+                            addedAt: el.addedAt
+                        });
+                    }
                 } else {
-                    dto.secondPlayerProgress.answers.push({
-                        questionId: el.questionId,
-                        answerStatus: el.answerStatus,
-                        addedAt: el.addedAt
-                    });
+                    if (el.answerStatus) {
+                        dto.secondPlayerProgress!.answers.push({
+                            questionId: el.questionId,
+                            answerStatus: el.answerStatus,
+                            addedAt: el.addedAt
+                        });
+                    }
                 }
             });
         }

@@ -42,6 +42,13 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
         }
 
         const Pgame = await this.gamesSqlRepository.findPendingGame();
+        if (Pgame?.playerProgress[0].playerId == dto.userId) {
+            throw new DomainException({
+                code: DomainExceptionCode.Forbidden,
+                message: 'User already participates in game'
+            });
+        }
+
         if (Pgame) {
             const dto = {
                 userId: user.userId,
