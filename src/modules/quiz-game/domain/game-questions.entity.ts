@@ -6,7 +6,7 @@ import { CreateGameQuestionDomainDto } from './dto/create-game-question.domain.d
 
 @Entity({ name: 'game_questions' })
 export class GameQuestion {
-    @PrimaryColumn('uuid')
+    @PrimaryColumn('uuid') //TODO Сделать число для мапинга в квери репе + при множественных играх будет 500 из-за первичного ключа
     id: string;
 
     @Column()
@@ -25,7 +25,7 @@ export class GameQuestion {
     static createInstance(dto: CreateGameQuestionDomainDto): GameQuestion {
         const question = new GameQuestion();
 
-        question.id = dto.id;
+        question.id = dto.id; // Выкинуть нафиг
         question.body = dto.body;
         question.correctAnswers = dto.correctAnswers;
         question.gameEntityId = dto.gameId;

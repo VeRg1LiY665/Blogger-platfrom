@@ -48,7 +48,7 @@ export class GamesSqlQueryRepository {
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
-            //.orderBy('"createdAt"', 'ASC')
+            .orderBy('"createdAt"', 'ASC')
             .getRawMany();
 
         return game ? GameViewDto.mapSqlToView(game) : null;

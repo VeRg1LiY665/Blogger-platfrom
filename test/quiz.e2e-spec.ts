@@ -330,7 +330,7 @@ describe('quiz-game', () => {
             expect(responseBodyg1.answerStatus).toBeDefined();
             expect(responseBodyg1.questionId).toBeDefined();
 
-            let { body: currentGame } = (await request(app.getHttpServer())
+            const { body: currentGame } = (await request(app.getHttpServer())
                 .get('/pair-game-quiz/pairs/my-current')
                 .auth(tokens[0].accessToken, { type: 'bearer' })
                 .expect(HttpStatus.OK)) as { body: GameViewDto };
@@ -339,16 +339,16 @@ describe('quiz-game', () => {
             /* if (currentGame.questions) {
                 expect(currentGame.questions.some((x) => x.id == responseBodyg1.questionId)).toBeTruthy();
             }*/
-
-            const { body: responseBodyg2 } = (await request(app.getHttpServer())
-                .post('/pair-game-quiz/pairs/my-current/answers')
-                .send({ answer: `incorrect answer` })
-                .auth(tokens[1].accessToken, { type: 'bearer' })
-                .expect(HttpStatus.OK)) as { body: AnswerViewDto };
-
-            expect(responseBodyg2.answerStatus).toBeDefined();
-            expect(responseBodyg2.questionId).toBeDefined();
         }
+
+        const { body: responseBodyg2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/my-current/answers')
+            .send({ answer: `incorrect answer` })
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+        expect(responseBodyg2.answerStatus).toBeDefined();
+        expect(responseBodyg2.questionId).toBeDefined();
 
         const { body: finalResponse } = (await request(app.getHttpServer()) //Получаем игру по id
             .get(`/pair-game-quiz/pairs/${gameId}`)
