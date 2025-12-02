@@ -43,23 +43,59 @@ export class GameViewDto {
             dto.secondPlayerProgress = null;
             dto.questions = null;
         } else {
-            dto.secondPlayerProgress = {
+            /*dto.secondPlayerProgress = {
                 player: {
                     id: game[5].playerId as string,
                     login: game[5].playerLogin as string
                 },
                 score: game[5].playerScore as number,
                 answers: []
-            };
+            };*/
 
-            game.forEach((el, i) => {
+            for (let i = 0; i < 5; i++) {
+                dto.questions.push({
+                    id: game[i].q_id,
+                    body: game[i].body
+                });
+            }
+            for (let i = 0; i < game.length; i += 5) {
+                if (game[i].answerStatus && game[i].playerId == dto.firstPlayerProgress.player.id) {
+                    dto.firstPlayerProgress.answers.push({
+                        questionId: game[i].questionId,
+                        answerStatus: game[i].answerStatus,
+                        addedAt: game[i].addedAt
+                    });
+                }
+
+                if (game[i].playerId !== dto.firstPlayerProgress.player.id && !dto.secondPlayerProgress) {
+                    dto.secondPlayerProgress = {
+                        player: {
+                            id: game[i].playerId as string,
+                            login: game[i].playerLogin as string
+                        },
+                        score: game[i].playerScore as number,
+                        answers: []
+                    };
+                }
+
+                if (game[i].answerStatus && game[i].playerId !== dto.firstPlayerProgress.player.id) {
+                    dto.secondPlayerProgress!.answers.push({
+                        questionId: game[i].questionId,
+                        answerStatus: game[i].answerStatus,
+                        addedAt: game[i].addedAt
+                    });
+                }
+                //console.log(dto);
+            }
+            /*game.forEach((el, i) => {
                 if (i < 5) {
-                    dto.questions!.push({
+                    /!*dto.questions!.push({
                         id: el.q_id,
                         body: el.body
-                    });
+                    });*!/
 
                     if (el.answerStatus) {
+                        //Граничное условие - игра Active, но первый юзер еще не ответил ни на один вопрос
                         dto.firstPlayerProgress.answers.push({
                             questionId: el.questionId,
                             answerStatus: el.answerStatus,
@@ -68,6 +104,7 @@ export class GameViewDto {
                     }
                 } else {
                     if (el.answerStatus) {
+                        //Граничное условие - игра Active, но второй юзер еще не ответил ни на один вопрос
                         dto.secondPlayerProgress!.answers.push({
                             questionId: el.questionId,
                             answerStatus: el.answerStatus,
@@ -75,7 +112,7 @@ export class GameViewDto {
                         });
                     }
                 }
-            });
+            });*/
         }
 
         return dto;
