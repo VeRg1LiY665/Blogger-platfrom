@@ -13,8 +13,9 @@ export class GamesSqlQueryRepository {
     private games: Repository<GameEntity>;
 
     constructor(
-        @InjectDataSource()
-        private readonly dataSource: DataSource
+        //@InjectDataSource()
+        private readonly dataSource: DataSource,
+        private readonly questionLimit: number
     ) {
         this.games = this.dataSource.getRepository(GameEntity);
     }
@@ -54,7 +55,7 @@ export class GamesSqlQueryRepository {
             .addOrderBy('q_sorting_id', 'ASC')
             .getRawMany();
 
-        return game ? GameViewDto.mapSqlToView(game) : null;
+        return game ? GameViewDto.mapSqlToView(game, this.questionLimit) : null;
     }
 
     async findActiveForUser(userId: string): Promise<GameViewDto | null> {
