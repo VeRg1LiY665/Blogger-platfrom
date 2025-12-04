@@ -21,8 +21,6 @@ import { UsersExtSqlQRepository } from '../user-accounts/infrastructure/external
 import { QuizGameController } from './api/quiz.controller';
 import { DeleteQuestionUseCase } from './application/usecases/admins/delete-question.usecase';
 import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
-import { GameViewDto } from './api/view-dto/game.view-dto';
-import { GameViewFactory } from './api/factories/game-view.factory';
 import { DataSource } from 'typeorm';
 
 const commandHandlers = [
