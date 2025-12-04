@@ -23,7 +23,7 @@ export class GamesSqlQueryRepository {
         const game = await this.games
             .createQueryBuilder('g')
             .leftJoinAndSelect(
-                (qb) => qb.select(['id', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
+                (qb) => qb.select(['id', '"questionId"', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
                 'questions',
                 'questions."gameEntityId" = g.id'
             )
@@ -44,11 +44,14 @@ export class GamesSqlQueryRepository {
                 'answers."questionId"',
                 'answers."answerStatus"',
                 'answers."addedAt"',
-                'questions.id as q_id',
+                'questions."questionId" as q_id',
+                'questions.id as q_sorting_id',
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
             .orderBy('"createdAt"', 'ASC')
+            .addOrderBy('"addedAt"', 'ASC')
+            .addOrderBy('q_sorting_id', 'ASC')
             .getRawMany();
 
         return game ? GameViewDto.mapSqlToView(game) : null;

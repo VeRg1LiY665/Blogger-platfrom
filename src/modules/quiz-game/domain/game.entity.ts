@@ -13,8 +13,8 @@ export class GameEntity {
     @OneToMany(() => PlayerProgress, (playerProgress) => playerProgress.gameEntity, { cascade: false })
     playerProgress: PlayerProgress[];
 
-    @Column({ default: false })
-    firstFinished: boolean; //check for first player to finish the game
+    @Column({ default: 255 })
+    firstFinished: number; //check for first player to finish the game - index of playerProgress
 
     @Column({
         type: 'enum',
@@ -52,7 +52,10 @@ export class GameEntity {
         this.startGameDate = new Date();
     }
 
-    finishGame() {
+    finishGame(index: number) {
+        if (this.playerProgress[index].playerScore > 0) {
+            this.playerProgress[index].playerScore++;
+        }
         this.finishGameDate = new Date();
         this.status = GameStatus.Finished;
     }

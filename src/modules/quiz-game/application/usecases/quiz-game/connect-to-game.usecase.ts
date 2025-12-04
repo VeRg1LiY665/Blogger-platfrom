@@ -37,7 +37,16 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
         if (Agame) {
             throw new DomainException({
                 code: DomainExceptionCode.Forbidden,
-                message: 'User already participates in game'
+                message: 'User already participates in game',
+                extensions: [
+                    {
+                        message: 'Already have an active game',
+                        key:
+                            Agame.playerProgress[0].answers.length.toString() +
+                            ' ' +
+                            Agame.playerProgress[1].answers.length.toString()
+                    }
+                ]
             });
         }
 
@@ -45,7 +54,13 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
         if (Pgame?.playerProgress[0].playerId == dto.userId) {
             throw new DomainException({
                 code: DomainExceptionCode.Forbidden,
-                message: 'User already participates in game'
+                message: 'User already participates in game',
+                extensions: [
+                    {
+                        message: 'Already have pending game',
+                        key: ''
+                    }
+                ]
             });
         }
 

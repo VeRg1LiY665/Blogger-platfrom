@@ -32,26 +32,25 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
             });
         }
 
-        for (const p of Agame.playerProgress) {
+        for (const [index, p] of Agame.playerProgress.entries()) {
             if (p.playerId === dto.userId && p.answers.length < Agame.questions.length) {
                 const i = p.answers.length;
                 const flag: boolean = Agame.questions[i].correctAnswers.some(
                     (x) => x == Object.values(dto.answer).toString()
                 );
-                const answer = this.answersFactory.create(Agame.questions[i].id, flag);
+                const answer = this.answersFactory.create(Agame.questions[i].questionId, flag);
                 p.answers.push(answer);
 
                 if (answer.answerStatus == AnswerStatus.Correct) {
                     p.playerScore++;
                 }
 
-                if (p.answers.length == Agame.questions.length && Agame.firstFinished == true) {
-                    Agame.finishGame();
+                if (p.answers.length == Agame.questions.length && Agame.firstFinished !== 255) {
+                    Agame.finishGame(Agame.firstFinished);
                 }
 
-                if (p.answers.length == Agame.questions.length && Agame.firstFinished == false && p.playerScore > 0) {
-                    p.playerScore++; //add 1 point for the first player to answer all questions AND to have at least one correct answer
-                    Agame.firstFinished = true;
+                if (p.answers.length == Agame.questions.length && Agame.firstFinished == 255) {
+                    Agame.firstFinished = index;
                 }
                 //console.log(Agame);
                 await this.gamesSqlRepository.save(Agame);

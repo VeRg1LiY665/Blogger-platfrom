@@ -268,11 +268,11 @@ describe('quiz-game', () => {
                 .get('/pair-game-quiz/pairs/my-current')
                 .auth(tokens[0].accessToken, { type: 'bearer' })
                 .expect(HttpStatus.OK)) as { body: GameViewDto };
-            // console.log(responseBodyg1, currentGame);
+
             expect(currentGame.questions).not.toBe(null);
-            /* if (currentGame.questions) {
+            if (currentGame.questions) {
                 expect(currentGame.questions.some((x) => x.id == responseBodyg1.questionId)).toBeTruthy();
-            }*/
+            }
 
             const { body: responseBodyg2 } = (await request(app.getHttpServer())
                 .post('/pair-game-quiz/pairs/my-current/answers')
