@@ -22,6 +22,7 @@ import { QuizGameController } from './api/quiz.controller';
 import { DeleteQuestionUseCase } from './application/usecases/admins/delete-question.usecase';
 import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
 import { DataSource } from 'typeorm';
+import { GetMyGamesQueryHandler } from './application/queries/public/get-my-games.query';
 
 const commandHandlers = [
     CreateQuestionUseCase,
@@ -36,7 +37,8 @@ const queryHandlers = [
     GetAllQuestionsAdminsQueryHandler,
     GetQuestionByIdQueryHandler,
     GetCurrentGameQueryHandler,
-    GetGameByIdQueryHandler
+    GetGameByIdQueryHandler,
+    GetMyGamesQueryHandler
 ];
 
 @Module({

@@ -10,6 +10,8 @@ import { ConnectToGameCommand } from '../application/usecases/quiz-game/connect-
 import { SendNextQuestionAnswerCommand } from '../application/usecases/quiz-game/send-next-question.usecase';
 import { AnswerViewDto } from './view-dto/answer.view-dto';
 import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
+import { GetMyGamesQuery } from '../application/queries/public/get-my-games.query';
+import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 
 @Controller('pair-game-quiz/pairs')
 export class QuizGameController {
@@ -17,6 +19,12 @@ export class QuizGameController {
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus
     ) {}
+
+    @Get('/pairs/my')
+    @UseGuards(JwtAuthGuard)
+    async getMyGames(@ExtractUserFromRequest() user: UserContextDto): Promise<PaginatedViewDto<GameViewDto[]>> {
+        return await this.queryBus.execute<GetMyGamesQuery>(new GetMyGamesQuery(user.id));
+    }
 
     @Get('/my-current')
     @UseGuards(JwtAuthGuard)

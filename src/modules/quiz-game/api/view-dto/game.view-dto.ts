@@ -1,6 +1,7 @@
 import { GameStatus } from '../../domain/constants/game-status.constants';
 import { PlayerProgressViewDto } from './player-progress.view-dto';
 import { QuestionsForGameViewDto } from './questions-for-game.view-dto';
+import { GameEntity } from '../../domain/game.entity';
 
 export class GameViewDto {
     id: string;
@@ -79,4 +80,6 @@ export class GameViewDto {
 
         return dto;
     }
+
+    // static mapManyToView(dto: GameEntity): GameViewDto {}
 }
