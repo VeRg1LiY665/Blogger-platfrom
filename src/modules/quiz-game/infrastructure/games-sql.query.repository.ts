@@ -50,7 +50,7 @@ export class GamesSqlQueryRepository {
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
-            .orderBy('"createdAt"', 'ASC')
+            .orderBy('"createdAt"', 'ASC') //possibly not needed at all IN THIS PARTICULAR QUERY
             .addOrderBy('"addedAt"', 'ASC')
             .addOrderBy('q_sorting_id', 'ASC')
             .getRawMany();
