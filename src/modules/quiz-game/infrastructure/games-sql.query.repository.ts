@@ -79,8 +79,9 @@ export class GamesSqlQueryRepository {
     }
 
     async findAllForUser(userId: string): Promise<PaginatedViewDto<GameViewDto[]> | null> {
-        const gameIds = await this.playerProgress
+        const gameIds = await this.games
             .createQueryBuilder('pp')
+            .leftJoinAndSelect((qb) => qb.select(['"playerId", "']).from(GameEntity, 'g'), '"games"', '"games".')
             .select('pp."gameEntityId"')
             .where('pp."playerId" = :id', { id: userId })
             .getRawMany();

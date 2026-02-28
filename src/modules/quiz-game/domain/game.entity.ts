@@ -35,6 +35,9 @@ export class GameEntity {
     @Column({ name: 'finishGameDate', nullable: true })
     finishGameDate: Date;
 
+    @Column({ default: 0 })
+    totalNumberOfAnswers: number;
+
     static createInstance(dto: CreateGameDomainDto): GameEntity {
         const game = new this();
         const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: dto.gameId };
@@ -58,5 +61,9 @@ export class GameEntity {
         }
         this.finishGameDate = new Date();
         this.status = GameStatus.Finished;
+    }
+
+    countTotalNumberOfAnswers() {
+        this.totalNumberOfAnswers++;
     }
 }

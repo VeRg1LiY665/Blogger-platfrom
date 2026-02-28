@@ -53,6 +53,7 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
                     Agame.firstFinished = index;
                 }
                 //console.log(Agame);
+                Agame.countTotalNumberOfAnswers();
                 await this.gamesSqlRepository.save(Agame);
 
                 return AnswerViewDto.mapSqlToView(answer);
