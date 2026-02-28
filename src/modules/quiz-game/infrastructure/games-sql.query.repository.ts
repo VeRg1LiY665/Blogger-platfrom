@@ -50,7 +50,7 @@ export class GamesSqlQueryRepository {
                 'questions.body'
             ])
             .where('g.id = :id', { id: id })
-            .orderBy('"createdAt"', 'ASC') //possibly not needed at all IN THIS PARTICULAR QUERY
+            .orderBy('"createdAt"', 'ASC') // needed!! since it is for playerProgress sorting
             .addOrderBy('"addedAt"', 'ASC')
             .addOrderBy('q_sorting_id', 'ASC')
             .getRawMany();
@@ -78,7 +78,7 @@ export class GamesSqlQueryRepository {
         return game;
     }
 
-    async findAllForUser(userId: string): Promise<PaginatedViewDto<GameViewDto[]>> {
+    async findAllForUser(userId: string): Promise<PaginatedViewDto<GameViewDto[]> | null> {
         const gameIds = await this.playerProgress
             .createQueryBuilder('pp')
             .select('pp."gameEntityId"')
@@ -117,12 +117,13 @@ export class GamesSqlQueryRepository {
                     'questions.id as q_sorting_id',
                     'questions.body'
                 ])
-                //.groupBy('g.id')
                 .where('g.id = ANY(:id)', { id: [...gameIds] }) //TODO Check if explicit type cast needed
-                .orderBy('"createdAt"', 'ASC')
+                .orderBy('"pairCreatedDate"', 'ASC')
+                .addOrderBy('"createdAt"', 'ASC')
                 .addOrderBy('"addedAt"', 'ASC')
                 .addOrderBy('q_sorting_id', 'ASC')
                 .getRawMany();
         }
+        return null;
     }
 }
