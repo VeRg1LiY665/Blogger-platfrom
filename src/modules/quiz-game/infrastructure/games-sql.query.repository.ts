@@ -7,6 +7,7 @@ import { GameQuestion } from '../domain/game-questions.entity';
 import { GameStatus } from '../domain/constants/game-status.constants';
 import { PlayerProgress } from '../domain/playerProgress.entity';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
+import { calculateRows } from './utils/total-number-of-rows.calculation';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -18,6 +19,7 @@ export class GamesSqlQueryRepository {
         private readonly questionLimit: number
     ) {
         this.games = this.dataSource.getRepository(GameEntity);
+        this.playerProgress = this.dataSource.getRepository(PlayerProgress);
     }
 
     async findById(id: string): Promise<GameViewDto | null> {
@@ -79,15 +81,21 @@ export class GamesSqlQueryRepository {
     }
 
     async findAllForUser(userId: string): Promise<PaginatedViewDto<GameViewDto[]> | null> {
-        const gameIds = await this.games
+        const gameIdsAndAnswersCount = await this.playerProgress
             .createQueryBuilder('pp')
-            .leftJoinAndSelect((qb) => qb.select(['"playerId", "']).from(GameEntity, 'g'), '"games"', '"games".')
-            .select('pp."gameEntityId"')
+            .leftJoinAndSelect(
+                (qb) => qb.select(['id', '"totalNumberOfAnswers"', 'status']).from(GameEntity, 'g'),
+                'games',
+                'games.id = pp."gameEntityId"'
+            )
+            .select('games.*')
             .where('pp."playerId" = :id', { id: userId })
             .getRawMany();
 
+        const gameQueryData = calculateRows(gameIdsAndAnswersCount, this.questionLimit);
+
         const games = [];
-        if (gameIds.length > 0) {
+        if (gameQueryData.ids.length > 0) {
             const games = await this.games
                 .createQueryBuilder('g')
                 .leftJoinAndSelect(
@@ -118,7 +126,7 @@ export class GamesSqlQueryRepository {
                     'questions.id as q_sorting_id',
                     'questions.body'
                 ])
-                .where('g.id = ANY(:id)', { id: [...gameIds] }) //TODO Check if explicit type cast needed
+                .where('g.id = ANY(:id)', { id: [...gameQueryData.ids] }) //TODO Check if explicit type cast needed
                 .orderBy('"pairCreatedDate"', 'ASC')
                 .addOrderBy('"createdAt"', 'ASC')
                 .addOrderBy('"addedAt"', 'ASC')

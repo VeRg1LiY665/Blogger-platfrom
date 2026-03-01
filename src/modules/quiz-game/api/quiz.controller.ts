@@ -20,7 +20,7 @@ export class QuizGameController {
         private readonly queryBus: QueryBus
     ) {}
 
-    @Get('/pairs/my')
+    @Get('/my')
     @UseGuards(JwtAuthGuard)
     async getMyGames(@ExtractUserFromRequest() user: UserContextDto): Promise<PaginatedViewDto<GameViewDto[]>> {
         return await this.queryBus.execute<GetMyGamesQuery>(new GetMyGamesQuery(user.id));

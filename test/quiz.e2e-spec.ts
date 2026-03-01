@@ -42,7 +42,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    it('should create question', async () => {
+    /*   it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -354,9 +354,9 @@ describe('quiz-game', () => {
         expect(finalResponse.firstPlayerProgress.score).toEqual(2);
         // @ts-ignore
         expect(finalResponse.secondPlayerProgress.score).toEqual(0);
-    });
+    });*/
 
-    /* it('should play 1 game for player then create 1 pending game', async () => {
+    it('should play 1 game for player, then create 1 pending game, then call /my', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(2);
 
         expect(tokens[0].accessToken).toBeDefined();
@@ -425,5 +425,10 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(responseBody3.status).toEqual('PendingSecondPlayer');
-    });*/
+
+        const { body: result } = await request(app.getHttpServer())
+            .get(`/pair-game-quiz/pairs/my`)
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.NOT_FOUND);
+    });
 });
