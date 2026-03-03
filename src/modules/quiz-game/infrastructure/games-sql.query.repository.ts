@@ -8,6 +8,7 @@ import { GameStatus } from '../domain/constants/game-status.constants';
 import { PlayerProgress } from '../domain/playerProgress.entity';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { calculateRows } from './utils/total-number-of-rows.calculation';
+import { GetGamesQueryParams } from '../api/input-dto/get-gamesquery-params.input-dto';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -80,7 +81,10 @@ export class GamesSqlQueryRepository {
         return game;
     }
 
-    async findAllForUser(userId: string): Promise<PaginatedViewDto<GameViewDto[]> | null> {
+    async findAllForUser(
+        userId: string,
+        queryParams: GetGamesQueryParams
+    ): Promise<PaginatedViewDto<GameViewDto[]> | null> {
         const gameIdsAndAnswersCount = await this.playerProgress
             .createQueryBuilder('pp')
             .leftJoinAndSelect(

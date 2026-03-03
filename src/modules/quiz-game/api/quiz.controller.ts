@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '../../user-accounts/guards/bearer/jwt-auth.guard';
 import { ExtractUserFromRequest } from '../../user-accounts/guards/decorators/param/extract-user-from-request.decorator';
@@ -12,6 +12,7 @@ import { AnswerViewDto } from './view-dto/answer.view-dto';
 import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 import { GetMyGamesQuery } from '../application/queries/public/get-my-games.query';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
+import { GetGamesQueryParams } from './input-dto/get-gamesquery-params.input-dto';
 
 @Controller('pair-game-quiz/pairs')
 export class QuizGameController {
@@ -22,8 +23,11 @@ export class QuizGameController {
 
     @Get('/my')
     @UseGuards(JwtAuthGuard)
-    async getMyGames(@ExtractUserFromRequest() user: UserContextDto): Promise<PaginatedViewDto<GameViewDto[]>> {
-        return await this.queryBus.execute<GetMyGamesQuery>(new GetMyGamesQuery(user.id));
+    async getMyGames(
+        @Query() query: GetGamesQueryParams,
+        @ExtractUserFromRequest() user: UserContextDto
+    ): Promise<PaginatedViewDto<GameViewDto[]>> {
+        return await this.queryBus.execute<GetMyGamesQuery>(new GetMyGamesQuery(query, user.id));
     }
 
     @Get('/my-current')
