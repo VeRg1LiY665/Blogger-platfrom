@@ -48,20 +48,18 @@ export class GameViewDto {
                 dto.questions = null;
                 k += questionLimit;
             } else {
-                for (let i = j; i < questionLimit; i++) {
+                for (let q = j; q < j + questionLimit; q++) {
                     dto.questions.push({
-                        id: game[i].q_id,
-                        body: game[i].body
+                        id: game[q].q_id,
+                        body: game[q].body
                     });
                 }
                 for (let i = j; i < game.length; i += questionLimit) {
                     if (
-                        game[i].playerId !== dto.firstPlayerProgress.player.id &&
-                        dto.secondPlayerProgress &&
-                        game[i].playerId !== dto.secondPlayerProgress.player.id //TODO Проверить прям пристально, если что-то не заработает
+                        game[i].g_id !== dto.id //TODO Проверить прям пристально, если что-то не заработает
                     ) {
                         k = i;
-                        console.log('k = ', k);
+
                         break; //Проверили, что вывалились за текущую игру -> переназначили начало для следующей итерации и прервали цикл
                     }
 
@@ -94,11 +92,11 @@ export class GameViewDto {
                     k = i + questionLimit; //потому что итератор увеличивается за телом цикла
                 }
             }
-
+            //console.log(dto);
             result.push(dto);
         }
 
-        console.log(result);
+        //console.log(result);
         return result.length > 1 ? result : result[0];
     }
 
