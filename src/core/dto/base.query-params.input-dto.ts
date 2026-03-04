@@ -25,4 +25,13 @@ export class BaseQueryParams {
     calculateSkip(): number {
         return (this.pageNumber - 1) * this.pageSize;
     }
+
+    /*calculateSkipMyGames(rowsCount: number): number {
+        switch (this.sortDirection) {
+            case SortDirection.Asc:
+                return (this.pageNumber - 1) * this.pageSize * 50; //Пока так - потом подумаю, как здесь импортировать число ответных строк из бд на одну игру
+            case SortDirection.Desc:
+                return (this.pageNumber - 1) * (this.pageSize - 1) * 50 + (rowsCount % 50);
+        }
+    }*/
 }

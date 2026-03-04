@@ -58,7 +58,7 @@ export class GamesSqlQueryRepository {
             .addOrderBy('q_sorting_id', 'ASC')
             .getRawMany();
 
-        return game ? GameViewDto.mapSqlToView(game, this.questionLimit) : null;
+        return game ? (GameViewDto.mapSqlToView(game, this.questionLimit) as GameViewDto) : null; //typecast ибо проверка на нужный вывод есть во вьюшке
     }
 
     async findActiveForUser(userId: string): Promise<GameViewDto | null> {
@@ -85,7 +85,7 @@ export class GamesSqlQueryRepository {
         userId: string,
         queryParams: GetGamesQueryParams
     ): Promise<PaginatedViewDto<GameViewDto[]> | null> {
-        const gameIdsAndAnswersCount = await this.playerProgress
+        const gameIdsAndAnswersCountQB = this.playerProgress
             .createQueryBuilder('pp')
             .leftJoinAndSelect(
                 (qb) => qb.select(['id', '"totalNumberOfAnswers"', 'status']).from(GameEntity, 'g'),
@@ -93,50 +93,62 @@ export class GamesSqlQueryRepository {
                 'games.id = pp."gameEntityId"'
             )
             .select('games.*')
-            .where('pp."playerId" = :id', { id: userId })
-            .getRawMany();
+            .where('pp."playerId" = :id', { id: userId });
+
+        const gameIdsAndAnswersCount = await gameIdsAndAnswersCountQB.getRawMany();
+
+        const totalCount: number = +(await gameIdsAndAnswersCountQB.getCount());
 
         const gameQueryData = calculateRows(gameIdsAndAnswersCount, this.questionLimit);
 
-        const games = [];
-        if (gameQueryData.ids.length > 0) {
-            const games = await this.games
-                .createQueryBuilder('g')
-                .leftJoinAndSelect(
-                    (qb) => qb.select(['id', '"questionId"', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
-                    'questions',
-                    'questions."gameEntityId" = g.id'
-                )
-                .leftJoinAndSelect('g.playerProgress', 'playerProgress')
-                .leftJoinAndSelect(
-                    (qb) =>
-                        qb
-                            .select(['"questionId"', '"answerStatus"', '"addedAt"', '"playerProgressId"'])
-                            .from(Answer, 'a'),
-                    'answers',
-                    'answers."playerProgressId" = playerProgress.id'
-                )
-                .select([
-                    'g.id',
-                    'g.status',
-                    'g.pairCreatedDate',
-                    'g.startGameDate',
-                    'g.finishGameDate',
-                    '"playerProgress".*',
-                    'answers."questionId"',
-                    'answers."answerStatus"',
-                    'answers."addedAt"',
-                    'questions."questionId" as q_id',
-                    'questions.id as q_sorting_id',
-                    'questions.body'
-                ])
-                .where('g.id = ANY(:id)', { id: [...gameQueryData.ids] }) //TODO Check if explicit type cast needed
-                .orderBy('"pairCreatedDate"', 'ASC')
-                .addOrderBy('"createdAt"', 'ASC')
-                .addOrderBy('"addedAt"', 'ASC')
-                .addOrderBy('q_sorting_id', 'ASC')
-                .getRawMany();
-        }
-        return null;
+        const queryBuilder = this.games
+            .createQueryBuilder('g')
+            .leftJoinAndSelect(
+                (qb) => qb.select(['id', '"questionId"', 'body', '"gameEntityId"']).from(GameQuestion, 'q'),
+                'questions',
+                'questions."gameEntityId" = g.id'
+            )
+            .leftJoinAndSelect('g.playerProgress', 'playerProgress')
+            .leftJoinAndSelect(
+                (qb) =>
+                    qb.select(['"questionId"', '"answerStatus"', '"addedAt"', '"playerProgressId"']).from(Answer, 'a'),
+                'answers',
+                'answers."playerProgressId" = playerProgress.id'
+            )
+            .select([
+                'g.id',
+                'g.status',
+                'g.pairCreatedDate',
+                'g.startGameDate',
+                'g.finishGameDate',
+                '"playerProgress".*',
+                'answers."questionId"',
+                'answers."answerStatus"',
+                'answers."addedAt"',
+                'questions."questionId" as q_id',
+                'questions.id as q_sorting_id',
+                'questions.body'
+            ])
+            .where('g.id = ANY(:id)', { id: [...gameQueryData.ids] })
+            .orderBy(`g."${queryParams.sortBy}"`, queryParams.sortDirection)
+            .addOrderBy('"createdAt"', 'ASC')
+            .addOrderBy('"addedAt"', 'ASC')
+            .addOrderBy('q_sorting_id', 'ASC');
+        //.getRawMany();
+
+        const games = await queryBuilder
+            .take(queryParams.calculateTakeMyGames(gameQueryData.rowCount))
+            .skip(queryParams.calculateSkipMyGames(gameQueryData.rowCount))
+            .getRawMany();
+
+        const items = GameViewDto.mapSqlToView(games, this.questionLimit) as GameViewDto[];
+
+        console.log(items);
+        return PaginatedViewDto.mapToView({
+            items,
+            totalCount,
+            page: queryParams.pageNumber,
+            size: queryParams.pageSize
+        });
     }
 }

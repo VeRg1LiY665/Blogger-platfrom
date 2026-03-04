@@ -8,7 +8,10 @@ export function calculateRows(inputData: any[], questionLimit: number): GamesIds
 
             currentEntry.status == GameStatus.PendingSecondPlayer
                 ? (acc.rowCount += questionLimit)
-                : (acc.rowCount += currentEntry.totalNumberOfAnswers * questionLimit);
+                : (acc.rowCount +=
+                      questionLimit +
+                      (questionLimit / 2) *
+                          (currentEntry.totalNumberOfAnswers + Math.abs(currentEntry.totalNumberOfAnswers - 2)));
 
             return acc;
         },

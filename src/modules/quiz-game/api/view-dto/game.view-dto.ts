@@ -1,7 +1,6 @@
 import { GameStatus } from '../../domain/constants/game-status.constants';
 import { PlayerProgressViewDto } from './player-progress.view-dto';
 import { QuestionsForGameViewDto } from './questions-for-game.view-dto';
-import { GameEntity } from '../../domain/game.entity';
 
 export class GameViewDto {
     id: string;
@@ -20,12 +19,14 @@ export class GameViewDto {
 
     finishGameDate: string | null;
 
-    static mapSqlToView(game: any[], questionLimit: number): GameViewDto {
-        const dto = new GameViewDto();
+    static mapSqlToView(game: any[], questionLimit: number): GameViewDto | GameViewDto[] {
+        const result: GameViewDto[] = [];
         let k: number = 1;
 
         for (let j = 0; j < game.length; j = k) {
             //j - starting index for each iteration
+
+            const dto = new GameViewDto();
 
             dto.id = game[j].g_id;
             dto.firstPlayerProgress = {
@@ -93,8 +94,12 @@ export class GameViewDto {
                     k = i + questionLimit; //потому что итератор увеличивается за телом цикла
                 }
             }
+
+            result.push(dto);
         }
-        return dto;
+
+        //console.log(result);
+        return result.length > 1 ? result : result[0];
     }
 
     //NOTE! !Backup for single game in case anything breaks!

@@ -70,4 +70,6 @@ export class QuizGameTestManager {
 
         return await Promise.all(publishPromises);
     }
+
+    async playSeveralGames(count: number): Promise<void[]> {}
 }
