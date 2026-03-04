@@ -141,9 +141,11 @@ export class GamesSqlQueryRepository {
             .skip(queryParams.calculateSkipMyGames(gameQueryData.rowCount))
             .getRawMany();
 
+        console.log(games.length);
+
         const items = GameViewDto.mapSqlToView(games, this.questionLimit) as GameViewDto[];
 
-        console.log(items);
+        //console.log(items);
         return PaginatedViewDto.mapToView({
             items,
             totalCount,

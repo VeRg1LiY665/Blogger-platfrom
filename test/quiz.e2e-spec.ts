@@ -440,7 +440,7 @@ describe('quiz-game', () => {
 
         await quizGameTestManager.createAndPublishSeveralQuestions(5);
 
-        const { body: responseBody } = (await request(app.getHttpServer())
+        /* const { body: responseBody } = (await request(app.getHttpServer())
             .post('/pair-game-quiz/pairs/connection')
             .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK)) as { body: GameViewDto };
@@ -493,14 +493,16 @@ describe('quiz-game', () => {
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
         expect(finalResponse.status).toEqual('Finished');
-        expect(finalResponse.finishGameDate !== 'null').toBeTruthy();
+        expect(finalResponse.finishGameDate !== 'null').toBeTruthy();*/
 
-        const { body: responseBody3 } = (await request(app.getHttpServer())
+        await quizGameTestManager.playSeveralGames(2, tokens);
+
+        const { body: responseBody } = (await request(app.getHttpServer())
             .post('/pair-game-quiz/pairs/connection')
             .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK)) as { body: GameViewDto };
 
-        expect(responseBody3.status).toEqual('PendingSecondPlayer');
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
 
         const { body: result } = await request(app.getHttpServer())
             .get(`/pair-game-quiz/pairs/my`)

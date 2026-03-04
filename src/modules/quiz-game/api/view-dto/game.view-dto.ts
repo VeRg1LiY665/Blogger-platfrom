@@ -98,7 +98,7 @@ export class GameViewDto {
             result.push(dto);
         }
 
-        //console.log(result);
+        console.log(result);
         return result.length > 1 ? result : result[0];
     }
 
