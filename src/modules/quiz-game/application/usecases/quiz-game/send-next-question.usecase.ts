@@ -52,7 +52,7 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
                 if (p.answers.length == Agame.questions.length && Agame.firstFinished == 255) {
                     Agame.firstFinished = index;
                 }
-                //console.log(Agame);
+
                 Agame.countTotalNumberOfAnswers();
                 await this.gamesSqlRepository.save(Agame);
 

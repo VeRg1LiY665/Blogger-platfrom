@@ -9,6 +9,7 @@ import { PlayerProgress } from '../domain/playerProgress.entity';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { calculateRows } from './utils/total-number-of-rows.calculation';
 import { GetGamesQueryParams } from '../api/input-dto/get-gamesquery-params.input-dto';
+import { UserStatisticsViewDto } from '../api/view-dto/player-statistics.view-dto';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -76,8 +77,6 @@ export class GamesSqlQueryRepository {
 
         const game = gameId ? await this.findById(gameId.g_id as string) : null;
 
-        //TODO СПРОСИТЬ норм ли делать через два запроса
-
         return game;
     }
 
@@ -134,22 +133,42 @@ export class GamesSqlQueryRepository {
             .addOrderBy('"createdAt"', 'ASC')
             .addOrderBy('"addedAt"', 'ASC')
             .addOrderBy('q_sorting_id', 'ASC');
-        //.getRawMany();
 
         const games = await queryBuilder
-            .take(queryParams.calculateTakeMyGames(gameQueryData.rowCount))
-            .skip(queryParams.calculateSkipMyGames(gameQueryData.rowCount))
+            .offset(queryParams.calculateSkipMyGames(gameQueryData.rowCount))
+            .limit(queryParams.calculateTakeMyGames(gameQueryData.rowCount))
             .getRawMany();
 
-        //console.log(games);
-        const items = GameViewDto.mapSqlToView(games, this.questionLimit) as GameViewDto[];
+        let items = GameViewDto.mapSqlToView(games, this.questionLimit) as GameViewDto[];
 
-        console.log(items);
+        Symbol.iterator in items ? items : (items = [items]); //из-за особенностей вывода мапера - при единственном объекте он его вернет не в массиве
+
         return PaginatedViewDto.mapToView({
             items,
             totalCount,
             page: queryParams.pageNumber,
             size: queryParams.pageSize
         });
+    }
+
+    async getStatisticsData(userId: string): Promise<UserStatisticsViewDto> {
+        const dto: UserStatisticsViewDto = {
+            sumScore: 0,
+            avgScores: 0,
+            gamesCount: 0,
+            winsCount: 0,
+            lossesCount: 0,
+            drawsCount: 0
+        };
+
+        const { sumScore, avgScores, gamesCount, winsCount, lossesCount, drawsCount } = await this.playerProgress
+            .createQueryBuilder('pp')
+            .select(['pp."playerId"', 'pp."playerScore"', 'pp."gameResult"'])
+            .addSelect('SUM(pp.playerScore)', 'sumScore')
+            .addSelect('')
+            .where('pp."playerId" = :id', { id: userId })
+            .getRawOne();
+
+        dto.gamesCount = +(await userStatisticsQB.getCount());
     }
 }

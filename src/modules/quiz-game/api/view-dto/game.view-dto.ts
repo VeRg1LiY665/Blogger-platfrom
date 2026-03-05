@@ -55,9 +55,7 @@ export class GameViewDto {
                     });
                 }
                 for (let i = j; i < game.length; i += questionLimit) {
-                    if (
-                        game[i].g_id !== dto.id //TODO Проверить прям пристально, если что-то не заработает
-                    ) {
+                    if (game[i].g_id !== dto.id) {
                         k = i;
 
                         break; //Проверили, что вывалились за текущую игру -> переназначили начало для следующей итерации и прервали цикл
@@ -92,11 +90,10 @@ export class GameViewDto {
                     k = i + questionLimit; //потому что итератор увеличивается за телом цикла
                 }
             }
-            //console.log(dto);
+
             result.push(dto);
         }
 
-        //console.log(result);
         return result.length > 1 ? result : result[0];
     }
 

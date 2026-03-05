@@ -13,6 +13,8 @@ import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.ser
 import { GetMyGamesQuery } from '../application/queries/public/get-my-games.query';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { GetGamesQueryParams } from './input-dto/get-gamesquery-params.input-dto';
+import { UserStatisticsViewDto } from './view-dto/player-statistics.view-dto';
+import { GetMyStatisticsQuery } from '../application/queries/public/get-user-statistics.usecase';
 
 @Controller('pair-game-quiz/pairs')
 export class QuizGameController {
@@ -20,6 +22,12 @@ export class QuizGameController {
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus
     ) {}
+
+    @Get('/my-statistic')
+    @UseGuards(JwtAuthGuard)
+    async getMyStatistics(@ExtractUserFromRequest() user: UserContextDto): Promise<UserStatisticsViewDto> {
+        return await this.queryBus.execute<GetMyStatisticsQuery>(new GetMyStatisticsQuery(user.id));
+    }
 
     @Get('/my')
     @UseGuards(JwtAuthGuard)

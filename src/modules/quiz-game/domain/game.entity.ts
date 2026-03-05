@@ -4,13 +4,14 @@ import { GameStatus } from './constants/game-status.constants';
 import { CreateGameDomainDto } from './dto/create-game.domain.dto';
 import { AddPlayerDomainDto } from './dto/add-player.domain.dto';
 import { GameQuestion } from './game-questions.entity';
+import { GameResult } from './constants/game-result.constants';
 
 @Entity({ name: 'games' })
 export class GameEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @OneToMany(() => PlayerProgress, (playerProgress) => playerProgress.gameEntity, { cascade: false })
+    @OneToMany(() => PlayerProgress, (playerProgress) => playerProgress.gameEntity, { cascade: true })
     playerProgress: PlayerProgress[];
 
     @Column({ default: 255 })
@@ -23,7 +24,7 @@ export class GameEntity {
     })
     status: GameStatus;
 
-    @OneToMany(() => GameQuestion, (question) => question.gameEntity, { cascade: false })
+    @OneToMany(() => GameQuestion, (question) => question.gameEntity, { cascade: true, nullable: false })
     questions: GameQuestion[];
 
     @CreateDateColumn({ name: 'pairCreatedDate' })
@@ -40,15 +41,16 @@ export class GameEntity {
 
     static createInstance(dto: CreateGameDomainDto): GameEntity {
         const game = new this();
-        const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: dto.gameId };
-        game.id = dto.gameId;
+        const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: game.id };
+
         game.playerProgress = [PlayerProgress.createInstance(ppDto)];
-        game.questions = dto.questions;
+        game.questions = [];
 
         return game;
     }
 
     addPlayer(dto: AddPlayerDomainDto) {
+        this.questions = dto.questions;
         const ppDto = { userId: dto.userId, userLogin: dto.userLogin, gameId: this.id };
         this.playerProgress.push(PlayerProgress.createInstance(ppDto));
         this.status = GameStatus.Active;
@@ -61,6 +63,17 @@ export class GameEntity {
         }
         this.finishGameDate = new Date();
         this.status = GameStatus.Finished;
+
+        switch (this.playerProgress[0].playerScore > this.playerProgress[1].playerScore) {
+            case true:
+                this.playerProgress[0].gameResult = GameResult.Win;
+                this.playerProgress[1].gameResult = GameResult.Loose;
+                break;
+            case false:
+                this.playerProgress[1].gameResult = GameResult.Win;
+                this.playerProgress[0].gameResult = GameResult.Loose;
+                break;
+        }
     }
 
     countTotalNumberOfAnswers() {

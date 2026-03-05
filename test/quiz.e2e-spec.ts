@@ -42,7 +42,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    /* it('should create question', async () => {
+    it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -291,9 +291,9 @@ describe('quiz-game', () => {
 
         expect(finalResponse.status).toEqual('Finished');
         expect(finalResponse.finishGameDate !== 'null').toBeTruthy();
-    });*/
+    });
 
-    /*it('should send 2 correct and 2 incorrect answer for the game', async () => {
+    it('should send 2 correct and 2 incorrect answer for the game', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(2);
 
         expect(tokens[0].accessToken).toBeDefined();
@@ -354,9 +354,9 @@ describe('quiz-game', () => {
         expect(finalResponse.firstPlayerProgress.score).toEqual(2);
         // @ts-ignore
         expect(finalResponse.secondPlayerProgress.score).toEqual(0);
-    });*/
+    });
 
-    /*it('should play 1 game for player, then create 1 pending game, then call /my', async () => {
+    it('should play 1 game for player, then create 1 pending game, then call /my', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(2);
 
         expect(tokens[0].accessToken).toBeDefined();
@@ -430,7 +430,7 @@ describe('quiz-game', () => {
             .get(`/pair-game-quiz/pairs/my`)
             .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK);
-    });*/
+    });
 
     it('should play 2 games for player, then create 1 pending game, then call /my (pageNumber = 2, pageSize = 2)', async () => {
         const tokens = await userTestManager.createAndLoginSeveralUsers(2);
@@ -505,8 +505,11 @@ describe('quiz-game', () => {
         expect(responseBody.status).toEqual('PendingSecondPlayer');
 
         const { body: result } = await request(app.getHttpServer())
-            .get(`/pair-game-quiz/pairs/my`)
+            .get(`/pair-game-quiz/pairs/my?pageNumber=2&pageSize=2`)
             .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK);
+
+        expect(result.items.length).toBe(1);
+        expect(result.items[0].status).toEqual('Finished');
     });
 });

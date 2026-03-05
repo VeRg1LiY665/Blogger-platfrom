@@ -23,6 +23,7 @@ import { DeleteQuestionUseCase } from './application/usecases/admins/delete-ques
 import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config';
 import { DataSource } from 'typeorm';
 import { GetMyGamesQueryHandler } from './application/queries/public/get-my-games.query';
+import { GetMyStatisticsQueryHandler } from './application/queries/public/get-user-statistics.usecase';
 
 const commandHandlers = [
     CreateQuestionUseCase,
@@ -38,7 +39,8 @@ const queryHandlers = [
     GetQuestionByIdQueryHandler,
     GetCurrentGameQueryHandler,
     GetGameByIdQueryHandler,
-    GetMyGamesQueryHandler
+    GetMyGamesQueryHandler,
+    GetMyStatisticsQueryHandler
 ];
 
 @Module({

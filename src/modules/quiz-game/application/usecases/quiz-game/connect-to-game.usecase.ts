@@ -65,29 +65,29 @@ export class ConnectToGameUseCase implements ICommandHandler<ConnectToGameComman
         }
 
         if (Pgame) {
+            const questions = await this.gameQuestionsFactory.create(Pgame.id);
             const dto = {
                 userId: user.userId,
-                userLogin: user.login
+                userLogin: user.login,
+                questions: questions
             };
+
             Pgame.addPlayer(dto);
 
             await this.gamesSqlRepository.save(Pgame);
             return Pgame.id;
         } else {
-            const gameId = randomUUID(); //TODO А так вообще можно?
-            const questions = await this.gameQuestionsFactory.create(gameId);
-
             const dto = {
-                gameId: gameId,
+                //gameId: gameId,
                 userId: user.userId,
-                userLogin: user.login,
-                questions: questions
+                userLogin: user.login
+                //questions: questions
             };
             const newGame = GameEntity.createInstance(dto);
 
             await this.gamesSqlRepository.save(newGame);
 
-            return gameId;
+            return newGame.id;
         }
     }
 }

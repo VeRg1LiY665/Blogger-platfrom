@@ -3,6 +3,7 @@ import { Answer } from './answers.entity';
 import { GameEntity } from './game.entity';
 import { randomUUID } from 'node:crypto';
 import { CreatePlayerProgressDomainDto } from './dto/create-player-progress.domain.dto';
+import { GameResult } from './constants/game-result.constants';
 
 @Entity({ name: 'playersProgress' })
 export class PlayerProgress {
@@ -30,6 +31,13 @@ export class PlayerProgress {
 
     @CreateDateColumn()
     createdAt: Date;
+
+    @Column({
+        type: 'enum',
+        enum: GameResult,
+        default: GameResult.Draw
+    })
+    gameResult: GameResult;
 
     static createInstance(dto: CreatePlayerProgressDomainDto) {
         const newInstanse = new this();
