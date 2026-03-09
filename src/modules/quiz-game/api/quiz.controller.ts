@@ -16,20 +16,21 @@ import { GetGamesQueryParams } from './input-dto/get-gamesquery-params.input-dto
 import { UserStatisticsViewDto } from './view-dto/player-statistics.view-dto';
 import { GetMyStatisticsQuery } from '../application/queries/public/get-user-statistics.usecase';
 
-@Controller('pair-game-quiz/pairs')
+@Controller('pair-game-quiz')
 export class QuizGameController {
     constructor(
         private readonly commandBus: CommandBus,
         private readonly queryBus: QueryBus
     ) {}
 
-    @Get('/my-statistic')
+    @Get('/users/my-statistic')
+    @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     async getMyStatistics(@ExtractUserFromRequest() user: UserContextDto): Promise<UserStatisticsViewDto> {
         return await this.queryBus.execute<GetMyStatisticsQuery>(new GetMyStatisticsQuery(user.id));
     }
 
-    @Get('/my')
+    @Get('/pairs/my')
     @UseGuards(JwtAuthGuard)
     async getMyGames(
         @Query() query: GetGamesQueryParams,
@@ -38,13 +39,13 @@ export class QuizGameController {
         return await this.queryBus.execute<GetMyGamesQuery>(new GetMyGamesQuery(query, user.id));
     }
 
-    @Get('/my-current')
+    @Get('/pairs/my-current')
     @UseGuards(JwtAuthGuard)
     async getCurrent(@ExtractUserFromRequest() user: UserContextDto): Promise<GameViewDto> {
         return await this.queryBus.execute<GetCurrentGameQuery>(new GetCurrentGameQuery(user.id));
     }
 
-    @Get('/:id')
+    @Get('/pairs/:id')
     @UseGuards(JwtAuthGuard)
     async getOne(
         @ExtractUserFromRequest() user: UserContextDto,
@@ -57,7 +58,7 @@ export class QuizGameController {
         return await this.queryBus.execute<GetGameByIdQuery>(new GetGameByIdQuery(dto));
     }
 
-    @Post('connection')
+    @Post('/pairs/connection')
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     async connect(@ExtractUserFromRequest() user: UserContextDto): Promise<GameViewDto> {
@@ -68,7 +69,7 @@ export class QuizGameController {
         return await this.queryBus.execute<GetGameByIdQuery>(new GetGameByIdQuery(dto));
     }
 
-    @Post('my-current/answers')
+    @Post('/pairs/my-current/answers')
     @HttpCode(HttpStatus.OK)
     @UseGuards(JwtAuthGuard)
     async myAnswers(@ExtractUserFromRequest() user: UserContextDto, @Body() answer: string): Promise<AnswerViewDto> {

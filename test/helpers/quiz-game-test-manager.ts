@@ -5,6 +5,7 @@ import { QuestionViewDto } from '../../src/modules/quiz-game/api/view-dto/questi
 import { PublishInputDto } from '../../src/modules/quiz-game/api/input-dto/publish.input-dto';
 import { GameViewDto } from '../../src/modules/quiz-game/api/view-dto/game.view-dto';
 import { AnswerViewDto } from '../../src/modules/quiz-game/api/view-dto/answer.view-dto';
+import { UserStatisticsViewDto } from '../../src/modules/quiz-game/api/view-dto/player-statistics.view-dto';
 
 export class QuizGameTestManager {
     constructor(private app: INestApplication) {}
@@ -132,5 +133,45 @@ export class QuizGameTestManager {
         }
 
         return;
+    }
+
+    async calculateStatistics(count: number, token: any): Promise<UserStatisticsViewDto> {
+        const { body: result } = await request(this.app.getHttpServer())
+            .get(`/pair-game-quiz/pairs/my`)
+            .auth(token.accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK);
+
+        const dto: UserStatisticsViewDto = {
+            sumScore: 0,
+            avgScores: 0,
+            gamesCount: 0,
+            winsCount: 0,
+            lossesCount: 0,
+            drawsCount: 0
+        };
+
+        for (let i = 0; i < count; i++) {
+            dto.sumScore += result.items[i].firstPlayerProgress.score;
+            switch (true) {
+                case result.items[i].firstPlayerProgress.score > result.items[i].secondPlayerProgress.score:
+                    dto.winsCount++;
+                    break;
+                case result.items[i].firstPlayerProgress.score < result.items[i].secondPlayerProgress.score:
+                    console.log(result.items[i].firstPlayerProgress.score, result.items[i].secondPlayerProgress.score);
+                    dto.lossesCount++;
+                    break;
+                default:
+                    dto.drawsCount++;
+            }
+            dto.gamesCount = result.items.length;
+            dto.avgScores =
+                (Math.round((dto.sumScore / dto.gamesCount + Number.EPSILON) * 100) / 100) %
+                    Math.trunc(dto.sumScore / dto.gamesCount) ==
+                0
+                    ? Math.trunc(dto.sumScore / dto.gamesCount)
+                    : Math.round((dto.sumScore / dto.gamesCount + Number.EPSILON) * 100) / 100;
+        }
+
+        return dto;
     }
 }

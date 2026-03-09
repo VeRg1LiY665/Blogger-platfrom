@@ -64,12 +64,12 @@ export class GameEntity {
         this.finishGameDate = new Date();
         this.status = GameStatus.Finished;
 
-        switch (this.playerProgress[0].playerScore > this.playerProgress[1].playerScore) {
-            case true:
+        switch (true) {
+            case this.playerProgress[0].playerScore > this.playerProgress[1].playerScore:
                 this.playerProgress[0].gameResult = GameResult.Win;
                 this.playerProgress[1].gameResult = GameResult.Loose;
                 break;
-            case false:
+            case this.playerProgress[0].playerScore < this.playerProgress[1].playerScore:
                 this.playerProgress[1].gameResult = GameResult.Win;
                 this.playerProgress[0].gameResult = GameResult.Loose;
                 break;

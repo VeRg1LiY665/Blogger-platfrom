@@ -10,6 +10,8 @@ import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { calculateRows } from './utils/total-number-of-rows.calculation';
 import { GetGamesQueryParams } from '../api/input-dto/get-gamesquery-params.input-dto';
 import { UserStatisticsViewDto } from '../api/view-dto/player-statistics.view-dto';
+import { GameResult } from '../domain/constants/game-result.constants';
+import { UserStatisticsSqlDto } from './dto/user-statistics-sql.dto';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -152,23 +154,38 @@ export class GamesSqlQueryRepository {
     }
 
     async getStatisticsData(userId: string): Promise<UserStatisticsViewDto> {
-        const dto: UserStatisticsViewDto = {
-            sumScore: 0,
-            avgScores: 0,
-            gamesCount: 0,
-            winsCount: 0,
-            lossesCount: 0,
-            drawsCount: 0
-        };
-
-        const { sumScore, avgScores, gamesCount, winsCount, lossesCount, drawsCount } = await this.playerProgress
+        const { sumScore, avgScores, gamesCount } = await this.playerProgress
             .createQueryBuilder('pp')
-            .select(['pp."playerId"', 'pp."playerScore"', 'pp."gameResult"'])
-            .addSelect('SUM(pp.playerScore)', 'sumScore')
-            .addSelect('')
+            .select([
+                'SUM(pp."playerScore") AS "sumScore"',
+
+                'ROUND(AVG(pp."playerScore"), 2) AS "avgScores"',
+
+                'COUNT(pp."gameResult") AS "gamesCount"'
+            ])
+            .innerJoin('pp.gameEntity', 'games')
             .where('pp."playerId" = :id', { id: userId })
+            .andWhere('games."status" = :status', { status: GameStatus.Finished })
             .getRawOne();
 
-        dto.gamesCount = +(await userStatisticsQB.getCount());
+        const { winsCount } = await this.playerProgress
+            .createQueryBuilder('pp')
+            .select('COUNT(pp."gameResult") AS "winsCount"')
+            .where('pp."playerId" = :id', { id: userId })
+            .andWhere('pp."gameResult" = :status', { status: GameResult.Win })
+            .getRawOne();
+
+        const { lossesCount } = await this.playerProgress
+            .createQueryBuilder('pp')
+            .select('COUNT(pp."gameResult") AS "lossesCount"')
+            .where('pp."playerId" = :id', { id: userId })
+            .andWhere('pp."gameResult" = :status', { status: GameResult.Loose })
+            .getRawOne();
+
+        const drawsCount = (+gamesCount - (+winsCount + +lossesCount)).toString();
+
+        const dto: UserStatisticsSqlDto = { sumScore, avgScores, gamesCount, winsCount, drawsCount, lossesCount };
+
+        return UserStatisticsViewDto.mapSqlToView(dto);
     }
 }
