@@ -12,6 +12,7 @@ import { GetGamesQueryParams } from '../api/input-dto/get-gamesquery-params.inpu
 import { UserStatisticsViewDto } from '../api/view-dto/player-statistics.view-dto';
 import { GameResult } from '../domain/constants/game-result.constants';
 import { UserStatisticsSqlDto } from './dto/user-statistics-sql.dto';
+import { GamesSortBy } from '../api/input-dto/games-sort-by';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -131,7 +132,7 @@ export class GamesSqlQueryRepository {
                 'questions.body'
             ])
             .where('g.id = ANY(:id)', { id: [...gameQueryData.ids] });
-        if (queryParams.sortBy !== 'status') {
+        if (queryParams.sortBy !== GamesSortBy.status) {
             queryBuilder.orderBy(`g."${queryParams.sortBy}"`, queryParams.sortDirection);
         } else {
             queryBuilder.orderBy(`g."${queryParams.sortBy}"`, queryParams.sortDirection);
