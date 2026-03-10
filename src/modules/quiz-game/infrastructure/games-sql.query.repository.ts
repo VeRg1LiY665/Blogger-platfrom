@@ -130,13 +130,18 @@ export class GamesSqlQueryRepository {
                 'questions.id as q_sorting_id',
                 'questions.body'
             ])
-            .where('g.id = ANY(:id)', { id: [...gameQueryData.ids] })
-            .orderBy(`g."${queryParams.sortBy}"`, queryParams.sortDirection)
-            .addOrderBy('"createdAt"', 'ASC')
-            .addOrderBy('"addedAt"', 'ASC')
-            .addOrderBy('q_sorting_id', 'ASC');
+            .where('g.id = ANY(:id)', { id: [...gameQueryData.ids] });
+        if (queryParams.sortBy !== 'status') {
+            queryBuilder.orderBy(`g."${queryParams.sortBy}"`, queryParams.sortDirection);
+        } else {
+            queryBuilder.orderBy(`g."${queryParams.sortBy}"`, queryParams.sortDirection);
+            queryBuilder.addOrderBy(`g."pairCreatedDate"`, 'DESC');
+        }
 
         const games = await queryBuilder
+            .addOrderBy('"createdAt"', 'ASC')
+            .addOrderBy('"addedAt"', 'ASC')
+            .addOrderBy('q_sorting_id', 'ASC')
             .offset(queryParams.calculateSkipMyGames(gameQueryData.rowCount))
             .limit(queryParams.calculateTakeMyGames(gameQueryData.rowCount))
             .getRawMany();

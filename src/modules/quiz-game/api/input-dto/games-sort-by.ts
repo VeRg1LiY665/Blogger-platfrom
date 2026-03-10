@@ -1,3 +1,4 @@
 export enum GamesSortBy {
-    pairCreatedDate = 'pairCreatedDate'
+    pairCreatedDate = 'pairCreatedDate',
+    status = 'status'
 }
