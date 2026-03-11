@@ -24,6 +24,7 @@ import { UserAccountsConfig } from '../user-accounts/config/user-accounts.config
 import { DataSource } from 'typeorm';
 import { GetMyGamesQueryHandler } from './application/queries/public/get-my-games.query';
 import { GetMyStatisticsQueryHandler } from './application/queries/public/get-user-statistics.usecase';
+import { GetTopUsersQueryHandler } from './application/queries/public/get-top-users.query';
 
 const commandHandlers = [
     CreateQuestionUseCase,
@@ -40,7 +41,8 @@ const queryHandlers = [
     GetCurrentGameQueryHandler,
     GetGameByIdQueryHandler,
     GetMyGamesQueryHandler,
-    GetMyStatisticsQueryHandler
+    GetMyStatisticsQueryHandler,
+    GetTopUsersQueryHandler
 ];
 
 @Module({

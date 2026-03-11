@@ -1,14 +1,10 @@
 import { INestApplication, ValidationError, ValidationPipe } from '@nestjs/common';
 import { DomainException, Extension } from '../core/exceptions/domain-exceptions';
-import {
-    ObjectIdValidationPipe,
-    ObjectIdValidationTransformationPipe
-} from '../core/pipes/object-id-validation-transformation-pipe.service';
 import { DomainExceptionCode } from '../core/exceptions/domain-exception-codes';
 
 //функция использует рекурсию для обхода объекта children при вложенных полях при валидации
 //поставьте логи и разберитесь как она работает
-//TODO: tests
+
 export const errorFormatter = (errors: ValidationError[], errorMessage?: any): Extension[] => {
     const errorsForResponse = errorMessage || [];
     for (const error of errors) {
@@ -38,7 +34,7 @@ export function pipesSetup(app: INestApplication) {
             //и методы классов dto
             transform: true,
 
-            whitelist: true, //Почему он удалет даже те пропсы, которые есть в DTO?
+            whitelist: true,
             //Выдавать первую ошибку для каждого поля
             stopAtFirstError: true,
             //Для преобразования ошибок класс валидатора в необходимый вид

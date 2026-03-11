@@ -15,6 +15,9 @@ import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { GetGamesQueryParams } from './input-dto/get-gamesquery-params.input-dto';
 import { UserStatisticsViewDto } from './view-dto/player-statistics.view-dto';
 import { GetMyStatisticsQuery } from '../application/queries/public/get-user-statistics.usecase';
+import { TopUsersViewDto } from './view-dto/top-users-view.dto';
+import { GetTopUsersQueryParams } from './input-dto/get-top-users-query-params.dto';
+import { GetTopUsersQuery } from '../application/queries/public/get-top-users.query';
 
 @Controller('pair-game-quiz')
 export class QuizGameController {
@@ -28,6 +31,13 @@ export class QuizGameController {
     @UseGuards(JwtAuthGuard)
     async getMyStatistics(@ExtractUserFromRequest() user: UserContextDto): Promise<UserStatisticsViewDto> {
         return await this.queryBus.execute<GetMyStatisticsQuery>(new GetMyStatisticsQuery(user.id));
+    }
+
+    @Get('/users/top')
+    @HttpCode(HttpStatus.OK)
+    async getTopUsers(@Query() query: GetTopUsersQueryParams): Promise<PaginatedViewDto<TopUsersViewDto[]> | null> {
+        console.log(query);
+        return await this.queryBus.execute<GetTopUsersQuery>(new GetTopUsersQuery(query));
     }
 
     @Get('/pairs/my')
