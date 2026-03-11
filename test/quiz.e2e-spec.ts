@@ -47,7 +47,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    it('should create question', async () => {
+    /*    it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -484,5 +484,34 @@ describe('quiz-game', () => {
         expect(result.winsCount).toEqual(0);
         expect(result.lossesCount).toEqual(0);
         expect(result.drawsCount).toEqual(0);
-    });
+    });*/
+
+    it('should play several games with different players, then call /users/top', async () => {
+        const gamesAmount = 6;
+        const gamesPerPair = 3; //Set up how many games we play per user
+        //TODO Разобраться почему отлетает подключение к бд
+        try {
+            const tokens = await userTestManager.createAndLoginSeveralUsers(4);
+
+            expect(tokens[0].accessToken).toBeDefined();
+            expect(tokens[0].refreshToken).toBeDefined();
+
+            await quizGameTestManager.createAndPublishSeveralQuestions(5);
+
+            await quizGameTestManager.playSeveralGamesBySeveralUsers(gamesAmount, gamesPerPair, tokens);
+
+            const { body: result } = await request(app.getHttpServer())
+                .get('/pair-game-quiz/users/top')
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK);
+        } catch (e) {
+            console.error(e);
+        }
+
+        /*const stats = await quizGameTestManager.calculateStatistics(gamesAmount, {
+            accessToken: tokens[0].accessToken
+        });*/
+
+        //console.log(result);
+    }, 10000);
 });

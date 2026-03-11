@@ -13,6 +13,7 @@ import { UserStatisticsViewDto } from '../api/view-dto/player-statistics.view-dt
 import { GameResult } from '../domain/constants/game-result.constants';
 import { UserStatisticsSqlDto } from './dto/user-statistics-sql.dto';
 import { GamesSortBy } from '../api/input-dto/games-sort-by';
+import { GetTopUsersQueryParams } from '../api/input-dto/get-top-users-query-params.dto';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -193,5 +194,43 @@ export class GamesSqlQueryRepository {
         const dto: UserStatisticsSqlDto = { sumScore, avgScores, gamesCount, winsCount, drawsCount, lossesCount };
 
         return UserStatisticsViewDto.mapSqlToView(dto);
+    }
+
+    async getTopUsers(query: GetTopUsersQueryParams): Promise<UserStatisticsViewDto[] | null> {
+        /*const playersCount: number = await this.playerProgress
+            .createQueryBuilder('gc')
+            .distinct()
+            .select('pp."playerId"')
+            .getCount();*/
+
+        const result = await this.playerProgress
+            .createQueryBuilder('pp')
+            .select([
+                'pp."playerId"',
+
+                'COUNT(pp."playerId") AS "playersCount"',
+
+                'SUM(pp."playerScore") AS "sumScore"',
+
+                'ROUND(AVG(pp."playerScore"), 2) AS "avgScores"',
+
+                'COUNT(pp."gameResult") AS "gamesCount"'
+            ])
+            .innerJoin('pp.gameEntity', 'games')
+            .where('games."status" = :status', { status: GameStatus.Finished })
+            .groupBy('pp."playerId"')
+            .getRawMany();
+
+        const playersStats = result.map((row) => ({
+            playerId: row.playerId,
+            playersCount: row.playersCount ?? 0,
+            sumScore: row.sumScore ?? 0,
+            avgScore: row.avgScore ?? 0,
+            gamesCount: row.gamesCount ?? 0
+        }));
+
+        console.log(playersStats);
+
+        return null;
     }
 }

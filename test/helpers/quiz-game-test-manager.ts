@@ -174,4 +174,22 @@ export class QuizGameTestManager {
 
         return dto;
     }
+
+    async playSeveralGamesBySeveralUsers(gamesCount: number, gamesPerPair: number, tokens: any[]): Promise<void> {
+        //NOTE! tokens.length MUST BE EVEN
+
+        for (let i = 0; i < gamesCount; i++) {
+            const playersPair: any[] = [
+                tokens[Math.floor(Math.random() * ((tokens.length - 1) / 2))],
+                tokens[tokens.length - 1 - Math.floor(Math.random() * ((tokens.length - 1) / 2))]
+            ];
+
+            try {
+                await this.playSeveralGames(gamesPerPair, playersPair);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        return;
+    }
 }

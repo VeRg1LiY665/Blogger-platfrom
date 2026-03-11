@@ -6,7 +6,7 @@ import { IsValidMappedType } from '../../../../core/decorators/validation/nested
 
 export class GetTopUsersQueryParams extends BaseQueryParams {
     //Default value : ?sort=avgScores desc&sort=sumScore desc
-
+    //TODO Default values
     @Transform(
         ({ value }) => {
             if (Array.isArray(value)) {
@@ -26,6 +26,6 @@ export class GetTopUsersQueryParams extends BaseQueryParams {
         { toClassOnly: true }
     )
     @IsOptional()
-    @IsValidMappedType()
+    @IsValidMappedType() //Кастомный декоратор
     sort: TopUsersSortBy;
 }

@@ -65,7 +65,14 @@ export const databaseProviders = [
                     Answer,
                     GameQuestion
                 ],
-                synchronize: true // false in production
+                synchronize: true, // false in production
+                extra: {
+                    max: 20,
+                    idleTimeoutMillis: 30000,
+                    connectionTimeoutMillis: 2000,
+                    keepAlive: true,
+                    keepAliveInitialDelayMillis: 10000
+                }
             });
             return await dataSource.initialize();
         },

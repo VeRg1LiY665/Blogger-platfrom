@@ -36,7 +36,6 @@ export class QuizGameController {
     @Get('/users/top')
     @HttpCode(HttpStatus.OK)
     async getTopUsers(@Query() query: GetTopUsersQueryParams): Promise<PaginatedViewDto<TopUsersViewDto[]> | null> {
-        console.log(query);
         return await this.queryBus.execute<GetTopUsersQuery>(new GetTopUsersQuery(query));
     }
 
