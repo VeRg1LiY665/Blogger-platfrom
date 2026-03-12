@@ -12,6 +12,9 @@ import { GameViewDto } from '../src/modules/quiz-game/api/view-dto/game.view-dto
 import { AnswerViewDto } from '../src/modules/quiz-game/api/view-dto/answer.view-dto';
 import { ACCESS_TOKEN_STRATEGY_INJECT_TOKEN } from '../src/modules/user-accounts/constants/auth-tokens.inject-constants';
 import { UserAccountsConfig } from '../src/modules/user-accounts/config/user-accounts.config';
+import { UserStatisticsViewDto } from '../src/modules/quiz-game/api/view-dto/player-statistics.view-dto';
+import { TopUsersSortByParams } from '../src/modules/quiz-game/api/input-dto/top-users-sort-by';
+import { SortDirection } from '../src/core/dto/base.query-params.input-dto';
 
 describe('quiz-game', () => {
     let app: INestApplication;
@@ -25,7 +28,7 @@ describe('quiz-game', () => {
                 factory: (userAccountsConfig: UserAccountsConfig) => {
                     return new JwtService({
                         secret: userAccountsConfig.accessTokenSecret,
-                        signOptions: { expiresIn: '20s' }
+                        signOptions: { expiresIn: '50s' }
                     });
                 },
                 inject: [UserAccountsConfig]
@@ -47,7 +50,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    /*    it('should create question', async () => {
+    it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -484,34 +487,136 @@ describe('quiz-game', () => {
         expect(result.winsCount).toEqual(0);
         expect(result.lossesCount).toEqual(0);
         expect(result.drawsCount).toEqual(0);
-    });*/
+    });
 
     it('should play several games with different players, then call /users/top', async () => {
-        const gamesAmount = 6;
-        const gamesPerPair = 3; //Set up how many games we play per user
+        const gamesAmount = 6; //Set up how many games will be played by ONE pair of users
+        const gamesPerPair = 3; //Set up how many games we play per a pair of users
+        const items: UserStatisticsViewDto[] = [];
         //TODO Разобраться почему отлетает подключение к бд
-        try {
-            const tokens = await userTestManager.createAndLoginSeveralUsers(4);
 
-            expect(tokens[0].accessToken).toBeDefined();
-            expect(tokens[0].refreshToken).toBeDefined();
+        const tokens = await userTestManager.createAndLoginSeveralUsers(4);
 
-            await quizGameTestManager.createAndPublishSeveralQuestions(5);
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
 
-            await quizGameTestManager.playSeveralGamesBySeveralUsers(gamesAmount, gamesPerPair, tokens);
+        await quizGameTestManager.createAndPublishSeveralQuestions(5);
 
-            const { body: result } = await request(app.getHttpServer())
-                .get('/pair-game-quiz/users/top')
-                .auth(tokens[0].accessToken, { type: 'bearer' })
-                .expect(HttpStatus.OK);
-        } catch (e) {
-            console.error(e);
+        const players = await quizGameTestManager.playSeveralGamesBySeveralUsers(gamesAmount, gamesPerPair, tokens);
+
+        for (const player of players) {
+            items.push(await quizGameTestManager.getStatisticsForUser(player.accessToken));
         }
+        const sortedItems = quizGameTestManager.sortTopUsersStats(items, {
+            [TopUsersSortByParams.avgScores]: SortDirection.Desc,
+            [TopUsersSortByParams.sumScore]: SortDirection.Desc,
+            [TopUsersSortByParams.gamesCount]: SortDirection.Desc
+        });
 
-        /*const stats = await quizGameTestManager.calculateStatistics(gamesAmount, {
-            accessToken: tokens[0].accessToken
-        });*/
+        const { body: result } = await request(app.getHttpServer())
+            .get('/pair-game-quiz/users/top?sort=avgScores desc&sort=sumScore desc&sort=gamesCount desc')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK);
 
-        //console.log(result);
-    }, 10000);
+        for (let i = 0; i < result.items.length; i++) {
+            expect(result.items[i]).toBeDefined();
+            expect(result.items[i].player.id).toBeDefined();
+            expect(result.items[i].player.login).toBeDefined();
+            expect(result.items[i].sumScore).toEqual(sortedItems[i].sumScore);
+            expect(result.items[i].avgScores).toEqual(sortedItems[i].avgScores);
+            expect(result.items[i].gamesCount).toEqual(sortedItems[i].gamesCount);
+            expect(result.items[i].winsCount).toEqual(sortedItems[i].winsCount);
+            expect(result.items[i].lossesCount).toEqual(sortedItems[i].lossesCount);
+            expect(result.items[i].drawsCount).toEqual(sortedItems[i].drawsCount);
+        }
+    }, 20000);
+
+    it('should play no games and call /users/top', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(4);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(5);
+
+        const { body: result } = await request(app.getHttpServer())
+            .get('/pair-game-quiz/users/top')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK);
+
+        expect(result.items).toBeDefined();
+        expect(result.items.length).toBe(0);
+    });
+
+    it('should start game(status: Pending) and call /users/top', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(4);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(5);
+
+        const { body: responseBody3 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody3.status).toEqual('PendingSecondPlayer');
+
+        const { body: result } = await request(app.getHttpServer())
+            .get('/pair-game-quiz/users/top')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK);
+
+        expect(result.items).toBeDefined();
+        expect(result.items.length).toBe(0);
+    });
+
+    it('should play several games with different players, then add 1 pending game, then call /users/top', async () => {
+        const gamesAmount = 6; //Set up how many games will be played by ONE pair of users
+        const gamesPerPair = 3; //Set up how many games we play per a pair of users
+        const items: UserStatisticsViewDto[] = [];
+
+        const tokens = await userTestManager.createAndLoginSeveralUsers(4);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(5);
+
+        const players = await quizGameTestManager.playSeveralGamesBySeveralUsers(gamesAmount, gamesPerPair, tokens);
+
+        const { body: responseBody3 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody3.status).toEqual('PendingSecondPlayer');
+
+        for (const player of players) {
+            items.push(await quizGameTestManager.getStatisticsForUser(player.accessToken));
+        }
+        const sortedItems = quizGameTestManager.sortTopUsersStats(items, {
+            [TopUsersSortByParams.avgScores]: SortDirection.Desc,
+            [TopUsersSortByParams.sumScore]: SortDirection.Desc,
+            [TopUsersSortByParams.gamesCount]: SortDirection.Desc
+        });
+
+        const { body: result } = await request(app.getHttpServer())
+            .get('/pair-game-quiz/users/top?sort=avgScores desc&sort=sumScore desc&sort=gamesCount desc')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK);
+
+        for (let i = 0; i < result.items.length; i++) {
+            expect(result.items[i]).toBeDefined();
+            expect(result.items[i].player.id).toBeDefined();
+            expect(result.items[i].player.login).toBeDefined();
+            expect(result.items[i].sumScore).toEqual(sortedItems[i].sumScore);
+            expect(result.items[i].avgScores).toEqual(sortedItems[i].avgScores);
+            expect(result.items[i].gamesCount).toEqual(sortedItems[i].gamesCount);
+            expect(result.items[i].winsCount).toEqual(sortedItems[i].winsCount);
+            expect(result.items[i].lossesCount).toEqual(sortedItems[i].lossesCount);
+            expect(result.items[i].drawsCount).toEqual(sortedItems[i].drawsCount);
+        }
+    }, 20000);
 });

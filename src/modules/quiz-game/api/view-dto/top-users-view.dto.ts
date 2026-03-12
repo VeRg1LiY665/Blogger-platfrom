@@ -20,8 +20,8 @@ export class TopUsersViewDto extends UserStatisticsViewDto {
             lossesCount: dto.lossesCount ? +dto.lossesCount : 0,
             drawsCount: dto.drawsCount ? +dto.drawsCount : 0,
             player: {
-                id: dto.id,
-                login: dto.login
+                id: dto.playerId,
+                login: dto.playerLogin
             }
         };
 

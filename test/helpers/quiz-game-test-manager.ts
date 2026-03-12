@@ -6,6 +6,8 @@ import { PublishInputDto } from '../../src/modules/quiz-game/api/input-dto/publi
 import { GameViewDto } from '../../src/modules/quiz-game/api/view-dto/game.view-dto';
 import { AnswerViewDto } from '../../src/modules/quiz-game/api/view-dto/answer.view-dto';
 import { UserStatisticsViewDto } from '../../src/modules/quiz-game/api/view-dto/player-statistics.view-dto';
+import { TopUsersSortBy } from '../../src/modules/quiz-game/api/input-dto/top-users-sort-by';
+import { SortDirection } from '../../src/core/dto/base.query-params.input-dto';
 
 export class QuizGameTestManager {
     constructor(private app: INestApplication) {}
@@ -175,21 +177,51 @@ export class QuizGameTestManager {
         return dto;
     }
 
-    async playSeveralGamesBySeveralUsers(gamesCount: number, gamesPerPair: number, tokens: any[]): Promise<void> {
+    async playSeveralGamesBySeveralUsers(gamesCount: number, gamesPerPair: number, tokens: any[]): Promise<Set<any>> {
         //NOTE! tokens.length MUST BE EVEN
-
+        const players = new Set();
         for (let i = 0; i < gamesCount; i++) {
             const playersPair: any[] = [
                 tokens[Math.floor(Math.random() * ((tokens.length - 1) / 2))],
                 tokens[tokens.length - 1 - Math.floor(Math.random() * ((tokens.length - 1) / 2))]
             ];
-
+            players.add(playersPair[0]);
+            players.add(playersPair[1]);
             try {
                 await this.playSeveralGames(gamesPerPair, playersPair);
             } catch (e) {
                 console.error(e);
             }
         }
-        return;
+        return players;
+    }
+
+    async getStatisticsForUser(token: any): Promise<UserStatisticsViewDto> {
+        const { body: result } = await request(this.app.getHttpServer())
+            .get(`/pair-game-quiz/users/my-statistic`)
+            .auth(token, { type: 'bearer' })
+            .expect(HttpStatus.OK);
+
+        return result;
+    }
+
+    sortTopUsersStats(
+        players: UserStatisticsViewDto[],
+        sort: Partial<TopUsersSortBy>,
+        skip: number = 0,
+        limit: number = 10
+    ): UserStatisticsViewDto[] {
+        return [...players]
+            .sort((a, b) => {
+                for (const [key, value] of Object.entries(sort)) {
+                    const tieDiff = b[key] - a[key];
+                    if (tieDiff !== 0) {
+                        return value === SortDirection.Desc ? tieDiff : -tieDiff;
+                    }
+                }
+
+                return 0;
+            })
+            .slice(skip, limit);
     }
 }

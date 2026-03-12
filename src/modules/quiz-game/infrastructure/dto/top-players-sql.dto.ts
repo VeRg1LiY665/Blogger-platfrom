@@ -5,6 +5,6 @@ export class TopPlayersSqlDto {
     winsCount: string | undefined;
     lossesCount: string | undefined;
     drawsCount: string | undefined;
-    id: string;
-    login: string;
+    playerId: string;
+    playerLogin: string;
 }
