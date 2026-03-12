@@ -57,7 +57,7 @@ describe('quiz-game', () => {
         };
 
         const response = await quizGameTestManager.createQuestion(inputDto);
-        //  console.log(response);
+
         expect(response).toEqual({
             body: inputDto.body,
             correctAnswers: inputDto.correctAnswers,
