@@ -208,8 +208,8 @@ export class QuizGameTestManager {
     sortTopUsersStats(
         players: UserStatisticsViewDto[],
         sort: Partial<TopUsersSortBy>,
-        skip: number = 0,
-        limit: number = 10
+        pageNumber: number = 0,
+        pageSize: number = 10
     ): UserStatisticsViewDto[] {
         return [...players]
             .sort((a, b) => {
@@ -222,6 +222,6 @@ export class QuizGameTestManager {
 
                 return 0;
             })
-            .slice(skip, limit);
+            .slice((pageNumber - 1) * pageSize, (pageNumber - 1) * pageSize + pageSize);
     }
 }

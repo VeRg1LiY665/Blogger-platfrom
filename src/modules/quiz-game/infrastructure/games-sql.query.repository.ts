@@ -223,7 +223,6 @@ export class GamesSqlQueryRepository {
             .select([
                 'pp."playerId"',
                 'pp."playerLogin"',
-                'COUNT(pp."playerId") AS "playersCount"',
                 'SUM(pp."playerScore") AS "sumScore"',
                 'ROUND(AVG(pp."playerScore"), 2) AS "avgScores"',
                 'COUNT(pp."gameResult") AS "gamesCount"',
@@ -250,30 +249,33 @@ export class GamesSqlQueryRepository {
                 'lossesCount',
                 'TRUE'
             )
-            .where('games."status" = :status')
+            .where('games."status" = :status', {
+                status: GameStatus.Finished
+            })
             .groupBy('pp."playerId"')
             .addGroupBy('pp."playerLogin"')
             .addGroupBy('"winsCount"."count"')
             .addGroupBy('"lossesCount"."count"');
 
-        const totalCount = await queryBuilder.getCount();
-
         for (const [key, value] of Object.entries(query.sort)) {
             queryBuilder.addOrderBy(`"${TopUsersSortByParams[key]}"`, value);
         }
 
-        const result = await queryBuilder
-            .offset(query.calculateSkip())
-            .limit(query.pageSize)
-            .setParameters({
+        const result = await queryBuilder.offset(query.calculateSkip()).limit(query.pageSize).getRawMany();
+
+        const totalCount = await this.playerProgress
+            .createQueryBuilder('pp')
+            .innerJoin('pp.gameEntity', 'games')
+            .where('games."status" = :status', {
                 status: GameStatus.Finished
             })
-            .getRawMany();
+            .select('COUNT(DISTINCT pp."playerId")', 'count')
+            .getRawOne();
 
         const items: TopUsersViewDto[] = result.map((x: TopPlayersSqlDto) => TopUsersViewDto.mapSqlToView(x));
         return PaginatedViewDto.mapToView({
             items,
-            totalCount: totalCount,
+            totalCount: +totalCount.count,
             page: query.pageNumber,
             size: query.pageSize
         });

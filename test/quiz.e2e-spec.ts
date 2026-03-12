@@ -619,4 +619,54 @@ describe('quiz-game', () => {
             expect(result.items[i].drawsCount).toEqual(sortedItems[i].drawsCount);
         }
     }, 20000);
+
+    it('should play several games with different playersthen call /users/top (pageNumber = 2, pageSize = 2)', async () => {
+        const gamesAmount = 6; //Set up how many games will be played by ONE pair of users
+        const gamesPerPair = 3; //Set up how many games we play per a pair of users
+        const items: UserStatisticsViewDto[] = [];
+
+        const tokens = await userTestManager.createAndLoginSeveralUsers(4);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(5);
+
+        const players = await quizGameTestManager.playSeveralGamesBySeveralUsers(gamesAmount, gamesPerPair, tokens);
+
+        for (const player of players) {
+            items.push(await quizGameTestManager.getStatisticsForUser(player.accessToken));
+        }
+        const sortedItems = quizGameTestManager.sortTopUsersStats(
+            items,
+            {
+                [TopUsersSortByParams.avgScores]: SortDirection.Desc,
+                [TopUsersSortByParams.sumScore]: SortDirection.Desc,
+                [TopUsersSortByParams.gamesCount]: SortDirection.Desc
+            },
+            2,
+            2
+        );
+
+        const { body: result } = await request(app.getHttpServer())
+            .get(
+                '/pair-game-quiz/users/top?pageNumber=2&pageSize=2&sort=avgScores desc&sort=sumScore desc&sort=gamesCount desc'
+            )
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK);
+        console.log(result, sortedItems);
+        for (let i = 0; i < result.items.length; i++) {
+            expect(result.pagesCount).toBe(2);
+            expect(result.page).toBe(2);
+            expect(result.items[i]).toBeDefined();
+            expect(result.items[i].player.id).toBeDefined();
+            expect(result.items[i].player.login).toBeDefined();
+            expect(result.items[i].sumScore).toEqual(sortedItems[i].sumScore);
+            expect(result.items[i].avgScores).toEqual(sortedItems[i].avgScores);
+            expect(result.items[i].gamesCount).toEqual(sortedItems[i].gamesCount);
+            expect(result.items[i].winsCount).toEqual(sortedItems[i].winsCount);
+            expect(result.items[i].lossesCount).toEqual(sortedItems[i].lossesCount);
+            expect(result.items[i].drawsCount).toEqual(sortedItems[i].drawsCount);
+        }
+    }, 20000);
 });
