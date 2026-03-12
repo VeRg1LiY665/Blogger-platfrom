@@ -254,23 +254,26 @@ export class GamesSqlQueryRepository {
             .groupBy('pp."playerId"')
             .addGroupBy('pp."playerLogin"')
             .addGroupBy('"winsCount"."count"')
-            .addGroupBy('"lossesCount"."count"')
-            .offset(query.calculateSkip())
-            .limit(query.pageSize)
-            .setParameters({
-                status: GameStatus.Finished
-            });
+            .addGroupBy('"lossesCount"."count"');
+
+        const totalCount = await queryBuilder.getCount();
 
         for (const [key, value] of Object.entries(query.sort)) {
             queryBuilder.addOrderBy(`"${TopUsersSortByParams[key]}"`, value);
         }
 
-        const result = await queryBuilder.getRawMany();
+        const result = await queryBuilder
+            .offset(query.calculateSkip())
+            .limit(query.pageSize)
+            .setParameters({
+                status: GameStatus.Finished
+            })
+            .getRawMany();
 
         const items: TopUsersViewDto[] = result.map((x: TopPlayersSqlDto) => TopUsersViewDto.mapSqlToView(x));
         return PaginatedViewDto.mapToView({
             items,
-            totalCount: result.length,
+            totalCount: totalCount,
             page: query.pageNumber,
             size: query.pageSize
         });
