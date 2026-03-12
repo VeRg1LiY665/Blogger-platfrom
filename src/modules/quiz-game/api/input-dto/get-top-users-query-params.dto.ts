@@ -1,12 +1,10 @@
 import { IsOptional } from 'class-validator';
-import { TopUsersSortBy } from './top-users-sort-by';
-import { BaseQueryParams } from '../../../../core/dto/base.query-params.input-dto';
+import { TopUsersSortBy, TopUsersSortByParams } from './top-users-sort-by';
+import { BaseQueryParams, SortDirection } from '../../../../core/dto/base.query-params.input-dto';
 import { Transform } from 'class-transformer';
 import { IsValidMappedType } from '../../../../core/decorators/validation/nested-mapped-type.validation';
 
 export class GetTopUsersQueryParams extends BaseQueryParams {
-    //Default value : ?sort=avgScores desc&sort=sumScore desc
-    //TODO Default values
     @Transform(
         ({ value }) => {
             if (Array.isArray(value)) {
@@ -27,5 +25,8 @@ export class GetTopUsersQueryParams extends BaseQueryParams {
     )
     @IsOptional()
     @IsValidMappedType() //Кастомный декоратор
-    sort: TopUsersSortBy;
+    sort: Partial<TopUsersSortBy> = {
+        [TopUsersSortByParams.avgScores]: SortDirection.Desc,
+        [TopUsersSortByParams.sumScore]: SortDirection.Desc
+    };
 }

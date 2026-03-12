@@ -12,8 +12,8 @@ export class GetTopUsersQuery {
 export class GetTopUsersQueryHandler implements IQueryHandler<GetTopUsersQuery> {
     constructor(private gamesSqlQRepository: GamesSqlQueryRepository) {}
 
-    async execute(query: GetTopUsersQuery): Promise<PaginatedViewDto<UserStatisticsViewDto[]> | null> {
+    async execute(query: GetTopUsersQuery): Promise<PaginatedViewDto<UserStatisticsViewDto[]>> {
         const topUsers = await this.gamesSqlQRepository.getTopUsers(query.queryParams);
-        return null;
+        return topUsers;
     }
 }

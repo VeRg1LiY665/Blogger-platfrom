@@ -14,6 +14,9 @@ import { GameResult } from '../domain/constants/game-result.constants';
 import { UserStatisticsSqlDto } from './dto/user-statistics-sql.dto';
 import { GamesSortBy } from '../api/input-dto/games-sort-by';
 import { GetTopUsersQueryParams } from '../api/input-dto/get-top-users-query-params.dto';
+import { TopUsersSortByParams } from '../api/input-dto/top-users-sort-by';
+import { TopPlayersSqlDto } from './dto/top-players-sql.dto';
+import { TopUsersViewDto } from '../api/view-dto/top-users-view.dto';
 
 @Injectable()
 export class GamesSqlQueryRepository {
@@ -196,41 +199,80 @@ export class GamesSqlQueryRepository {
         return UserStatisticsViewDto.mapSqlToView(dto);
     }
 
-    async getTopUsers(query: GetTopUsersQueryParams): Promise<UserStatisticsViewDto[] | null> {
-        /*const playersCount: number = await this.playerProgress
-            .createQueryBuilder('gc')
-            .distinct()
-            .select('pp."playerId"')
-            .getCount();*/
+    async getTopUsers(query: GetTopUsersQueryParams): Promise<PaginatedViewDto<TopUsersViewDto[]>> {
+        const winSubQuery =
+            'SELECT ' +
+            'COUNT(*) AS "count"' +
+            'FROM' +
+            '"playersProgress" "pp2"' +
+            'WHERE' +
+            '"pp2"."playerId" = "pp"."playerId"' +
+            'AND "pp2"."gameResult" = :win';
 
-        const result = await this.playerProgress
+        const lossesSubQuery =
+            'SELECT ' +
+            'COUNT(*) AS "count"' +
+            'FROM' +
+            '"playersProgress" "pp2"' +
+            'WHERE' +
+            '"pp2"."playerId" = "pp"."playerId"' +
+            'AND "pp2"."gameResult" = :loose';
+
+        const queryBuilder = this.playerProgress
             .createQueryBuilder('pp')
             .select([
                 'pp."playerId"',
-
+                'pp."playerLogin"',
                 'COUNT(pp."playerId") AS "playersCount"',
-
                 'SUM(pp."playerScore") AS "sumScore"',
-
                 'ROUND(AVG(pp."playerScore"), 2) AS "avgScores"',
-
-                'COUNT(pp."gameResult") AS "gamesCount"'
+                'COUNT(pp."gameResult") AS "gamesCount"',
+                '"winsCount"."count" AS "winsCount"',
+                '"lossesCount"."count" AS "lossesCount"',
+                'COUNT(pp."gameResult") - "winsCount"."count" - "lossesCount"."count" AS "drawsCount"'
             ])
             .innerJoin('pp.gameEntity', 'games')
-            .where('games."status" = :status', { status: GameStatus.Finished })
+            .leftJoin(
+                (qb) => {
+                    qb.getQuery = () => `LATERAL (${winSubQuery})`;
+                    qb.setParameters({ win: GameResult.Win });
+                    return qb;
+                },
+                'winsCount',
+                'TRUE'
+            )
+            .leftJoin(
+                (qb) => {
+                    qb.getQuery = () => `LATERAL (${lossesSubQuery})`;
+                    qb.setParameters({ loose: GameResult.Loose });
+                    return qb;
+                },
+                'lossesCount',
+                'TRUE'
+            )
+            .where('games."status" = :status')
             .groupBy('pp."playerId"')
-            .getRawMany();
+            .addGroupBy('pp."playerLogin"')
+            .addGroupBy('"winsCount"."count"')
+            .addGroupBy('"lossesCount"."count"')
+            .offset(query.calculateSkip())
+            .limit(query.pageSize)
+            .setParameters({
+                status: GameStatus.Finished
+            });
 
-        const playersStats = result.map((row) => ({
-            playerId: row.playerId,
-            playersCount: row.playersCount ?? 0,
-            sumScore: row.sumScore ?? 0,
-            avgScore: row.avgScore ?? 0,
-            gamesCount: row.gamesCount ?? 0
-        }));
+        for (const [key, value] of Object.entries(query.sort)) {
+            queryBuilder.addOrderBy(`"${TopUsersSortByParams[key]}"`, value);
+        }
 
-        console.log(playersStats);
+        const result = await queryBuilder.getRawMany();
 
-        return null;
+        const items: TopUsersViewDto[] = result.map((x: TopPlayersSqlDto) => TopUsersViewDto.mapSqlToView(x));
+        return PaginatedViewDto.mapToView({
+            items,
+            totalCount: result.length,
+            page: query.pageNumber,
+            size: query.pageSize
+        });
     }
 }
