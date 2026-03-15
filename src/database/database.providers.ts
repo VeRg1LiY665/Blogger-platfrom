@@ -34,7 +34,7 @@ export const databaseProviders = [
             await pool.connect();
             pool.on('error', (err) => {
                 console.error('Unexpected PG client error', err);
-                throw new Error(err.message); //throw 500 error //TODO Add infrastructure exception filter?
+                throw new Error(err.message); //throw 500 error
             });
             return pool;
         },

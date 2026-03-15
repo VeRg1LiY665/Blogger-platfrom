@@ -13,7 +13,8 @@ import { MongooseErrorExceptionFilter } from './core/exceptions/mongoose-error-e
 import { CoreModule } from './core/core.module';
 import { CoreConfig } from './core/core.config';
 import { DatabaseModule } from './database/database.modules';
-import { QuizGameModule } from './modules/quiz-game/quiz-game.module'; //кастомный модуль подключения к монго или postgres
+import { QuizGameModule } from './modules/quiz-game/quiz-game.module';
+import { BullModule } from '@nestjs/bullmq'; //кастомный модуль подключения к монго или postgres
 
 @Module({
     imports: [
@@ -24,6 +25,12 @@ import { QuizGameModule } from './modules/quiz-game/quiz-game.module'; //кас�
                     limit: 5
                 }
             ]
+        }),
+        BullModule.forRoot({
+            connection: {
+                host: 'localhost',
+                port: 6379
+            }
         }),
         DatabaseModule,
         CoreModule,
