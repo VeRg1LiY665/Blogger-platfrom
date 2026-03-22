@@ -54,7 +54,7 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
 
                 if (p.answers.length == Agame.questions.length && Agame.firstFinished == 255) {
                     Agame.firstFinished = index;
-                    console.log(Agame.id);
+
                     const dto = {
                         userId: p.playerId,
                         firstFinished: index

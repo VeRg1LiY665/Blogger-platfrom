@@ -32,6 +32,6 @@ export class GameFinishProcessor extends WorkerHost {
 
         await this.gamesSqlRepository.save(game);
 
-        console.log(`Game ${game.id} finished after 10s delay`);
+        //console.log(`Game ${game.id} finished after 10s delay`);
     }
 }
