@@ -25,6 +25,9 @@ import { DataSource } from 'typeorm';
 import { GetMyGamesQueryHandler } from './application/queries/public/get-my-games.query';
 import { GetMyStatisticsQueryHandler } from './application/queries/public/get-user-statistics.usecase';
 import { GetTopUsersQueryHandler } from './application/queries/public/get-top-users.query';
+import { BullmqModule } from '../bullmq/bullmq.module';
+import { GameFinishProcessor } from '../bullmq/processors/game-finish.processor';
+import { BullModule } from '@nestjs/bullmq';
 
 const commandHandlers = [
     CreateQuestionUseCase,
@@ -46,7 +49,18 @@ const queryHandlers = [
 ];
 
 @Module({
-    imports: [DatabaseModule],
+    imports: [
+        DatabaseModule,
+        BullModule.registerQueue({
+            name: 'finishGameWithDelay',
+            defaultJobOptions: {
+                delay: 10000,
+                attempts: 3,
+                removeOnComplete: true,
+                removeOnFail: 1000
+            }
+        })
+    ],
     controllers: [QuizSaController, QuizGameController],
     providers: [
         {
@@ -75,7 +89,8 @@ const queryHandlers = [
         ...commandHandlers,
         ...queryHandlers,
         QuizGameConfig,
-        UserAccountsConfig //For basic auth credentials
+        UserAccountsConfig, //For basic auth credentials
+        GameFinishProcessor
     ]
 })
 export class QuizGameModule {}

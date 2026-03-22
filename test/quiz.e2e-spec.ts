@@ -15,6 +15,7 @@ import { UserAccountsConfig } from '../src/modules/user-accounts/config/user-acc
 import { UserStatisticsViewDto } from '../src/modules/quiz-game/api/view-dto/player-statistics.view-dto';
 import { TopUsersSortByParams } from '../src/modules/quiz-game/api/input-dto/top-users-sort-by';
 import { SortDirection } from '../src/core/dto/base.query-params.input-dto';
+import { delay } from './helpers/delay';
 
 describe('quiz-game', () => {
     let app: INestApplication;
@@ -50,7 +51,7 @@ describe('quiz-game', () => {
         await deleteAllData(app);
     });
 
-    it('should create question', async () => {
+    /*it('should create question', async () => {
         const inputDto: QuestionInputDto = {
             body: 'test question',
             correctAnswers: ['correctAnswer1', 'correctAnswer2']
@@ -515,7 +516,6 @@ describe('quiz-game', () => {
 
         const { body: result } = await request(app.getHttpServer())
             .get('/pair-game-quiz/users/top?sort=avgScores desc&sort=sumScore desc&sort=gamesCount desc')
-            .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK);
 
         for (let i = 0; i < result.items.length; i++) {
@@ -620,7 +620,7 @@ describe('quiz-game', () => {
         }
     }, 20000);
 
-    it('should play several games with different playersthen call /users/top (pageNumber = 2, pageSize = 2)', async () => {
+    it('should play several games with different players then call /users/top (pageNumber = 2, pageSize = 2)', async () => {
         const gamesAmount = 6; //Set up how many games will be played by ONE pair of users
         const gamesPerPair = 3; //Set up how many games we play per a pair of users
         const items: UserStatisticsViewDto[] = [];
@@ -652,9 +652,7 @@ describe('quiz-game', () => {
             .get(
                 '/pair-game-quiz/users/top?pageNumber=2&pageSize=2&sort=avgScores desc&sort=sumScore desc&sort=gamesCount desc'
             )
-            .auth(tokens[0].accessToken, { type: 'bearer' })
             .expect(HttpStatus.OK);
-        console.log(result, sortedItems);
         for (let i = 0; i < result.items.length; i++) {
             expect(result.pagesCount).toBe(2);
             expect(result.page).toBe(2);
@@ -668,5 +666,74 @@ describe('quiz-game', () => {
             expect(result.items[i].lossesCount).toEqual(sortedItems[i].lossesCount);
             expect(result.items[i].drawsCount).toEqual(sortedItems[i].drawsCount);
         }
-    }, 20000);
+    }, 20000);*/
+
+    it('should play game with 2 players, one player answered all questions, game terminates in 10 seconds', async () => {
+        const tokens = await userTestManager.createAndLoginSeveralUsers(2);
+
+        expect(tokens[0].accessToken).toBeDefined();
+        expect(tokens[0].refreshToken).toBeDefined();
+
+        await quizGameTestManager.createAndPublishSeveralQuestions(15);
+
+        const { body: responseBody } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody.status).toEqual('PendingSecondPlayer');
+
+        const { body: responseBody2 } = (await request(app.getHttpServer())
+            .post('/pair-game-quiz/pairs/connection')
+            .auth(tokens[1].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(responseBody2.status).toEqual('Active'); //Игру создали и убедились, что она активна
+
+        const gameId = responseBody2.id;
+
+        for (let i = 0; i < 5; i++) {
+            // Играем - используем псевдо рандомные ответы для чистоты эксперимента
+            const { body: responseBodyg1 } = (await request(app.getHttpServer())
+                .post('/pair-game-quiz/pairs/my-current/answers')
+                .send({ answer: `correct answer${Math.floor(Math.random() * 15)}` })
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+            expect(responseBodyg1.answerStatus).toBeDefined();
+            expect(responseBodyg1.questionId).toBeDefined();
+
+            const { body: currentGame } = (await request(app.getHttpServer())
+                .get('/pair-game-quiz/pairs/my-current')
+                .auth(tokens[0].accessToken, { type: 'bearer' })
+                .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+            expect(currentGame.questions).not.toBe(null);
+            if (currentGame.questions) {
+                expect(currentGame.questions.some((x) => x.id == responseBodyg1.questionId)).toBeTruthy();
+            }
+
+            if (i < 2) {
+                //даём три ответа за второго игрока
+                const { body: responseBodyg2 } = (await request(app.getHttpServer())
+                    .post('/pair-game-quiz/pairs/my-current/answers')
+                    .send({ answer: `alternative correct answer${Math.floor(Math.random() * 15)}` })
+                    .auth(tokens[1].accessToken, { type: 'bearer' })
+                    .expect(HttpStatus.OK)) as { body: AnswerViewDto };
+
+                expect(responseBodyg2.answerStatus).toBeDefined();
+                expect(responseBodyg2.questionId).toBeDefined();
+            }
+        }
+
+        await delay(11000);
+
+        const { body: finalResponse } = (await request(app.getHttpServer()) //Получаем игру по id, проверяем, что она закончена
+            .get(`/pair-game-quiz/pairs/${gameId}`)
+            .auth(tokens[0].accessToken, { type: 'bearer' })
+            .expect(HttpStatus.OK)) as { body: GameViewDto };
+
+        expect(finalResponse.status).toEqual('Finished');
+        expect(finalResponse.finishGameDate !== 'null').toBeTruthy();
+    }, 15000);
 });

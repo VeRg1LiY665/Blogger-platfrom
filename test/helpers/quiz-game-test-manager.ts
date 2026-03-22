@@ -208,7 +208,7 @@ export class QuizGameTestManager {
     sortTopUsersStats(
         players: UserStatisticsViewDto[],
         sort: Partial<TopUsersSortBy>,
-        pageNumber: number = 0,
+        pageNumber: number = 1,
         pageSize: number = 10
     ): UserStatisticsViewDto[] {
         return [...players]

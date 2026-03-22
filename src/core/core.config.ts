@@ -55,6 +55,32 @@ export class CoreConfig {
     })
     postgresDBName: string;
 
+    @IsNotEmpty({
+        message: 'Set Env variable REDIS_HOST, example: localhost'
+    })
+    redisHost: string;
+
+    @IsNumber(
+        {},
+        {
+            message: 'Set Env variable REDIS_PORT, example: 5000'
+        }
+    )
+    redisPort: number;
+
+    @IsNotEmpty({
+        message: 'Set Env variable REDIS_PASS, example: password'
+    })
+    redisPassword: string;
+
+    @IsNumber(
+        {},
+        {
+            message: 'Set Env variable REDIS_PORT, example: 5000'
+        }
+    )
+    redisDB: number;
+
     @IsEnum(Environments, {
         message:
             'Ser correct NODE_ENV value, available values: ' +
@@ -89,6 +115,10 @@ export class CoreConfig {
         this.postgresUser = this.configService.get('POSTGRES_USER');
         this.postgresPassword = this.configService.get('POSTGRES_PASS');
         this.postgresDBName = this.configService.get('POSTGRES_DBNAME');
+        this.redisHost = this.configService.get('REDIS_HOST');
+        this.redisPort = Number(this.configService.get('REDIS_PORT'));
+        this.redisPassword = this.configService.get('REDIS_PASSWORD');
+        this.redisDB = Number(this.configService.get('REDIS_DB'));
         this.env = this.configService.get('NODE_ENV');
         this.isSwaggerEnabled = configValidationUtility.convertToBoolean(
             this.configService.get('IS_SWAGGER_ENABLED')

@@ -7,6 +7,8 @@ import { AnswerViewDto } from '../../../api/view-dto/answer.view-dto';
 import { AnswerQuestionDto } from '../../../dto/answer-question.dto';
 import { AnswersFactory } from '../../factories/answer.factory';
 import { AnswerStatus } from '../../../domain/constants/answer-status.constants';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 export class SendNextQuestionAnswerCommand {
     constructor(public dto: AnswerQuestionDto) {}
@@ -19,6 +21,7 @@ export class SendNextQuestionAnswerCommand {
 @CommandHandler(SendNextQuestionAnswerCommand)
 export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQuestionAnswerCommand, AnswerViewDto> {
     constructor(
+        @InjectQueue('finishGameWithDelay') private finishGameQueue: Queue,
         private gamesSqlRepository: GamesSqlRepository,
         private answersFactory: AnswersFactory
     ) {}
@@ -51,6 +54,12 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
 
                 if (p.answers.length == Agame.questions.length && Agame.firstFinished == 255) {
                     Agame.firstFinished = index;
+                    console.log(Agame.id);
+                    const dto = {
+                        userId: p.playerId,
+                        firstFinished: index
+                    };
+                    await this.finishGameQueue.add('waiting for game termination', dto);
                 }
 
                 Agame.countTotalNumberOfAnswers();

@@ -14,6 +14,7 @@ import { Question } from '../modules/quiz-game/domain/question.entity';
 import { PlayerProgress } from '../modules/quiz-game/domain/playerProgress.entity';
 import { Answer } from '../modules/quiz-game/domain/answers.entity';
 import { GameQuestion } from '../modules/quiz-game/domain/game-questions.entity';
+import { Redis } from 'ioredis';
 
 export const databaseProviders = [
     /*{
@@ -76,6 +77,36 @@ export const databaseProviders = [
             });
             return await dataSource.initialize();
         },
+        inject: [CoreConfig]
+    },
+    /*{
+        provide: 'REDIS_CONNECTION',
+        useFactory: async (coreConfig: CoreConfig) => {
+            const redis = new Redis({
+                host: coreConfig.redisHost,
+                port: coreConfig.redisPort,
+                //username: coreConfig.postgresUser,
+                password: coreConfig.redisPassword,
+                db: coreConfig.redisDB,
+                //for bullmq
+                lazyConnect: true
+            });
+
+            redis.on('connect', () => console.log('✅ Redis connected'));
+            redis.on('error', (err) => console.error('❌ Redis error:', err));
+
+            return redis;
+        },
+        inject: [CoreConfig]
+    },*/
+    {
+        provide: 'REDIS_OPTIONS',
+        useFactory: (coreConfig: CoreConfig) => ({
+            host: coreConfig.redisHost,
+            port: coreConfig.redisPort,
+            password: coreConfig.redisPassword,
+            db: coreConfig.redisDB
+        }),
         inject: [CoreConfig]
     }
 ];
