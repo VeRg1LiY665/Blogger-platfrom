@@ -15,7 +15,8 @@ import { CoreConfig } from './core/core.config';
 import { DatabaseModule } from './database/database.modules';
 import { QuizGameModule } from './modules/quiz-game/quiz-game.module';
 import { BullModule } from '@nestjs/bullmq';
-import { BullmqModule } from './modules/bullmq/bullmq.module'; //кастомный модуль подключения к монго или postgres
+import { BullmqModule } from './modules/bullmq/bullmq.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
     imports: [
@@ -27,6 +28,7 @@ import { BullmqModule } from './modules/bullmq/bullmq.module'; //кастомн�
                 }
             ]
         }),
+        ScheduleModule.forRoot(), //для теста cron
         DatabaseModule,
         BullmqModule,
         CoreModule,

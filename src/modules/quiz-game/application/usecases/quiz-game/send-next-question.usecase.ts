@@ -9,6 +9,14 @@ import { AnswersFactory } from '../../factories/answer.factory';
 import { AnswerStatus } from '../../../domain/constants/answer-status.constants';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { GameFinishWithDelayDto } from '../../../../bullmq/dto/game-finish-with-delay.dto';
+
+interface TerinatingGame {
+    userId: string;
+    firstFinished: number;
+    scheduledAt: number;
+}
 
 export class SendNextQuestionAnswerCommand {
     constructor(public dto: AnswerQuestionDto) {}
@@ -20,6 +28,7 @@ export class SendNextQuestionAnswerCommand {
 
 @CommandHandler(SendNextQuestionAnswerCommand)
 export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQuestionAnswerCommand, AnswerViewDto> {
+    private terminatingGames: Map<string, TerinatingGame> = new Map();
     constructor(
         @InjectQueue('finishGameWithDelay') private finishGameQueue: Queue,
         private gamesSqlRepository: GamesSqlRepository,
@@ -60,6 +69,12 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
                         firstFinished: index
                     };
                     await this.finishGameQueue.add('waiting for game termination', dto);
+                    /*this.terminatingGames.set(Agame.id, {
+                        userId: p.playerId,
+                        firstFinished: Agame.firstFinished,
+                        scheduledAt: Date.now() + 10000 // 10s from now
+                    });
+                    await this.handleTimeout();*/
                 }
 
                 Agame.countTotalNumberOfAnswers();
@@ -73,5 +88,31 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
             code: DomainExceptionCode.Forbidden,
             message: 'User has been answered to all questions'
         });
+    }
+
+    @Cron(CronExpression.EVERY_SECOND)
+    async handleTimeout(): Promise<void> {
+        const now = Date.now();
+        const finishedGames: string[] = [];
+
+        for (const [gameId, terminatingGame] of this.terminatingGames.entries()) {
+            if (now >= terminatingGame.scheduledAt) {
+                const game: GameEntity | null = await this.gamesSqlRepository.findActiveByPlayer(
+                    terminatingGame.userId
+                );
+                if (game) {
+                    game.finishGame(terminatingGame.firstFinished);
+
+                    game.countTotalNumberOfAnswers();
+
+                    await this.gamesSqlRepository.save(game);
+                    finishedGames.push(gameId);
+                }
+            }
+        }
+
+        for (const gameId of finishedGames) {
+            this.terminatingGames.delete(gameId);
+        }
     }
 }

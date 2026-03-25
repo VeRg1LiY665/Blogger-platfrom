@@ -20,17 +20,18 @@ export class GameFinishProcessor extends WorkerHost {
 
         const game: GameEntity | null = await this.gamesSqlRepository.findActiveByPlayer(gameData.userId);
         if (!game) {
-            throw new DomainException({
+            await this.job.remove();
+            /*throw new DomainException({
                 code: DomainExceptionCode.Forbidden,
                 message: 'User does not participate in game'
-            });
+            });*/ // TODO cancel job вместо доменной ошибки?
+        } else {
+            game.finishGame(gameData.firstFinished);
+
+            game.countTotalNumberOfAnswers();
+
+            await this.gamesSqlRepository.save(game);
         }
-
-        game.finishGame(gameData.firstFinished);
-
-        game.countTotalNumberOfAnswers();
-
-        await this.gamesSqlRepository.save(game);
 
         //console.log(`Game ${game.id} finished after 10s delay`);
     }
