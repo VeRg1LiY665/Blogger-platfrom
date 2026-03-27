@@ -36,7 +36,7 @@ export class UsersSqlQueryRepository {
             whereClause = conditions;
         }
 
-        const queryBuilder = this.users //TODO check usecase
+        const queryBuilder = this.users
             .createQueryBuilder('u')
             .select(['u.id as "id"', 'u.login as "login"', 'u.email as "email"', 'u.createdAt as "createdAt"'])
             .where(whereClause, { ...filter })

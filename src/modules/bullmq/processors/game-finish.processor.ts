@@ -21,10 +21,6 @@ export class GameFinishProcessor extends WorkerHost {
         const game: GameEntity | null = await this.gamesSqlRepository.findActiveByPlayer(gameData.userId);
         if (!game) {
             await this.job.remove();
-            /*throw new DomainException({
-                code: DomainExceptionCode.Forbidden,
-                message: 'User does not participate in game'
-            });*/ // TODO cancel job вместо доменной ошибки?
         } else {
             game.finishGame(gameData.firstFinished);
 

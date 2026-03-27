@@ -24,7 +24,7 @@ export class CreateBlogUseCase implements ICommandHandler<CreateBlogCommand, str
                 code: DomainExceptionCode.BadRequest,
                 message: 'Blog already exists'
             });
-        }*/ //TODO ask for uniqueness check
+        }*/ //usecase does not require uniqueness check
 
         const newBlog = Blog.createInstance({
             name: dto.name,

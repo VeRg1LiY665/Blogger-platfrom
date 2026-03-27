@@ -18,7 +18,7 @@ export class GetAllDevicesQueryHandler implements IQueryHandler<GetAllDevicesQue
     async execute(userId: GetAllDevicesQuery) {
         const devices: DevicesViewDto[] = await this.securityDevicesSqlQueryRepository.showAllDevices(userId.userId);
 
-        //TODO is it even necessary to show only active sessions?
+        //Дальше кусок кода, который возвращает только активные сессии - сейчас не нужно, тз другое
         /*const expTime: number = convertToSeconds(this.userAccountsConfig.accessTokenExpireIn);
         const activeDevices = devices.map((x: DevicesViewDto) => {
             if (Math.floor(Date.now()) - Math.floor(new Date(x.lastActiveDate).getTime() / 1000) <= expTime * 1000) {

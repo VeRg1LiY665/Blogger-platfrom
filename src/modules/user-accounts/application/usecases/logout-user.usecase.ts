@@ -7,7 +7,7 @@ import { RefreshContextDto } from '../../guards/dto/refresh-context.dto';
 import { SecurityDevicesSqlRepository } from '../../infrastructure/security-devices.sql.repository';
 
 export class LogoutUserCommand {
-    constructor(public dto: RefreshContextDto) {} //TODO Separate DTO?
+    constructor(public dto: RefreshContextDto) {} //Можно отдельную DTO сделать просто через extend
 }
 
 /**

@@ -29,7 +29,7 @@ export class Comment {
     @Column(() => LikesInfo)
     likesInfo: LikesInfo;
 
-    @AfterLoad() //TODO Уточнить по поводу этого декоратора в данном контексте
+    @AfterLoad()
     createLikeStatus() {
         this.likesInfo.myStatus = LikeInput.None; //Как бы не особо правильно дергать апи слой в домене, но пока так
     }

@@ -11,7 +11,7 @@ export class UUIDValidationPipe implements PipeTransform {
         }
 
         if (isNumber(+value)) {
-            //TODO Это только для тестов, чтобы не менять тип id на number
+            //Это только для тестов, чтобы не менять тип id на number
             throw new DomainException({
                 code: DomainExceptionCode.NotFound,
                 message: `Invalid UUID format: ${value}`
