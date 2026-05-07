@@ -11,7 +11,7 @@ import {
     Query,
     UseGuards
 } from '@nestjs/common';
-import { ApiParam } from '@nestjs/swagger';
+import { ApiParam, ApiSecurity } from '@nestjs/swagger';
 import { BlogViewDto } from './view-dto/blogs.view-dto';
 import { CreateBlogInputDto } from './input-dto/blogs.input-dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params.input-dto';
@@ -38,6 +38,7 @@ import { UpdateBlogPostDto } from '../dto/update-blog-post.dto';
 import { DeletePostForBlogCommand } from '../application/usecases/posts/delete-post-for-blog.usecase';
 import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
 
+@ApiSecurity('basicAuth')
 @Controller('sa/blogs')
 export class BlogsSaController {
     constructor(

@@ -1,11 +1,18 @@
 import { Blog } from '../../domain/blog.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class BlogViewDto {
+    @ApiProperty()
     id: string;
+    @ApiProperty()
     name: string;
+    @ApiProperty()
     description: string;
+    @ApiProperty()
     websiteUrl: string;
+    @ApiProperty()
     createdAt: string;
+    @ApiProperty()
     isMembership: boolean;
 
     static mapSqlToView(blog: Blog): BlogViewDto {

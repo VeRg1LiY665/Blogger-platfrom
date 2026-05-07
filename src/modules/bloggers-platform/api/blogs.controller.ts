@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiParam } from '@nestjs/swagger';
+import { ApiNotFoundResponse, ApiOkResponse, ApiOperation } from '@nestjs/swagger';
 import { BlogViewDto } from './view-dto/blogs.view-dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
@@ -12,6 +12,8 @@ import { GetBlogByIdQuery } from '../application/queries/blogs/public/get-blog-b
 import { GetAllBlogsQuery } from '../application/queries/blogs/public/get-all-blogs.query';
 import { GetPostsForBlogQuery } from '../application/queries/posts/public/get-posts-for-blog.query';
 import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.service';
+import { PostViewDto } from './view-dto/posts.view-dto';
+import { ApiPaginatedResponse } from '../../../core/decorators/swagger/paginated-response';
 
 @Controller('blogs') //TODO SWAGGER
 export class BlogsController {
@@ -21,17 +23,24 @@ export class BlogsController {
     ) {}
 
     @Get()
+    @ApiOperation({ summary: 'Get all blogs' })
+    @ApiPaginatedResponse(BlogViewDto)
     async getBlogs(@Query() query: GetBlogsQueryParams): Promise<PaginatedViewDto<BlogViewDto[]>> {
         return await this.queryBus.execute<GetAllBlogsQuery>(new GetAllBlogsQuery(query));
     }
 
-    @ApiParam({ name: 'id' }) //для сваггера
+    @ApiOperation({ summary: 'Get blog by id' })
+    @ApiOkResponse({ type: BlogViewDto })
+    @ApiNotFoundResponse({ description: 'No blog found' })
     @Get(':id')
     async getBlogByID(@Param('id', UUIDValidationPipe) id: string): Promise<BlogViewDto> {
         return await this.queryBus.execute<GetBlogByIdQuery>(new GetBlogByIdQuery(id));
     }
 
     @Get(':id/posts')
+    @ApiOperation({ summary: 'Get all posts for specific blog' })
+    @ApiPaginatedResponse(PostViewDto)
+    @ApiNotFoundResponse({ description: 'Specified blog not found' })
     @UseGuards(JwtOptionalAuthGuard)
     async getBlogPosts(
         @Param('id', UUIDValidationPipe) id: string,
