@@ -1,12 +1,15 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Inject } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ErrorResponseBody } from './error-response-body.type';
 import { DomainExceptionCode } from './domain-exception-codes';
+import { CoreConfig } from '../core.config';
 
 //https://docs.nestjs.com/exception-filters#exception-filters-1
 //Все ошибки
 @Catch()
 export class AllHttpExceptionsFilter implements ExceptionFilter {
+    constructor(@Inject() private readonly coreConfig: CoreConfig) {}
+
     catch(exception: any, host: ArgumentsHost): void {
         //ctx нужен, чтобы получить request и response (express). Это из документации, делаем по аналогии
         const ctx = host.switchToHttp();
@@ -22,8 +25,8 @@ export class AllHttpExceptionsFilter implements ExceptionFilter {
     }
 
     private buildResponseBody(requestUrl: string, message: string): ErrorResponseBody {
-        //TODO: Replace with getter from configService. will be in the following lessons
-        const isProduction = process.env.NODE_ENV === 'production';
+        //get .env from coreConfig done
+        const isProduction = this.coreConfig.env === 'production';
 
         if (isProduction) {
             return {

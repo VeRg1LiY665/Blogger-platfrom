@@ -15,7 +15,7 @@ import { UUIDValidationPipe } from '../../../core/pipes/uuid-validation-pipe.ser
 import { PostViewDto } from './view-dto/posts.view-dto';
 import { ApiPaginatedResponse } from '../../../core/decorators/swagger/paginated-response';
 
-@Controller('blogs') //TODO SWAGGER
+@Controller('blogs')
 export class BlogsController {
     constructor(
         private readonly commandBus: CommandBus,
