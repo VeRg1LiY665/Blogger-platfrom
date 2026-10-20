@@ -22,4 +22,4 @@ async function bootstrap(): Promise<void> {
         console.log('Server is running on port ' + port);
     });
 }
-bootstrap();
+void bootstrap();

@@ -68,7 +68,7 @@ export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQu
                         userId: p.playerId,
                         firstFinished: index
                     };
-                    await this.finishGameQueue.add('waiting for game termination', dto);
+                    await this.finishGameQueue.add('waiting for game termination', dto, { delay: 10000 });
                     /*this.terminatingGames.set(Agame.id, {
                         userId: p.playerId,
                         firstFinished: Agame.firstFinished,
