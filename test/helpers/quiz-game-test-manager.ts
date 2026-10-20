@@ -180,7 +180,7 @@ export class QuizGameTestManager {
     async playSeveralGamesBySeveralUsers(gamesCount: number, gamesPerPair: number, tokens: any[]): Promise<Set<any>> {
         //NOTE! tokens.length MUST BE EVEN
         const players = new Set();
-        for (let i = 0; i < gamesCount; i++) {
+        for (let i = 0; i < gamesCount / gamesPerPair - 1; i++) {
             const playersPair: any[] = [
                 tokens[Math.floor(Math.random() * ((tokens.length - 1) / 2))],
                 tokens[tokens.length - 1 - Math.floor(Math.random() * ((tokens.length - 1) / 2))]

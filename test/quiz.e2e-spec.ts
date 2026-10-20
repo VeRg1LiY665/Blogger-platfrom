@@ -621,7 +621,7 @@ describe('quiz-game', () => {
     }, 20000);
 
     it('should play several games with different players then call /users/top (pageNumber = 2, pageSize = 2)', async () => {
-        const gamesAmount = 6; //Set up how many games will be played by ONE pair of users
+        const gamesAmount = 6; //Set up how many games will be played
         const gamesPerPair = 3; //Set up how many games we play per a pair of users
         const items: UserStatisticsViewDto[] = [];
 
