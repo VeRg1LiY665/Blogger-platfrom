@@ -12,7 +12,7 @@ import { Queue } from 'bullmq';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { GameFinishWithDelayDto } from '../../../../bullmq/dto/game-finish-with-delay.dto';
 
-interface TerinatingGame {
+interface TerminatingGame {
     userId: string;
     firstFinished: number;
     scheduledAt: number;
@@ -28,7 +28,7 @@ export class SendNextQuestionAnswerCommand {
 
 @CommandHandler(SendNextQuestionAnswerCommand)
 export class SendNextQuestionAnswerUseCase implements ICommandHandler<SendNextQuestionAnswerCommand, AnswerViewDto> {
-    private terminatingGames: Map<string, TerinatingGame> = new Map();
+    private terminatingGames: Map<string, TerminatingGame> = new Map();
     constructor(
         @InjectQueue('finishGameWithDelay') private finishGameQueue: Queue,
         private gamesSqlRepository: GamesSqlRepository,
